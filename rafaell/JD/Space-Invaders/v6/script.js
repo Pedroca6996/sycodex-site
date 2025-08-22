@@ -48,6 +48,14 @@ document.addEventListener("keyup", (e) => {
   keys[e.key] = false;
 });
 
+function playSound(id) {
+  const sound = document.getElementById(id);
+  if (sound) {
+    sound.currentTime = 0;
+    sound.play();
+  }
+}
+
 function createEnemies() {
   enemies = [];
   for (let row = 0; row < enemyRows; row++) {
@@ -66,7 +74,7 @@ function createEnemies() {
 }
 
 function spawnPowerUp() {
-  if (Math.random() < 0.02) {
+  if (Math.random() < 0.015 + level * 0.002) {
     const types = ["doubleShot", "wideShip", "explosive", "piercing", "bomb"];
     const type = types[Math.floor(Math.random() * types.length)];
     const speed = type === "bomb" ? 7 :
@@ -100,6 +108,8 @@ function handleShooting() {
 }
 
 function shootBullet() {
+  playSound("shootSound");
+
   const baseBullet = {
     x: player.x + player.width / 2 - 2,
     y: player.y,
@@ -151,7 +161,10 @@ function drawEnemies() {
       enemy.y += 20;
       if (enemy.y + enemy.height >= player.y) {
         lives--;
-        if (lives <= 0) gameOver = true;
+        if (lives <= 0) {
+          gameOver = true;
+          playSound("gameOverSound");
+        }
       }
     });
   }
@@ -169,6 +182,7 @@ function drawPowerUps() {
       p.y < player.y + player.height &&
       p.y + p.height > player.y
     ) {
+      playSound("powerUpSound");
       const now = Date.now();
       if (p.type === "doubleShot") {
         player.doubleShot = true;
@@ -195,6 +209,11 @@ function drawPowerUps() {
   });
 }
 
+function flashEnemy(enemy) {
+  ctx.fillStyle = "white";
+  ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+}
+
 function checkCollisions() {
   bullets.forEach((bullet, bIndex) => {
     enemies.forEach((enemy, eIndex) => {
@@ -205,6 +224,9 @@ function checkCollisions() {
         bullet.y + bullet.height > enemy.y;
 
       if (collided) {
+        flashEnemy(enemy);
+        playSound("explosionSound");
+
         if (bullet.type === "explosive") {
           enemies = enemies.filter((e) => {
             const dist = Math.hypot(e.x - enemy.x, e.y - enemy.y);
@@ -245,7 +267,7 @@ function updatePowerUpTimers() {
     bulletType = "normal";
     powerUpTimers.explosive = 0;
   }
-   if (powerUpTimers.piercing && now > powerUpTimers.piercing) {
+  if (powerUpTimers.piercing && now > powerUpTimers.piercing) {
     bulletType = "normal";
     powerUpTimers.piercing = 0;
   }
@@ -253,19 +275,22 @@ function updatePowerUpTimers() {
 
 function drawPowerUpHUD() {
   const now = Date.now();
-  const activePowerUps = Object.entries(powerUpTimers)
-    .filter(([_, endTime]) => endTime > now);
+  const active = Object.entries(powerUpTimers).filter(([_, end]) => end > now);
+  if (active.length === 0) return;
 
-  if (activePowerUps.length === 0) return;
-
+  ctx.font = "14px Arial";
   ctx.fillStyle = "white";
-  ctx.font = "16px Arial";
-  ctx.fillText("Power-ups ativos:", 10, 50);
+  ctx.fillText("Power-ups:", 10, 50);
 
-  activePowerUps.forEach(([type, endTime], index) => {
-    const timeLeft = Math.ceil((endTime - now) / 1000);
-    const label = `${type} (${timeLeft}s)`;
-    ctx.fillText(label, 10, 70 + index * 20);
+  active.forEach(([type, end], i) => {
+    const timeLeft = Math.max(0, end - now);
+    const percent = timeLeft / POWER_UP_DURATION;
+    ctx.fillStyle = "gray";
+    ctx.fillRect(10, 70 + i * 25, 100, 10);
+    ctx.fillStyle = "lime";
+    ctx.fillRect(10, 70 + i * 25, 100 * percent, 10);
+    ctx.fillStyle = "white";
+    ctx.fillText(`${type}`, 115, 78 + i * 25);
   });
 }
 
@@ -275,6 +300,7 @@ function drawHUD() {
   ctx.fillText(`Pontuação: ${score}`, 10, 25);
   ctx.fillText(`Vidas: ${lives}`, canvas.width - 100, 25);
   ctx.fillText(`Nível: ${level}`, canvas.width / 2 - 40, 25);
+  ctx.fillText(`Tiro: ${bulletType}`, canvas.width / 2 - 40, 45);
   drawPowerUpHUD();
 }
 
