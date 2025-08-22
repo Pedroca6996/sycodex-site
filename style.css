@@ -61,3 +61,20 @@ footer {
 .easter:hover {
   color: #00ffff;
 }
+
+.jogo-btn {
+  display: block;
+  margin: 10px auto;
+  padding: 12px 20px;
+  width: fit-content;
+  background-color: #00ffff;
+  color: #0f0f1a;
+  text-decoration: none;
+  font-weight: bold;
+  border-radius: 5px;
+  transition: background-color 0.3s;
+}
+
+.jogo-btn:hover {
+  background-color: #00cccc;
+}
