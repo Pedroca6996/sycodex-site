@@ -1,28 +1,68 @@
+/* style.css - VERSÃO MELHORADA */
+
+/* Importando fontes do Google Fonts no início do CSS */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@700&family=Lato:wght@400;700&display=swap');
+
 body {
   margin: 0;
-  font-family: 'Segoe UI', sans-serif;
+  /* Nova fonte para o corpo do texto: mais legível */
+  font-family: 'Lato', sans-serif; 
   background-color: #0f0f1a;
-  color: #ffffff;
-  text-align: center;
+  color: #e0e0e0; /* Usando um branco levemente acinzentado para conforto visual */
+  line-height: 1.6; /* Melhora a legibilidade dos parágrafos */
+}
+
+/* Criamos um container para centralizar o conteúdo principal */
+main {
+  max-width: 1100px; /* Limita a largura do conteúdo */
+  margin: 0 auto; /* Centraliza o container na página */
+  padding: 0 20px; /* Espaçamento lateral para não colar nas bordas */
 }
 
 header {
-  padding: 40px 20px;
-  background-color: #1a1a2e;
+  padding: 80px 20px; /* Mais preenchimento vertical para impacto */
+  text-align: center; /* Centralizamos APENAS o header */
+  border-bottom: 1px solid #1a1a2e; /* Uma linha sutil de separação */
 }
 
 header h1 {
-  font-size: 3em;
+  /* Nova fonte para títulos: mais moderna e forte */
+  font-family: 'Poppins', sans-serif; 
+  font-size: 3.5em; /* Um pouco maior */
   color: #00ffff;
+  margin: 0;
 }
 
 header p {
   font-size: 1.2em;
   margin-top: 10px;
+  max-width: 600px; /* Limita a largura do slogan */
+  margin-left: auto;
+  margin-right: auto;
+  color: #a0a0b0; /* Cor mais suave para o slogan */
+}
+
+/* Estilo do botão de ação que vamos adicionar no HTML */
+.cta-button {
+  display: inline-block; /* Para poder aplicar padding e margin */
+  margin-top: 30px;
+  padding: 15px 30px;
+  background-color: #00ffff;
+  color: #0f0f1a;
+  text-decoration: none;
+  font-weight: bold;
+  font-family: 'Poppins', sans-serif;
+  border-radius: 5px;
+  transition: transform 0.3s, background-color 0.3s;
+}
+
+.cta-button:hover {
+  background-color: #00cccc;
+  transform: scale(1.05); /* Efeito de crescimento sutil */
 }
 
 nav {
-  margin-top: 20px;
+  margin-top: 40px;
 }
 
 nav a {
@@ -30,21 +70,75 @@ nav a {
   color: #ffffff;
   text-decoration: none;
   font-weight: bold;
+  padding-bottom: 5px; /* Aumenta a área de clique */
   border-bottom: 2px solid transparent;
+  transition: border-color 0.3s; /* Transição mais suave */
 }
 
 nav a:hover {
-  border-bottom: 2px solid #00ffff;
+  border-bottom-color: #00ffff; /* A propriedade que muda é a cor */
 }
 
 .destaque {
   padding: 60px 20px;
 }
 
-footer {
+/* Adicione este código novo ao seu style.css */
+
+.secao-projetos {
+  padding: 80px 0;
+  text-align: center;
+}
+
+.secao-projetos h2 {
+  font-family: 'Poppins', sans-serif;
+  font-size: 2.5em;
+  margin-bottom: 50px;
+}
+
+.projetos-grid {
+  display: grid;
+  /* Cria 3 colunas em telas grandes, 2 em médias e 1 em pequenas */
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 30px; /* Espaço entre os cards */
+  text-align: left; /* Alinha o texto dos cards à esquerda */
+}
+
+.card-projeto {
   background-color: #1a1a2e;
+  border-radius: 8px;
+  overflow: hidden; /* Garante que a imagem não saia do card */
+  transition: transform 0.3s, box-shadow 0.3s;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.card-projeto:hover {
+  transform: translateY(-10px); /* Efeito de "flutuar" */
+  box-shadow: 0 8px 30px rgba(0, 255, 255, 0.2);
+}
+
+.card-projeto img {
+  width: 100%; /* Faz a imagem ocupar toda a largura do card */
+  height: 200px; /* Altura fixa para a imagem */
+  object-fit: cover; /* Garante que a imagem cubra o espaço sem distorcer */
+}
+
+.card-conteudo {
   padding: 20px;
+}
+
+.card-conteudo h3 {
+  margin-top: 0;
+  font-family: 'Poppins', sans-serif;
+  color: #00ffff;
+}
+
+footer {
+  background-color: #0a0a14; /* Um pouco mais escuro para diferenciar */
+  padding: 40px 20px;
+  text-align: center;
   font-size: 0.9em;
+  margin-top: 80px; /* Espaço para "respirar" antes do rodapé */
 }
 
 .equipe {
