@@ -1,0 +1,106 @@
+/* Estilo geral do body */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+    color: white;
+    overflow: hidden;
+    position: relative;
+}
+
+/* Canvas do jogo */
+#gameCanvas {
+    display: block;
+    margin: 0 auto;
+    border: 2px solid white;
+    background-color: rgba(0,0,0,0.8);
+    position: relative;
+    z-index: 1;
+}
+
+/* Tela de overlay (menu, instruções, configurações) */
+.overlay {
+    position: fixed; /* fixa na tela inteira */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.9);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+    text-align: center;
+}
+
+.overlay h1 { font-size: 60px; margin-bottom: 40px; }
+.overlay h2 { font-size: 40px; margin-bottom: 30px; }
+.overlay p  { font-size: 20px; margin-bottom: 20px; }
+
+.overlay button {
+    font-size: 20px;
+    padding: 15px 30px;
+    margin: 10px;
+    cursor: pointer;
+    background-color: #222;
+    color: white;
+    border: 2px solid white;
+    border-radius: 10px;
+    transition: all 0.2s ease;
+}
+
+.overlay button:hover {
+    background-color: #555;
+    border-color: yellow;
+}
+
+.overlay input[type="number"] {
+    width: 60px;
+    font-size: 18px;
+    margin-left: 10px;
+    padding: 5px;
+    border-radius: 5px;
+    border: 1px solid #fff;
+    background-color: #222;
+    color: white;
+}
+
+/* Rodapé */
+#footer {
+    position: fixed;
+    bottom: 10px;
+    right: 20px;
+    font-size: 16px;
+    z-index: 15;
+}
+
+#footer a { color: yellow; text-decoration: none; }
+#footer a:hover { text-decoration: underline; }
+
+/* Botões de controle do jogo */
+#gameControls {
+    position: fixed;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 5;
+}
+
+#gameControls button {
+    font-size: 18px;
+    padding: 8px 15px;
+    margin: 0 5px;
+    border-radius: 8px;
+    background-color: #222;
+    border: 2px solid white;
+    color: white;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+#gameControls button:hover {
+    background-color: #444;
+    border-color: yellow;
+}
