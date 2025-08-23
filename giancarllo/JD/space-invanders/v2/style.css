@@ -1,0 +1,16 @@
+/* Remove margens e deixa fundo escuro */
+body {
+  margin: 0;
+  background: #0b1020;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+/* Estilização do canvas */
+canvas {
+  border: 2px solid #22d3ee;
+  background: #0b1020;
+  display: block;
+}
