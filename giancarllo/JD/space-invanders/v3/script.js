@@ -113,7 +113,9 @@ function update() {
 
 // Desenhar jogo
 function draw() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  // Fundo sempre escuro
+  ctx.fillStyle = "#000";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   if (gameOver) {
     ctx.fillStyle = "#111";
