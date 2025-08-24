@@ -1,16 +1,13 @@
-/* Fundo escuro centralizado */
 body {
   margin: 0;
-  background: #0b1020;
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
+  background-color: #000; /* fundo da página preto */
 }
 
-/* Canvas com borda */
 canvas {
-  border: 2px solid #22d3ee;
-  background: #0b1020;
-  display: block;
+  border: 2px solid #fff;
+  background-color: #000; /* fundo do canvas preto */
 }
