@@ -50,10 +50,10 @@ function createEnemies() {
   enemies = [];
   specialEnemies = [];
   for (let i = 0; i < 6; i++) {
-    enemies.push({ x: i * 90 + 30, y: 30, width: 40, height: 30, dx: 1 + level * 0.2, points: 10, color: "#f00" });
+    enemies.push({ x: i * 90 + 30, y: 30, width: 40, height: 30, dx: 0.5 + level * 0.1, points: 10, color: "#f00" });
   }
   for (let i = 0; i < 2; i++) {
-    specialEnemies.push({ x: i * 180 + 60, y: 70, width: 40, height: 30, dx: 1.5 + level * 0.2, points: 50, color: "#0ff" });
+    specialEnemies.push({ x: i * 180 + 60, y: 70, width: 40, height: 30, dx: 0.7 + level * 0.1, points: 50, color: "#0ff" });
   }
 }
 
@@ -61,11 +61,11 @@ createEnemies();
 
 function shoot() {
   if (player.powerTriple) {
-    bullets.push({ x: player.x + player.width / 2 - 20, y: player.y, width: 6, height: 15, dy: -8 });
-    bullets.push({ x: player.x + player.width / 2, y: player.y, width: 6, height: 15, dy: -8 });
-    bullets.push({ x: player.x + player.width / 2 + 20, y: player.y, width: 6, height: 15, dy: -8 });
+    bullets.push({ x: player.x + player.width / 2 - 20, y: player.y, width: 6, height: 15, dy: -5 });
+    bullets.push({ x: player.x + player.width / 2, y: player.y, width: 6, height: 15, dy: -5 });
+    bullets.push({ x: player.x + player.width / 2 + 20, y: player.y, width: 6, height: 15, dy: -5 });
   } else {
-    bullets.push({ x: player.x + player.width / 2 - 3, y: player.y, width: 6, height: 15, dy: -8 });
+    bullets.push({ x: player.x + player.width / 2 - 3, y: player.y, width: 6, height: 15, dy: -5 });
   }
   shootSound.currentTime = 0;
   shootSound.play();
@@ -98,7 +98,7 @@ function saveScore(score) {
 function enemyShoot() {
   if (gameOver) return;
   const shooters = enemies.concat(specialEnemies);
-  if (shooters.length > 0 && Math.random() < 0.005) {
+  if (shooters.length > 0 && Math.random() < 0.002) {
     const shooter = shooters[Math.floor(Math.random() * shooters.length)];
     enemyBullets.push({ x: shooter.x + shooter.width / 2 - 3, y: shooter.y + shooter.height, width: 6, height: 15, dy: 4 });
     enemyShootSound.currentTime = 0;
@@ -133,9 +133,6 @@ function update() {
         shootSound.pause();
         enemyShootSound.pause();
         explosionSound.pause();
-        shootSound.currentTime = 0;
-        enemyShootSound.currentTime = 0;
-        explosionSound.currentTime = 0;
       }
     }
     if (bullet.y > canvas.height) enemyBullets.splice(bIndex, 1);
@@ -174,9 +171,6 @@ function update() {
         shootSound.pause();
         enemyShootSound.pause();
         explosionSound.pause();
-        shootSound.currentTime = 0;
-        enemyShootSound.currentTime = 0;
-        explosionSound.currentTime = 0;
       }
     }
   });
@@ -247,7 +241,7 @@ function draw() {
   ctx.fillStyle = "#ff0";
   bullets.forEach((bullet) => ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height));
 
-  ctx.fillStyle = "#f43f5e"; // tiro inimigo vermelho
+  ctx.fillStyle = "#f43f5e"; 
   enemyBullets.forEach((bullet) => ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height));
 
   [...enemies, ...specialEnemies].forEach((enemy) => {
@@ -310,6 +304,7 @@ function restartGame() {
   score = 0;
   lives = 3;
   level = 1;
+  shootCooldown = 0;
   gameOver = false;
   createEnemies();
 }
