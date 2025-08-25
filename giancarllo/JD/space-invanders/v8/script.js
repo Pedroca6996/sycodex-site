@@ -24,7 +24,6 @@ let level = 1;
 
 const shootSound = new Audio("sounds/shoot.mp3");
 const explosionSound = new Audio("sounds/explosion.mp3");
-const enemyShootSound = new Audio("sounds/enemyShoot.mp3");
 
 let rightPressed = false;
 let leftPressed = false;
@@ -34,10 +33,9 @@ document.addEventListener("keydown", (e) => {
   if (e.code === "ArrowRight") rightPressed = true;
   if (e.code === "ArrowLeft") leftPressed = true;
 
-  // Disparo apenas uma vez por tecla pressionada
   if (e.code === "Space" && shootCooldown <= 0 && !gameOver) {
     shoot();
-    shootCooldown = 20; // cooldown de 20 frames (~0.33s)
+    shootCooldown = 20;
   }
 });
 
@@ -50,10 +48,10 @@ function createEnemies() {
   enemies = [];
   specialEnemies = [];
   for (let i = 0; i < 6; i++) {
-    enemies.push({ x: i * 90 + 30, y: 30, width: 40, height: 30, dx: 0.5 + level * 0.1, points: 10, color: "#f00" });
+    enemies.push({ x: i * 90 + 30, y: 30, width: 40, height: 30, dx: 1 + level * 0.2, points: 10, color: "#f00" });
   }
   for (let i = 0; i < 2; i++) {
-    specialEnemies.push({ x: i * 180 + 60, y: 70, width: 40, height: 30, dx: 0.7 + level * 0.1, points: 50, color: "#0ff" });
+    specialEnemies.push({ x: i * 180 + 60, y: 70, width: 40, height: 30, dx: 1.2 + level * 0.2, points: 50, color: "#0ff" });
   }
 }
 
@@ -95,17 +93,6 @@ function saveScore(score) {
   localStorage.setItem("topScores", JSON.stringify(scores));
 }
 
-function enemyShoot() {
-  if (gameOver) return;
-  const shooters = enemies.concat(specialEnemies);
-  if (shooters.length > 0 && Math.random() < 0.002) {
-    const shooter = shooters[Math.floor(Math.random() * shooters.length)];
-    enemyBullets.push({ x: shooter.x + shooter.width / 2 - 3, y: shooter.y + shooter.height, width: 6, height: 15, dy: 4 });
-    enemyShootSound.currentTime = 0;
-    enemyShootSound.play();
-  }
-}
-
 function update() {
   if (gameOver) return;
 
@@ -131,7 +118,6 @@ function update() {
         gameOver = true;
         saveScore(score);
         shootSound.pause();
-        enemyShootSound.pause();
         explosionSound.pause();
       }
     }
@@ -169,7 +155,6 @@ function update() {
         gameOver = true;
         saveScore(score);
         shootSound.pause();
-        enemyShootSound.pause();
         explosionSound.pause();
       }
     }
@@ -208,8 +193,14 @@ function update() {
     createEnemies();
   }
 
-  spawnPowerUp();
-  enemyShoot();
+  // Tiros inimigos
+  if (!gameOver) {
+    const shooters = enemies.concat(specialEnemies);
+    if (shooters.length > 0 && Math.random() < 0.002) {
+      const shooter = shooters[Math.floor(Math.random() * shooters.length)];
+      enemyBullets.push({ x: shooter.x + shooter.width / 2 - 3, y: shooter.y + shooter.height, width: 6, height: 15, dy: 4 });
+    }
+  }
 }
 
 function draw() {
