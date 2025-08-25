@@ -7,8 +7,8 @@ let player = {
   width: 50,
   height: 30,
   speed: 7,
-  powerUp: false,
-  powerTriple: false
+  powerTriple: false,
+  powerTimer: 0
 };
 
 let bullets = [];
@@ -94,7 +94,7 @@ function saveScore(score) {
 
 function enemyShoot() {
   const shooters = enemies.concat(specialEnemies);
-  if (shooters.length > 0 && Math.random() < 0.005) { // menos tiros
+  if (shooters.length > 0 && Math.random() < 0.005) {
     const shooter = shooters[Math.floor(Math.random() * shooters.length)];
     enemyBullets.push({ x: shooter.x + shooter.width / 2 - 3, y: shooter.y + shooter.height, width: 6, height: 15, dy: 4 });
     enemyShootSound.currentTime = 0;
@@ -183,12 +183,8 @@ function update() {
       if (p.type === 1) player.speed = 12;
       if (p.type === 2) lives++;
       if (p.type === 3) player.powerTriple = true;
+      player.powerTimer = 7 * 60; 
       powerUps.splice(pIndex, 1);
-      setTimeout(() => {
-        player.width = 50;
-        player.speed = 7;
-        player.powerTriple = false;
-      }, 10000);
     }
     if (p.y > canvas.height) powerUps.splice(pIndex, 1);
   });
@@ -197,6 +193,13 @@ function update() {
     ex.radius += 2;
     if (ex.radius > ex.maxRadius) explosions.splice(index, 1);
   });
+
+  if (player.powerTimer > 0) player.powerTimer--;
+  else {
+    player.width = 50;
+    player.speed = 7;
+    player.powerTriple = false;
+  }
 
   if (enemies.length === 0 && specialEnemies.length === 0) {
     level++;
@@ -235,6 +238,8 @@ function draw() {
 
   ctx.fillStyle = "#ff0";
   bullets.forEach((bullet) => ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height));
+
+  ctx.fillStyle = "#f43f5e"; // tiro inimigo vermelho
   enemyBullets.forEach((bullet) => ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height));
 
   [...enemies, ...specialEnemies].forEach((enemy) => {
@@ -259,6 +264,21 @@ function draw() {
   ctx.fillText("Score: " + score, 20, 30);
   ctx.fillText("Vidas: " + lives, canvas.width - 100, 30);
   ctx.fillText("Level: " + level, canvas.width / 2 - 30, 30);
+
+  // Desenhar contagem de power-ups
+  if (player.powerTriple) {
+    ctx.fillStyle = "#facc15";
+    ctx.font = "18px Arial";
+    ctx.fillText("Tiro Triplo " + Math.ceil(player.powerTimer / 60) + "s", player.x, player.y - 10);
+  }
+  if (player.speed > 7) {
+    ctx.fillStyle = "#f43f5e";
+    ctx.fillText("Tiros Rápidos " + Math.ceil(player.powerTimer / 60) + "s", player.x, player.y - 25);
+  }
+  if (player.width > 50) {
+    ctx.fillStyle = "#22d3ee";
+    ctx.fillText("Nave Larga " + Math.ceil(player.powerTimer / 60) + "s", player.x, player.y - 40);
+  }
 }
 
 canvas.addEventListener("click", (e) => {
@@ -273,7 +293,7 @@ canvas.addEventListener("click", (e) => {
 });
 
 function restartGame() {
-  player = { x: canvas.width / 2 - 25, y: canvas.height - 60, width: 50, height: 30, speed: 7, powerUp: false, powerTriple: false };
+  player = { x: canvas.width / 2 - 25, y: canvas.height - 60, width: 50, height: 30, speed: 7, powerTriple: false, powerTimer: 0 };
   bullets = [];
   enemyBullets = [];
   powerUps = [];
