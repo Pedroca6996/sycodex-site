@@ -93,6 +93,7 @@ function saveScore(score) {
 }
 
 function enemyShoot() {
+  if (gameOver) return;
   const shooters = enemies.concat(specialEnemies);
   if (shooters.length > 0 && Math.random() < 0.005) {
     const shooter = shooters[Math.floor(Math.random() * shooters.length)];
@@ -103,6 +104,8 @@ function enemyShoot() {
 }
 
 function update() {
+  if (gameOver) return;
+
   if (rightPressed && player.x < canvas.width - player.width) player.x += player.speed;
   if (leftPressed && player.x > 0) player.x -= player.speed;
 
@@ -131,6 +134,9 @@ function update() {
         shootSound.pause();
         enemyShootSound.pause();
         explosionSound.pause();
+        shootSound.currentTime = 0;
+        enemyShootSound.currentTime = 0;
+        explosionSound.currentTime = 0;
       }
     }
     if (bullet.y > canvas.height) enemyBullets.splice(bIndex, 1);
@@ -169,6 +175,9 @@ function update() {
         shootSound.pause();
         enemyShootSound.pause();
         explosionSound.pause();
+        shootSound.currentTime = 0;
+        enemyShootSound.currentTime = 0;
+        explosionSound.currentTime = 0;
       }
     }
   });
