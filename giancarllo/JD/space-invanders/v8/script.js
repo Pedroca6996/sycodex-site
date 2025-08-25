@@ -265,19 +265,21 @@ function draw() {
   ctx.fillText("Vidas: " + lives, canvas.width - 100, 30);
   ctx.fillText("Level: " + level, canvas.width / 2 - 30, 30);
 
-  // Desenhar contagem de power-ups
+  // Desenhar power-ups abaixo do Score
+  let powerTextY = 55;
   if (player.powerTriple) {
     ctx.fillStyle = "#facc15";
-    ctx.font = "18px Arial";
-    ctx.fillText("Tiro Triplo " + Math.ceil(player.powerTimer / 60) + "s", player.x, player.y - 10);
+    ctx.fillText("Tiro Triplo: " + Math.ceil(player.powerTimer / 60) + "s", 20, powerTextY);
+    powerTextY += 25;
   }
   if (player.speed > 7) {
     ctx.fillStyle = "#f43f5e";
-    ctx.fillText("Tiros Rápidos " + Math.ceil(player.powerTimer / 60) + "s", player.x, player.y - 25);
+    ctx.fillText("Tiros Rápidos: " + Math.ceil(player.powerTimer / 60) + "s", 20, powerTextY);
+    powerTextY += 25;
   }
   if (player.width > 50) {
     ctx.fillStyle = "#22d3ee";
-    ctx.fillText("Nave Larga " + Math.ceil(player.powerTimer / 60) + "s", player.x, player.y - 40);
+    ctx.fillText("Nave Larga: " + Math.ceil(player.powerTimer / 60) + "s", 20, powerTextY);
   }
 }
 
