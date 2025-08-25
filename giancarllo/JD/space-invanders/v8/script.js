@@ -28,19 +28,22 @@ const enemyShootSound = new Audio("sounds/enemyShoot.mp3");
 
 let rightPressed = false;
 let leftPressed = false;
-let spacePressed = false;
 let shootCooldown = 0;
 
 document.addEventListener("keydown", (e) => {
   if (e.code === "ArrowRight") rightPressed = true;
   if (e.code === "ArrowLeft") leftPressed = true;
-  if (e.code === "Space") spacePressed = true;
+
+  // Disparo apenas uma vez por tecla pressionada
+  if (e.code === "Space" && shootCooldown <= 0 && !gameOver) {
+    shoot();
+    shootCooldown = 20; // cooldown de 20 frames (~0.33s)
+  }
 });
 
 document.addEventListener("keyup", (e) => {
   if (e.code === "ArrowRight") rightPressed = false;
   if (e.code === "ArrowLeft") leftPressed = false;
-  if (e.code === "Space") spacePressed = false;
 });
 
 function createEnemies() {
@@ -109,10 +112,6 @@ function update() {
   if (rightPressed && player.x < canvas.width - player.width) player.x += player.speed;
   if (leftPressed && player.x > 0) player.x -= player.speed;
 
-  if (spacePressed && shootCooldown <= 0) {
-    shoot();
-    shootCooldown = 20;
-  }
   if (shootCooldown > 0) shootCooldown--;
 
   bullets.forEach((bullet, bIndex) => {
@@ -274,7 +273,6 @@ function draw() {
   ctx.fillText("Vidas: " + lives, canvas.width - 100, 30);
   ctx.fillText("Level: " + level, canvas.width / 2 - 30, 30);
 
-  // Desenhar power-ups abaixo do Score
   let powerTextY = 55;
   if (player.powerTriple) {
     ctx.fillStyle = "#facc15";
