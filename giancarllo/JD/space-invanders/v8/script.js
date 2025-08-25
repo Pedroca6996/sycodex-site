@@ -48,10 +48,10 @@ function createEnemies() {
   enemies = [];
   specialEnemies = [];
   for (let i = 0; i < 6; i++) {
-    enemies.push({ x: i * 90 + 30, y: 30, width: 40, height: 30, dx: 1 + level * 0.2, points: 10, color: "#f00" });
+    enemies.push({ x: i * 90 + 30, y: 30, width: 40, height: 30, dx: 1 + level * 0.7, points: 10, color: "#f00" });
   }
   for (let i = 0; i < 2; i++) {
-    specialEnemies.push({ x: i * 180 + 60, y: 70, width: 40, height: 30, dx: 1.2 + level * 0.2, points: 50, color: "#0ff" });
+    specialEnemies.push({ x: i * 180 + 60, y: 70, width: 40, height: 30, dx: 1.2 + level * 0.9, points: 50, color: "#0ff" });
   }
 }
 
