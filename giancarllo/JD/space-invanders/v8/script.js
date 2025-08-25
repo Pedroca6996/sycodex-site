@@ -22,12 +22,10 @@ let lives = 3;
 let gameOver = false;
 let level = 1;
 
-// Sons
 const shootSound = new Audio("sounds/shoot.mp3");
 const explosionSound = new Audio("sounds/explosion.mp3");
 const enemyShootSound = new Audio("sounds/enemyShoot.mp3");
 
-// Teclado
 let rightPressed = false;
 let leftPressed = false;
 let spacePressed = false;
@@ -45,37 +43,19 @@ document.addEventListener("keyup", (e) => {
   if (e.code === "Space") spacePressed = false;
 });
 
-// Criar inimigos
 function createEnemies() {
   enemies = [];
   specialEnemies = [];
   for (let i = 0; i < 6; i++) {
-    enemies.push({
-      x: i * 90 + 30,
-      y: 30,
-      width: 40,
-      height: 30,
-      dx: 1 + level * 0.2,
-      points: 10,
-      color: "#f00"
-    });
+    enemies.push({ x: i * 90 + 30, y: 30, width: 40, height: 30, dx: 1 + level * 0.2, points: 10, color: "#f00" });
   }
   for (let i = 0; i < 2; i++) {
-    specialEnemies.push({
-      x: i * 180 + 60,
-      y: 70,
-      width: 40,
-      height: 30,
-      dx: 1.5 + level * 0.2,
-      points: 50,
-      color: "#0ff"
-    });
+    specialEnemies.push({ x: i * 180 + 60, y: 70, width: 40, height: 30, dx: 1.5 + level * 0.2, points: 50, color: "#0ff" });
   }
 }
 
 createEnemies();
 
-// Atirar
 function shoot() {
   if (player.powerTriple) {
     bullets.push({ x: player.x + player.width / 2 - 20, y: player.y, width: 6, height: 15, dy: -8 });
@@ -88,35 +68,22 @@ function shoot() {
   shootSound.play();
 }
 
-// Power-ups
 function spawnPowerUp() {
   if (Math.random() < 0.004) {
     const type = Math.floor(Math.random() * 4);
     let color = "#ff0";
-
-    if (type === 0) color = "#22d3ee";   // nave larga
-    if (type === 1) color = "#f43f5e";   // tiros rápidos
-    if (type === 2) color = "#34d399";   // vida extra
-    if (type === 3) color = "#facc15";   // 3 tiros
-
-    powerUps.push({
-      x: Math.random() * (canvas.width - 20),
-      y: 0,
-      width: 20,
-      height: 20,
-      dy: 2,
-      type,
-      color
-    });
+    if (type === 0) color = "#22d3ee";
+    if (type === 1) color = "#f43f5e";
+    if (type === 2) color = "#34d399";
+    if (type === 3) color = "#facc15";
+    powerUps.push({ x: Math.random() * (canvas.width - 20), y: 0, width: 20, height: 20, dy: 2, type, color });
   }
 }
 
-// Explosões visuais
 function createExplosion(x, y) {
   explosions.push({ x, y, radius: 0, maxRadius: 20 });
 }
 
-// Salvar pontuação no localStorage
 function saveScore(score) {
   let scores = JSON.parse(localStorage.getItem("topScores")) || [];
   if (!scores.includes(score)) scores.push(score);
@@ -125,10 +92,9 @@ function saveScore(score) {
   localStorage.setItem("topScores", JSON.stringify(scores));
 }
 
-// Tiros inimigos
 function enemyShoot() {
   const shooters = enemies.concat(specialEnemies);
-  if (shooters.length > 0 && Math.random() < 0.02) {
+  if (shooters.length > 0 && Math.random() < 0.005) { // menos tiros
     const shooter = shooters[Math.floor(Math.random() * shooters.length)];
     enemyBullets.push({ x: shooter.x + shooter.width / 2 - 3, y: shooter.y + shooter.height, width: 6, height: 15, dy: 4 });
     enemyShootSound.currentTime = 0;
@@ -136,7 +102,6 @@ function enemyShoot() {
   }
 }
 
-// Atualizar jogo
 function update() {
   if (rightPressed && player.x < canvas.width - player.width) player.x += player.speed;
   if (leftPressed && player.x > 0) player.x -= player.speed;
@@ -154,17 +119,18 @@ function update() {
 
   enemyBullets.forEach((bullet, bIndex) => {
     bullet.y += bullet.dy;
-    if (
-      bullet.x < player.x + player.width &&
-      bullet.x + bullet.width > player.x &&
-      bullet.y < player.y + player.height &&
-      bullet.y + bullet.height > player.y
-    ) {
+    if (bullet.x < player.x + player.width &&
+        bullet.x + bullet.width > player.x &&
+        bullet.y < player.y + player.height &&
+        bullet.y + bullet.height > player.y) {
       lives--;
       enemyBullets.splice(bIndex, 1);
-      if (lives <= 0) {
+      if (lives <= 0 && !gameOver) {
         gameOver = true;
         saveScore(score);
+        shootSound.pause();
+        enemyShootSound.pause();
+        explosionSound.pause();
       }
     }
     if (bullet.y > canvas.height) enemyBullets.splice(bIndex, 1);
@@ -179,12 +145,10 @@ function update() {
     }
 
     bullets.forEach((bullet, bIndex) => {
-      if (
-        bullet.x < enemy.x + enemy.width &&
-        bullet.x + bullet.width > enemy.x &&
-        bullet.y < enemy.y + enemy.height &&
-        bullet.y + bullet.height > enemy.y
-      ) {
+      if (bullet.x < enemy.x + enemy.width &&
+          bullet.x + bullet.width > enemy.x &&
+          bullet.y < enemy.y + enemy.height &&
+          bullet.y + bullet.height > enemy.y) {
         if (enemies.includes(enemy)) enemies.splice(enemies.indexOf(enemy), 1);
         else specialEnemies.splice(specialEnemies.indexOf(enemy), 1);
         bullets.splice(bIndex, 1);
@@ -199,35 +163,33 @@ function update() {
       lives--;
       if (enemies.includes(enemy)) enemies.splice(enemies.indexOf(enemy), 1);
       else specialEnemies.splice(specialEnemies.indexOf(enemy), 1);
-      if (lives <= 0) {
+      if (lives <= 0 && !gameOver) {
         gameOver = true;
         saveScore(score);
+        shootSound.pause();
+        enemyShootSound.pause();
+        explosionSound.pause();
       }
     }
   });
 
   powerUps.forEach((p, pIndex) => {
     p.y += p.dy;
-
-    if (
-      p.x < player.x + player.width &&
-      p.x + p.width > player.x &&
-      p.y < player.y + player.height &&
-      p.y + p.height > player.y
-    ) {
+    if (p.x < player.x + player.width &&
+        p.x + p.width > player.x &&
+        p.y < player.y + player.height &&
+        p.y + p.height > player.y) {
       if (p.type === 0) player.width = 80;
       if (p.type === 1) player.speed = 12;
       if (p.type === 2) lives++;
       if (p.type === 3) player.powerTriple = true;
       powerUps.splice(pIndex, 1);
-
       setTimeout(() => {
         player.width = 50;
         player.speed = 7;
         player.powerTriple = false;
       }, 10000);
     }
-
     if (p.y > canvas.height) powerUps.splice(pIndex, 1);
   });
 
@@ -245,7 +207,6 @@ function update() {
   enemyShoot();
 }
 
-// Desenhar jogo
 function draw() {
   ctx.fillStyle = "#0b1020";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -259,15 +220,9 @@ function draw() {
     ctx.fillStyle = "#fff";
     ctx.font = "20px Arial";
     ctx.fillText("Pontuação: " + score, canvas.width / 2 - 60, canvas.height / 2 + 40);
-
-    // Ranking top 5
     const scores = JSON.parse(localStorage.getItem("topScores")) || [];
     ctx.fillText("Top 5:", canvas.width / 2 - 40, canvas.height / 2 + 80);
-    scores.forEach((s, i) => {
-      ctx.fillText(`${i + 1}. ${s}`, canvas.width / 2 - 30, canvas.height / 2 + 110 + i * 25);
-    });
-
-    // Botão restart
+    scores.forEach((s, i) => ctx.fillText(`${i + 1}. ${s}`, canvas.width / 2 - 30, canvas.height / 2 + 110 + i * 25));
     ctx.fillStyle = "#0ff";
     ctx.fillRect(canvas.width / 2 - 60, canvas.height / 2 + 250, 120, 40);
     ctx.fillStyle = "#000";
@@ -306,7 +261,6 @@ function draw() {
   ctx.fillText("Level: " + level, canvas.width / 2 - 30, 30);
 }
 
-// Clique restart
 canvas.addEventListener("click", (e) => {
   if (!gameOver) return;
   const rect = canvas.getBoundingClientRect();
@@ -331,7 +285,6 @@ function restartGame() {
   createEnemies();
 }
 
-// Loop principal
 function gameLoop() {
   update();
   draw();
