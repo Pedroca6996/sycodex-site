@@ -24,30 +24,24 @@ body.dark-theme .ui-body-a,
 body.dark-theme .ui-page-theme-a {
     background-color: #121212;
     color: #e0e0e0;
-    text-shadow: none; /* Remove a sombra de texto padrão do JQM */
+    text-shadow: none;
     border-color: #333;
 }
 
 /* Cabeçalho e Rodapé */
 body.dark-theme .ui-bar-a {
-    background-color: #1e1e1e;
-    color: #bb86fc;
+    /* --- MUDANÇA AQUI --- */
+    background-color: #bb86fc; /* Fundo roxo */
+    color: #ffffff;             /* Texto branco para contraste */
     text-shadow: none;
-    border-color: #333;
+    border-color: #bb86fc;       /* Borda da mesma cor */
 }
 
-/* Botões */
-body.dark-theme .ui-btn {
-    background-color: #333;
-    color: #bb86fc;
+/* Botão DENTRO do rodapé no tema escuro */
+body.dark-theme .ui-footer .ui-btn {
+    background-color: #ffffff;   /* Fundo do botão branco */
+    color: #bb86fc;             /* Texto do botão roxo */
     text-shadow: none;
-    border-color: #555;
-}
-
-/* Efeito Hover/Ativo para Botões */
-body.dark-theme .ui-btn:hover,
-body.dark-theme .ui-btn:active {
-    background-color: #444;
 }
 
 /* Cor da borda da foto de perfil no tema escuro */
