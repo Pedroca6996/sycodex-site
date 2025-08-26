@@ -3,16 +3,6 @@
 /* Importando fontes do Google Fonts no início do CSS */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@700&family=Lato:wght@400;700&display=swap');
 
-p {
-    margin: 0;
-  /* Nova fonte para o corpo do texto: mais legível */
-  font-family: 'Lato', sans-serif; 
-  background-color: #0f0f1a;
-  color: #e0e0e0; /* Usando um branco levemente acinzentado para conforto visual */
-  line-height: 1.6; /* Melhora a legibilidade dos parágrafos */
-  text-align: center;
-}
-
 body {
   margin: 0;
   /* Nova fonte para o corpo do texto: mais legível */
@@ -50,6 +40,7 @@ header p {
   margin-left: auto;
   margin-right: auto;
   color: #a0a0b0; /* Cor mais suave para o slogan */
+  text-align: center;
 }
 
 /* Estilo do botão de ação que vamos adicionar no HTML */
