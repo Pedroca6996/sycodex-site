@@ -1,0 +1,116 @@
+/* Importa a fonte 'Inter' do Google Fonts para um visual mais moderno */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+
+/* ----- Estilos Globais e Tema Claro (Padrão) ----- */
+:root {
+    --background-light: #f4f4f9;
+    --text-color-light: #333;
+    --card-bg-light: #ffffff;
+    --primary-color: #007bff;
+    --primary-hover: #0056b3;
+    --shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: var(--background-light);
+    color: var(--text-color-light);
+    transition: background-color 0.3s, color 0.3s;
+    line-height: 1.6;
+}
+
+/* ----- Tema Escuro ----- */
+body.dark-theme {
+    --background-light: #121212;
+    --text-color-light: #e0e0e0;
+    --card-bg-light: #1e1e1e;
+    --primary-color: #bb86fc;
+    --primary-hover: #9e66de;
+}
+
+/* ----- Estrutura e Layout ----- */
+header, footer {
+    background-color: var(--primary-color);
+    color: white;
+    text-align: center;
+    padding: 1rem;
+    transition: background-color 0.3s;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 1.5rem;
+}
+
+main {
+    padding: 1rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: calc(100vh - 150px); /* Altura mínima para centralizar o conteúdo */
+}
+
+.profile-card {
+    background-color: var(--card-bg-light);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    padding: 1.5rem;
+    max-width: 500px;
+    width: 100%;
+    text-align: center;
+    transition: background-color 0.3s;
+}
+
+.profile-pic {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 4px solid var(--primary-color);
+    object-fit: cover;
+    margin-bottom: 1rem;
+}
+
+.profile-info h2 {
+    margin-top: 0;
+    color: var(--primary-color);
+}
+
+/* ----- Componentes Interativos ----- */
+#theme-toggle {
+    background-color: white;
+    color: var(--primary-color);
+    border: 2px solid var(--primary-color);
+    padding: 0.5rem 1rem; /* Botão grande para toque */
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+#theme-toggle:hover {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+/* ----- Media Query para Responsividade ----- */
+/* Estilos para telas menores que 600px (já é o padrão - mobile first) */
+/* Nenhuma regra específica necessária aqui, pois o design base já é para mobile. */
+
+/* Ajustes para telas maiores que 600px */
+@media (min-width: 600px) {
+    header h1 {
+        font-size: 2rem;
+    }
+
+    .profile-card {
+        padding: 2rem;
+    }
+}
