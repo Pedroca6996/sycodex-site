@@ -27,7 +27,7 @@ header {
 
 /* Estilo para a logo no cabeçalho */
 .logo-header {
-  width: 120px;  /* Defina a largura da logo */
+  width: 300px;  /* Defina a largura da logo */
   height: auto;    /* A altura se ajustará automaticamente */
   margin-bottom: 15px; /* Espaço entre a logo e o título "Sycodex" */
 }
