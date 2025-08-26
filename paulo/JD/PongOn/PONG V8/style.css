@@ -1,0 +1,85 @@
+body {
+    background: linear-gradient(135deg, #0540f1, #960000, #e401fd);
+    margin: 0;
+    height: 100vh;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #fff;
+    overflow: hidden;
+}
+
+.screen {
+    text-align: center;
+    padding-top: 10px;
+}
+
+button {
+    margin: 10px;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 5px;
+    border: none;
+    background-color: #222;
+    color: #fff;
+    transition: 0.2s;
+}
+
+button:hover {
+    background-color: #555;
+}
+
+canvas {
+    display: block;
+    margin: 20px auto;
+    border: 3px solid #ffffff;
+    border-radius: 15px;
+    background: radial-gradient(circle at center, #111 0%, #000 100%);
+    box-shadow: 0 0 30px #ffffff inset, 0 0 20px rgb(255, 255, 255);
+}
+
+/* Placar */
+.scoreboard {
+    position: absolute;
+    top: 20px;
+    width: 100%;
+    text-align: center;
+    font-size: 40px;
+    font-weight: bold;
+    color: #ffeb3b;
+    text-shadow: 2px 2px 6px #000;
+    letter-spacing: 5px;
+}
+
+.footer-info {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    font-size: 14px;
+}
+
+.footer-info a {
+    color: #fff;
+    text-decoration: none;
+}
+
+.footer-info a:hover {
+    text-decoration: underline;
+}
+
+#win-message {
+  display: none;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #00ffea;
+    font-size: 50px;
+    font-weight: bold;
+    text-align: center;
+    text-shadow: 2px 2px 10px #000;
+}
+
+.highlight {
+    box-shadow: 0 0 15px 7px #00ff00;
+    transition: box-shadow 0.3s ease-in-out;
+}

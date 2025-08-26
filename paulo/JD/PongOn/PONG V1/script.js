@@ -1,0 +1,63 @@
+ const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+const paddleWidth = 10, paddleHeight = 100;
+let paddle1Y = canvas.height / 2 - paddleHeight / 2;
+let paddle2Y = canvas.height / 2 - paddleHeight / 2;
+const paddleSpeed = 5;
+
+let ballX = canvas.width / 2;
+let ballY = canvas.height / 2;
+let ballSize = 10;
+let ballSpeedX = 4;
+let ballSpeedY = 4;
+
+const keys = {};
+document.addEventListener('keydown', e => keys[e.key] = true);
+document.addEventListener('keyup', e => keys[e.key] = false);
+
+function movePaddles() {
+    if (keys['w'] && paddle1Y > 0) paddle1Y -= paddleSpeed;
+    if (keys['s'] && paddle1Y < canvas.height - paddleHeight) paddle1Y += paddleSpeed;
+    if (keys['ArrowUp'] && paddle2Y > 0) paddle2Y -= paddleSpeed;
+    if (keys['ArrowDown'] && paddle2Y < canvas.height - paddleHeight) paddle2Y += paddleSpeed;
+}
+
+function moveBall() {
+    ballX += ballSpeedX;
+    ballY += ballSpeedY;
+
+    if (ballY <= 0 || ballY >= canvas.height - ballSize) ballSpeedY *= -1;
+
+    if (ballX <= paddleWidth && ballY > paddle1Y && ballY < paddle1Y + paddleHeight) {
+        ballSpeedX *= -1;
+    }
+    if (ballX >= canvas.width - paddleWidth - ballSize && ballY > paddle2Y && ballY < paddle2Y + paddleHeight) {
+        ballSpeedX *= -1;
+    }
+
+    if (ballX < 0 || ballX > canvas.width) {
+        ballX = canvas.width / 2;
+        ballY = canvas.height / 2;
+        ballSpeedX *= -1;
+    }
+}
+
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, paddle1Y, paddleWidth, paddleHeight);
+    ctx.fillRect(canvas.width - paddleWidth, paddle2Y, paddleWidth, paddleHeight);
+
+    ctx.fillRect(ballX, ballY, ballSize, ballSize);
+}
+
+function gameLoop() {
+    movePaddles();
+    moveBall();
+    draw();
+    requestAnimationFrame(gameLoop);
+}
+
+gameLoop();

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pong - Paulo Olegário - Versão 8</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Tela Inicial -->
+    <div id="menu-screen" class="screen">
+        <h1>Pong Pong Pong</h1>
+        <button id="play-btn">Jogar</button>
+        <button id="instructions-btn">Instruções</button>
+        <button id="settings-btn">Configurações</button>
+    </div>
+
+    <!-- Tela de Instruções -->
+    <div id="instructions-screen" class="screen" style="display:none;">
+        <h2>Instruções</h2>
+        <p>Use W/S para mover a raquete esquerda.</p>
+        <p>Use ↑/↓ para mover a raquete direita.</p>
+        <p>O primeiro a marcar o número de pontos definido vence!</p>
+        <button id="back-instructions-btn">Voltar</button>
+    </div>
+
+    <!-- Tela de Configurações -->
+    <div id="settings-screen" class="screen" style="display:none;">
+        <h2>Configurações</h2>
+        <label>
+            Velocidade inicial:
+            <input type="number" id="ball-speed-input" value="5" min="1" max="10">
+        </label>
+        <label>
+            Pontos para vitória:
+            <input type="number" id="winning-score-input" value="5" min="1" max="20">
+        </label>
+        <button id="back-settings-btn">Voltar</button>
+    </div>
+
+    <!-- Tela de Jogo -->
+    <canvas id="gameCanvas" width="1000" height="650" class="screen" style="display:none;"></canvas>
+
+    <div class="footer-info">
+        <p>Paulo Olegário - Versão 8 - 
+            <a href="https://si.walexandre.com/si2024/view.php?id=1381" target="_blank">#1381</a>
+        </p>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
