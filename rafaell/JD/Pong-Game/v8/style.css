@@ -1,0 +1,110 @@
+ body {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    /* NOVO: Fundo gradiente */
+    background: linear-gradient(135deg, #1a1a1a 0%, #000000 100%);
+    flex-direction: column;
+    position: relative;
+    font-family: 'Consolas', monospace, sans-serif;
+    color: #fff;
+}
+
+#game-container {
+    position: relative;
+    width: 800px;
+    height: 600px;
+    border: 2px solid #fff;
+    background-color: #000;
+}
+
+canvas {
+    display: block;
+    /* NOVO: Sombra para o canvas */
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.4);
+}
+
+.screen {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    width: 80%;
+    max-width: 400px;
+}
+
+.hidden-screen {
+    display: none;
+}
+
+.screen h1 {
+    font-size: 60px;
+    margin-bottom: 20px;
+    color: #00ffff; /* Cor ciano */
+    text-shadow: 0 0 10px #00ffff; /* Efeito de brilho */
+}
+
+.screen h2 {
+    font-size: 30px;
+    margin-bottom: 10px;
+}
+
+.screen button {
+    display: block;
+    width: 100%;
+    padding: 15px;
+    margin-top: 15px;
+    font-size: 18px;
+    color: #00ffff;
+    background: #003333;
+    border: 2px solid #00ffff;
+    cursor: pointer;
+    transition: background-color 0.3s, box-shadow 0.3s;
+    box-shadow: 0 0 5px rgba(0, 255, 255, 0.4);
+}
+
+.screen button:hover {
+    background-color: #004444;
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.8);
+}
+
+.setting {
+    margin: 20px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.setting label {
+    font-size: 16px;
+    margin-right: 10px;
+}
+
+.setting input {
+    width: 60px;
+    padding: 5px;
+    font-size: 16px;
+    text-align: center;
+    background: #1a1a1a;
+    border: 1px solid #00ffff;
+    color: #fff;
+}
+
+.footer-info {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    color: #888;
+    font-family: sans-serif;
+    font-size: 14px;
+}
+
+.footer-info a {
+    color: #888;
+    text-decoration: none;
+    font-weight: bold;
+}

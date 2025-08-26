@@ -1,0 +1,31 @@
+ body {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #1a1a1a;
+    flex-direction: column;
+    position: relative;
+}
+
+canvas {
+    border: 2px solid #fff;
+    background-color: #000;
+}
+
+.footer-info {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    color: #fff;
+    font-family: sans-serif;
+    font-size: 14px;
+}
+
+.footer-info a {
+    color: #fff;
+    text-decoration: none;
+    font-weight: bold;
+}

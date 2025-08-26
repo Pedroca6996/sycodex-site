@@ -1,0 +1,53 @@
+ <!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pong - Rafaell CB - Versão 8</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="../../../../imagens/favicon.ico" type="image/x-icon">
+</head>
+<body>
+    <div id="game-container">
+        <canvas id="gameCanvas"></canvas>
+        
+        <div id="main-menu" class="screen">
+            <h1>PONG</h1>
+            <button id="play-button">Jogar</button>
+            <button id="instructions-button">Instruções</button>
+            <button id="settings-button">Configurações</button>
+        </div>
+
+        <div id="settings-menu" class="screen hidden-screen">
+            <h2>Configurações</h2>
+            <div class="setting">
+                <label for="initial-speed">Velocidade Inicial da Bola:</label>
+                <input type="number" id="initial-speed" value="5" min="1" max="20">
+            </div>
+            <div class="setting">
+                <label for="winning-score">Pontos para Vencer:</label>
+                <input type="number" id="winning-score" value="5" min="1" max="20">
+            </div>
+            <button id="back-button">Voltar</button>
+        </div>
+
+        <div id="instructions-menu" class="screen hidden-screen">
+            <h2>Instruções</h2>
+            <p>
+                Jogador 1 (Esquerda): Use as teclas W e S para mover a barra.<br>
+                Jogador 2 (Direita): Use as setas ↑ e ↓ para mover a barra.<br><br>
+                Se a bola sair pelos lados, o adversário marca um ponto.<br>
+                O primeiro a atingir a pontuação de vitória vence o jogo!
+            </p>
+            <button id="instructions-back-button">Voltar</button>
+        </div>
+    </div>
+    
+    <div class="footer-info">
+        <span id="player-name">Rafaell Chrisanto Bonosque</span> |
+        <span id="version">Versão 8</span> |
+        <a id="mantis-link" href="https://si.walexandre.com/si2024/view.php?id=1466" target="_blank">1466</a>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
