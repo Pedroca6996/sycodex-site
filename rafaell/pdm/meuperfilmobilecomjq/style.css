@@ -1,0 +1,51 @@
+/* Centraliza o conteúdo do perfil */
+.profile-container {
+    text-align: center;
+    padding: 20px 0;
+}
+
+/* Estiliza a foto de perfil para ser redonda */
+.profile-pic {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 4px solid #3388cc; /* Cor padrão do tema 'a' do jQuery Mobile */
+    object-fit: cover;
+}
+
+/* ----- Tema Escuro ----- */
+/* O jQuery Mobile usa temas (swatches). O padrão é 'a'.
+   Vamos criar nossas próprias regras para um tema escuro quando a classe .dark-theme for aplicada. */
+
+/* Fundo da página e texto */
+.dark-theme .ui-page-theme-a,
+.dark-theme .ui-body-a {
+    background-color: #121212;
+    color: #e0e0e0;
+    text-shadow: none; /* Remove a sombra de texto padrão */
+}
+
+/* Cabeçalho e rodapé */
+.dark-theme .ui-bar-a {
+    background-color: #1e1e1e;
+    color: #bb86fc;
+    border-color: #333;
+    text-shadow: none;
+}
+
+/* Estilo do botão no tema escuro */
+.dark-theme .ui-btn {
+    background-color: #333;
+    color: #bb86fc;
+    border-color: #444;
+    text-shadow: none;
+}
+
+.dark-theme .ui-btn:hover {
+    background-color: #444;
+}
+
+/* Ajuste na foto de perfil para o tema escuro */
+.dark-theme .profile-pic {
+    border-color: #bb86fc;
+}

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu Perfil - jQuery Mobile</title>
+    
+    <!-- CSS do jQuery Mobile -->
+    <link rel="stylesheet" href="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css">
+    
+    <!-- Nosso CSS personalizado (deve vir depois do CSS do framework) -->
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- Scripts: jQuery, depois jQuery Mobile, e por último o nosso script -->
+    <script src="https://code.jquery.com/jquery-1.11.1.min.js"></script>
+    <script src="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+    <script src="script.js"></script>
+</head>
+<body>
+
+<!-- Início da página do jQuery Mobile. Todo o conteúdo visível vai aqui dentro. -->
+<div data-role="page" id="profile-page">
+
+    <!-- Cabeçalho da página -->
+    <div data-role="header" data-position="fixed">
+        <h1>Meu Perfil Mobile</h1>
+    </div>
+
+    <!-- Conteúdo principal da página -->
+    <div role="main" class="ui-content">
+        <div class="profile-container">
+            <img src="https://pop.proddigital.com.br/wp-content/uploads/sites/8/2021/07/naruto-1.jpg" alt="Foto de Perfil" class="profile-pic">
+            <h2>Rafaell Chrisanto Bonosque</h2>
+            <p>Esta é a versão do meu perfil criada com jQuery Mobile! Sou um desenvolvedor focado em criar interfaces rápidas e funcionais para dispositivos móveis, explorando o poder dos frameworks para agilizar o desenvolvimento.</p>
+        </div>
+    </div>
+
+    <!-- Rodapé da página -->
+    <div data-role="footer" data-position="fixed">
+        <!-- Botão para alterar o tema -->
+        <a href="#" id="theme-toggle" class="ui-btn ui-corner-all ui-shadow ui-btn-icon-left ui-icon-gear">Alterar Tema</a>
+        <h4>&copy; 2025 - Perfil jQuery Mobile</h4>
+    </div>
+
+</div> 
+<!-- Fim da página -->
+
+</body>
+</html>
