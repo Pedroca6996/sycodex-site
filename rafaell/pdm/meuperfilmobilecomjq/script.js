@@ -7,16 +7,16 @@ $(document).on('pagecreate', '#profile-page', function() {
 
     // 2. Lógica para alternar o tema
     const themeToggleButton = $('#theme-toggle');
-    const page = $('#profile-page');
+    const body = $('body'); // <<< MUDANÇA AQUI: seleciona o body
 
     // Adiciona um evento de clique ao botão
     themeToggleButton.on('click', function(event) {
         // Previne o comportamento padrão do link (que é navegar para '#')
         event.preventDefault();
 
-        // Alterna a classe 'dark-theme' no elemento da página.
-        // O nosso CSS personalizado cuida do resto.
-        page.toggleClass('dark-theme');
+        // Alterna a classe 'dark-theme' no elemento BODY.
+        // Isso garante que a mudança afete a página inteira.
+        body.toggleClass('dark-theme');
     });
 
 });

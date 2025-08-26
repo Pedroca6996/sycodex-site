@@ -11,41 +11,46 @@
     border-radius: 50%;
     border: 4px solid #3388cc; /* Cor padrão do tema 'a' do jQuery Mobile */
     object-fit: cover;
+    transition: border-color 0.3s; /* Adiciona uma transição suave */
 }
 
-/* ----- Tema Escuro ----- */
-/* O jQuery Mobile usa temas (swatches). O padrão é 'a'.
-   Vamos criar nossas próprias regras para um tema escuro quando a classe .dark-theme for aplicada. */
+/* ---------------------------------
+--- REGRAS PARA O TEMA ESCURO ---
+---------------------------------
+*/
 
-/* Fundo da página e texto */
-.dark-theme .ui-page-theme-a,
-.dark-theme .ui-body-a {
+/* Fundo da página e texto principal */
+body.dark-theme .ui-body-a,
+body.dark-theme .ui-page-theme-a {
     background-color: #121212;
     color: #e0e0e0;
-    text-shadow: none; /* Remove a sombra de texto padrão */
+    text-shadow: none; /* Remove a sombra de texto padrão do JQM */
+    border-color: #333;
 }
 
-/* Cabeçalho e rodapé */
-.dark-theme .ui-bar-a {
+/* Cabeçalho e Rodapé */
+body.dark-theme .ui-bar-a {
     background-color: #1e1e1e;
     color: #bb86fc;
-    border-color: #333;
     text-shadow: none;
+    border-color: #333;
 }
 
-/* Estilo do botão no tema escuro */
-.dark-theme .ui-btn {
+/* Botões */
+body.dark-theme .ui-btn {
     background-color: #333;
     color: #bb86fc;
-    border-color: #444;
     text-shadow: none;
+    border-color: #555;
 }
 
-.dark-theme .ui-btn:hover {
+/* Efeito Hover/Ativo para Botões */
+body.dark-theme .ui-btn:hover,
+body.dark-theme .ui-btn:active {
     background-color: #444;
 }
 
-/* Ajuste na foto de perfil para o tema escuro */
-.dark-theme .profile-pic {
+/* Cor da borda da foto de perfil no tema escuro */
+body.dark-theme .profile-pic {
     border-color: #bb86fc;
 }
