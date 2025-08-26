@@ -25,6 +25,13 @@ header {
   border-bottom: 1px solid #1a1a2e; /* Uma linha sutil de separação */
 }
 
+/* Estilo para a logo no cabeçalho */
+.logo-header {
+  width: 120px;  /* Defina a largura da logo */
+  height: auto;    /* A altura se ajustará automaticamente */
+  margin-bottom: 15px; /* Espaço entre a logo e o título "Sycodex" */
+}
+
 header h1 {
   /* Nova fonte para títulos: mais moderna e forte */
   font-family: 'Poppins', sans-serif; 
@@ -41,6 +48,26 @@ header p {
   margin-right: auto;
   color: #a0a0b0; /* Cor mais suave para o slogan */
   text-align: center;
+}
+
+/* Adicione este código para centralizar conteúdo em páginas internas */
+
+/* Use esta classe nos containers de conteúdo das suas outras páginas */
+.conteudo-pagina {
+  padding: 40px 0; /* Espaçamento vertical */
+  text-align: center; /* CENTRALIZA TODO O TEXTO DENTRO DELE */
+}
+
+/* Regra para parágrafos, para melhorar a leitura */
+.conteudo-pagina p {
+  max-width: 700px;  /* Evita que linhas de texto fiquem muito longas */
+  margin-left: auto; /* Centraliza o bloco do parágrafo */
+  margin-right: auto;/* Centraliza o bloco do parágrafo */
+  text-align: justify; /* Opcional: Deixa o texto justificado, com as bordas retas. Fica mais formal. Se preferir centralizado, mude para 'center'. */
+}
+
+.conteudo-pagina h1, .conteudo-pagina h2 {
+    margin-bottom: 30px; /* Espaço abaixo dos títulos */
 }
 
 /* Estilo do botão de ação que vamos adicionar no HTML */
