@@ -11,37 +11,37 @@
     border-radius: 50%;
     border: 4px solid #3388cc; /* Cor padrão do tema 'a' do jQuery Mobile */
     object-fit: cover;
-    transition: border-color 0.3s; /* Adiciona uma transição suave */
+    transition: border-color 0.3s;
 }
 
-/* ---------------------------------
---- REGRAS PARA O TEMA ESCURO ---
----------------------------------
+/* -------------------------------------------
+--- REGRAS PARA O TEMA ESCURO (VERSÃO CORRIGIDA) ---
+-------------------------------------------
 */
 
 /* Fundo da página e texto principal */
 body.dark-theme .ui-body-a,
 body.dark-theme .ui-page-theme-a {
-    background-color: #121212;
-    color: #e0e0e0;
-    text-shadow: none;
-    border-color: #333;
+    background-color: #121212 !important; /* Adicionado !important para garantir */
+    color: #e0e0e0 !important;
+    text-shadow: none !important;
+    border-color: #333 !important;
 }
 
-/* Cabeçalho e Rodapé */
-body.dark-theme .ui-bar-a {
-    /* --- MUDANÇA AQUI --- */
-    background-color: #bb86fc; /* Fundo roxo */
-    color: #ffffff;             /* Texto branco para contraste */
-    text-shadow: none;
-    border-color: #bb86fc;       /* Borda da mesma cor */
+/* Cabeçalho e Rodapé - AGORA VAI FUNCIONAR! */
+body.dark-theme .ui-header.ui-bar-a,
+body.dark-theme .ui-footer.ui-bar-a {
+    background: #bb86fc !important; /* Usamos 'background' e !important */
+    color: #ffffff !important;
+    text-shadow: none !important;
+    border-color: #bb86fc !important;
 }
 
 /* Botão DENTRO do rodapé no tema escuro */
 body.dark-theme .ui-footer .ui-btn {
-    background-color: #ffffff;   /* Fundo do botão branco */
-    color: #bb86fc;             /* Texto do botão roxo */
-    text-shadow: none;
+    background: #ffffff !important;
+    color: #bb86fc !important;
+    text-shadow: none !important;
 }
 
 /* Cor da borda da foto de perfil no tema escuro */
