@@ -1,0 +1,41 @@
+/* Reset básico */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* Fundo escuro e centralização */
+body {
+  min-height: 100vh; /* Altura mínima */
+  display: flex; /* Flexbox */
+  align-items: center; /* Centro vertical */
+  justify-content: center; /* Centro horizontal */
+  background: #0b0f1a; /* Cor do fundo */
+  color: #e5e7eb; /* Texto claro */
+  font-family: system-ui, sans-serif; /* Fonte padrão */
+}
+
+/* Conteúdo centralizado */
+main {
+  text-align: center;
+}
+
+/* Título */
+h1 {
+  font-size: 1.5rem;
+  margin-bottom: 0.75rem;
+  letter-spacing: 0.5px;
+}
+
+/* Canvas centralizado */
+#game {
+  display: block;
+  margin: 0 auto;
+  background: #111827; /* Fundo do canvas */
+  border: 2px solid #1f2937; /* Borda sutil */
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4); /* Sombra */
+}
+
+/* Texto de ajuda */
+.help {
+  margin-top: 0.5rem;
+  opacity: 0.8;
+  font-size: 0.95rem;
+}
