@@ -190,3 +190,97 @@ footer {
 .easter:hover {
   color: #00ffff;
 }
+@media (max-width: 768px) {
+  header {
+    padding: 40px 10px;
+  }
+
+  .logo-header {
+    width: 120px;
+  }
+
+  header h1 {
+    font-size: 2.2em;
+  }
+
+  header p {
+    font-size: 1em;
+    padding: 0 10px;
+  }
+
+  .conteudo-pagina {
+    padding: 20px 10px;
+  }
+
+  .conteudo-pagina p {
+    font-size: 0.95em;
+  }
+
+  .cta-button {
+    width: 100%;
+    max-width: 280px;
+    padding: 12px 20px;
+    font-size: 1em;
+  }
+
+  nav {
+    margin-top: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  nav a {
+    margin: 10px;
+    font-size: 0.95em;
+  }
+
+  .secao-projetos {
+    padding: 40px 10px;
+  }
+
+  .secao-projetos h2 {
+    font-size: 2em;
+    margin-bottom: 30px;
+  }
+
+  .projetos-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .card-projeto img {
+    height: 180px;
+  }
+
+  footer {
+    padding: 20px 10px;
+    font-size: 0.8em;
+  }
+}
+
+/* Telas muito pequenas (até 480px) */
+@media (max-width: 480px) {
+  header h1 {
+    font-size: 1.8em;
+  }
+
+  .cta-button {
+    max-width: 240px;
+    padding: 10px 16px;
+    font-size: 0.9em;
+  }
+
+  nav a {
+    font-size: 0.85em;
+    margin: 5px;
+  }
+
+  .secao-projetos h2 {
+    font-size: 1.6em;
+  }
+
+  .card-projeto img {
+    height: 150px;
+  }
+}
