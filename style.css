@@ -124,6 +124,7 @@ nav a:hover {
 /* ===== MUDANÇAS PARA CORRIGIR O ALINHAMENTO ===== */
 
 .card-projeto {
+  display: flex;
   background-color: #1a1a2e;
   border-radius: 8px;
   overflow: hidden;
