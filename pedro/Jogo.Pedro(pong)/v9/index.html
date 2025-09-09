@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pongo Bomb</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<canvas id="gameCanvas" width="800" height="600"></canvas>
+
+<!-- Menu -->
+<div id="menu" class="overlay">
+  <h1>Pongo Bomb</h1>
+  <button id="playBtn">Jogar</button>
+  <button id="instructionsBtn">Instruções</button>
+  <button id="settingsBtn">Configurações</button>
+</div>
+
+<!-- Instruções -->
+<div id="instructions" class="overlay hidden">
+  <h2>Instruções</h2>
+  <p>Jogador 1: W/S mover, Z ativar especial, X Perry</p>
+  <p>Jogador 2: ↑/↓ mover, O ativar especial, P Perry</p>
+  <p>Espaço: Pausa | ESC: Menu</p>
+  <button id="backFromInstructions">Voltar</button>
+</div>
+
+<!-- Configurações -->
+<div id="settings" class="overlay hidden">
+  <h2>Configurações</h2>
+  <label>Velocidade inicial da bola:
+    <input type="number" id="initialSpeed" value="4" min="1" max="20">
+  </label>
+  <br>
+  <label>Pontos para vitória:
+    <input type="number" id="pointsToWin" value="10" min="1" max="50">
+  </label>
+  <br>
+  <button id="backFromSettings">Voltar</button>
+</div>
+
+<!-- Footer -->
+<div id="footer">
+Pedro Henrick de Oliveira Rosa<a href="https://mantis.link/12345" target="_blank">12345</a>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

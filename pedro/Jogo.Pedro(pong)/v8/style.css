@@ -1,0 +1,52 @@
+body {
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  flex-direction: column;
+  font-family: 'Arial', sans-serif;
+  color: white;
+  background: linear-gradient(to bottom, #0f2027, #203a43, #2c5364); /* Gradiente de fundo */
+}
+
+.hidden { display: none; }
+
+#menu, #instructions, #settings {
+  text-align: center;
+  padding: 20px;
+  background: rgba(0,0,0,0.7);
+  border-radius: 10px;
+}
+
+button {
+  padding: 12px 25px;
+  margin: 10px;
+  font-size: 16px;
+  cursor: pointer;
+  border: none;
+  border-radius: 5px;
+  background: linear-gradient(to right, #ff416c, #ff4b2b);
+  color: white;
+  font-weight: bold;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 10px #ff4b2b;
+}
+
+canvas {
+  border: 2px solid white;
+  background-color: black;
+  box-shadow: 0 0 20px rgba(255,255,255,0.3);
+  margin-top: 20px;
+}
+
+#footer {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  font-size: 14px;
+}

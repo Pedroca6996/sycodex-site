@@ -1,0 +1,23 @@
+body {
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: black;
+  flex-direction: column;
+}
+
+canvas {
+  display: block;
+  background: black;
+  border: 2px solid white;
+}
+
+#footer {
+  color: white;
+  font-size: 14px;
+  margin-top: 8px;
+  text-align: right;
+  width: 800px;
+}

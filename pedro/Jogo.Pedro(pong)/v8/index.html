@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PHzeRo - Pong Versão 8</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Menu Inicial -->
+  <div id="menu">
+    <h1>PONGO BOMB</h1>
+    <button id="playBtn">Jogar</button>
+    <button id="instructionsBtn">Instruções</button>
+    <button id="settingsBtn">Configurações</button>
+  </div>
+
+  <!-- Tela de Instruções -->
+  <div id="instructions" class="hidden">
+    <h2>Instruções</h2>
+    <p>Use W/S para jogador 1 e setas ↑/↓ para jogador 2.</p>
+    <p>A primeira raquete a atingir o número de pontos configurado vence.</p>
+    <button id="backFromInstructions">Voltar</button>
+  </div>
+
+  <!-- Configurações -->
+  <div id="settings" class="hidden">
+    <h2>Configurações</h2>
+    <label>Velocidade inicial da bola:
+      <input type="number" id="initialSpeed" value="4" min="1" max="20">
+    </label>
+    <br>
+    <label>Pontos para vitória:
+      <input type="number" id="pointsToWin" value="10" min="1" max="50">
+    </label>
+    <br>
+    <button id="backFromSettings">Voltar</button>
+  </div>
+
+  <!-- Canvas do Jogo -->
+  <canvas id="gameCanvas" width="800" height="600" class="hidden"></canvas>
+
+  <!-- Footer -->
+  <div id="footer">
+    PHzeRo - versão 8 - 
+    <a href="https://mantis.link/12345" target="_blank">12345</a>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

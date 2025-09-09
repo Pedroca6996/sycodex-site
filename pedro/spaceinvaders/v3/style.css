@@ -1,0 +1,37 @@
+/* Remove margens/padding padrão e usa box-sizing previsível */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Corpo com altura total, centralizado e fundo escuro */
+body {
+  min-height: 100vh;                 /* Ocupa toda a altura da janela */
+  display: flex;                     /* Habilita alinhamento flexível */
+  align-items: center;               /* Centraliza verticalmente */
+  justify-content: center;           /* Centraliza horizontalmente */
+  background: #0b0f1a;               /* Fundo escuro */
+  color: #e5e7eb;                    /* Texto em tom claro */
+  font-family: system-ui, sans-serif;/* Fonte padrão do sistema */
+}
+
+/* Main para controlar alinhamento do conteúdo */
+main {
+  text-align: center;                /* Centraliza texto auxiliar */
+}
+
+/* Canvas com uma borda sutil e leve brilho */
+#game {
+  border: 1px solid #111827;         /* Borda discreta ao redor do canvas */
+  box-shadow: 0 8px 30px rgba(0,0,0,.5); /* Sombra para destaque visual */
+  background: #0b0f1a;               /* Garante fundo igual ao body */
+  image-rendering: pixelated;        /* Deixa pixels “nítidos” (estética retrô) */
+}
+
+/* Texto auxiliar com opacidade reduzida */
+.help {
+  margin-top: 12px;                  /* Espaço acima do texto */
+  opacity: 0.7;                      /* Deixa o texto mais sutil */
+  font-size: 14px;                   /* Tamanho de fonte discreto */
+}

@@ -1,0 +1,15 @@
+/* Fundo escuro para destacar o jogo */
+body {
+  margin: 0;
+  height: 100vh;
+  display: flex;
+  justify-content: center; /* centraliza na horizontal */
+  align-items: center;     /* centraliza na vertical */
+  background-color: #111;
+}
+
+/* Canvas com borda para dar destaque */
+#gameCanvas {
+  background-color: black;
+  border: 2px solid white;
+}
