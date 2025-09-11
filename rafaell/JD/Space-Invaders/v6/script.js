@@ -1,6 +1,11 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
+// Sons do jogo
+const shootSound = new Audio("../sounds/shoot.mp3");         // som do tiro
+const explosionSound = new Audio("../sounds/explosion.mp3"); // som de inimigo destruído
+const powerupSound = new Audio("../sounds/powerup.mp3");     // som de power-up
+
 const player = {
   x: canvas.width / 2 - 25,
   y: canvas.height - 50,
