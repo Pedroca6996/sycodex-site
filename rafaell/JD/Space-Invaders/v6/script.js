@@ -113,7 +113,8 @@ function handleShooting() {
 }
 
 function shootBullet() {
-  playSound("shootSound");
+  shootSound.currentTime = 0;
+  shootSound.play();
 
   const baseBullet = {
     x: player.x + player.width / 2 - 2,
@@ -187,7 +188,8 @@ function drawPowerUps() {
       p.y < player.y + player.height &&
       p.y + p.height > player.y
     ) {
-      playSound("powerUpSound");
+      powerupSound.currentTime = 0;
+      powerupSound.play();
       const now = Date.now();
       if (p.type === "doubleShot") {
         player.doubleShot = true;
@@ -230,7 +232,8 @@ function checkCollisions() {
 
       if (collided) {
         flashEnemy(enemy);
-        playSound("explosionSound");
+        explosionSound.currentTime = 0;
+        explosionSound.play();
 
         if (bullet.type === "explosive") {
           enemies = enemies.filter((e) => {
