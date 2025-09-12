@@ -2,9 +2,13 @@ const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
 // Sons do jogo
-const shootSound = new Audio("../sounds/shoot.mp3");         // som do tiro
-const explosionSound = new Audio("../sounds/explosion.mp3"); // som de inimigo destruído
-const powerupSound = new Audio("../sounds/powerup.mp3");     // som de power-up
+const shootSound = new Audio("../sounds/shoot.mp3");
+const explosionSound = new Audio("../sounds/explosion.mp3");
+const powerupSound = new Audio("../sounds/powerup.mp3");
+const gameOverSound = new Audio("../sounds/game-over.mp3"); // Adicionado som de Game Over
+
+// Flag para a primeira interação do usuário com o áudio
+let audioEnabled = false;
 
 const player = {
   x: canvas.width / 2 - 25,
@@ -34,7 +38,6 @@ let gameOver = false;
 const keys = {};
 let lastShotTime = 0;
 const shotInterval = 600;
-
 let bulletType = "normal";
 
 let powerUpTimers = {
@@ -48,18 +51,16 @@ const POWER_UP_DURATION = 10000;
 
 document.addEventListener("keydown", (e) => {
   keys[e.key] = true;
+  // Ativar o áudio na primeira interação do teclado
+  if (!audioEnabled) {
+    audioEnabled = true;
+    // Opcional: tocar um som de "início de jogo" aqui
+  }
 });
+
 document.addEventListener("keyup", (e) => {
   keys[e.key] = false;
 });
-
-function playSound(id) {
-  const sound = document.getElementById(id);
-  if (sound) {
-    sound.currentTime = 0;
-    sound.play();
-  }
-}
 
 function createEnemies() {
   enemies = [];
@@ -72,7 +73,9 @@ function createEnemies() {
         width: enemySize,
         height: enemySize,
         color: isSpecial ? "gold" : "red",
-        points: isSpecial ? 500 : 100
+        points: isSpecial ? 500 : 100,
+        isFlashing: false,
+        flashTimer: 0
       });
     }
   }
@@ -83,9 +86,9 @@ function spawnPowerUp() {
     const types = ["doubleShot", "wideShip", "explosive", "piercing", "bomb"];
     const type = types[Math.floor(Math.random() * types.length)];
     const speed = type === "bomb" ? 7 :
-                  type === "explosive" ? 6 :
-                  type === "piercing" ? 5.5 :
-                  type === "doubleShot" ? 4.5 : 4;
+      type === "explosive" ? 6 :
+      type === "piercing" ? 5.5 :
+      type === "doubleShot" ? 4.5 : 4;
 
     powerUps.push({
       x: Math.random() * (canvas.width - 30),
@@ -113,8 +116,11 @@ function handleShooting() {
 }
 
 function shootBullet() {
-  shootSound.currentTime = 0;
-  shootSound.play();
+  // Toca o som do tiro apenas se o áudio estiver habilitado
+  if (audioEnabled) {
+    shootSound.currentTime = 0;
+    shootSound.play().catch(e => console.error("Erro ao tocar som de tiro:", e));
+  }
 
   const baseBullet = {
     x: player.x + player.width / 2 - 2,
@@ -122,8 +128,8 @@ function shootBullet() {
     width: 4,
     height: 10,
     speed: bulletType === "explosive" ? 4 :
-           bulletType === "piercing" ? 7 :
-           bulletType === "bomb" ? 2 : 6,
+      bulletType === "piercing" ? 7 :
+      bulletType === "bomb" ? 2 : 6,
     type: bulletType
   };
 
@@ -157,7 +163,17 @@ function drawEnemies() {
   enemies.forEach((enemy) => {
     enemy.x += enemyDirection * enemySpeed;
     if (enemy.x + enemy.width > canvas.width || enemy.x < 0) hitEdge = true;
-    ctx.fillStyle = enemy.color;
+    
+    // Efeito visual de flash para o inimigo
+    if (enemy.isFlashing) {
+      ctx.fillStyle = "white";
+      if (Date.now() > enemy.flashTimer) {
+        enemy.isFlashing = false;
+      }
+    } else {
+      ctx.fillStyle = enemy.color;
+    }
+    
     ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
   });
 
@@ -169,7 +185,10 @@ function drawEnemies() {
         lives--;
         if (lives <= 0) {
           gameOver = true;
-          playSound("gameOverSound");
+          if (audioEnabled) {
+            gameOverSound.currentTime = 0;
+            gameOverSound.play().catch(e => console.error("Erro ao tocar som de game over:", e));
+          }
         }
       }
     });
@@ -188,8 +207,11 @@ function drawPowerUps() {
       p.y < player.y + player.height &&
       p.y + p.height > player.y
     ) {
-      powerupSound.currentTime = 0;
-      powerupSound.play();
+      if (audioEnabled) {
+        powerupSound.currentTime = 0;
+        powerupSound.play().catch(e => console.error("Erro ao tocar som de power-up:", e));
+      }
+
       const now = Date.now();
       if (p.type === "doubleShot") {
         player.doubleShot = true;
@@ -216,14 +238,11 @@ function drawPowerUps() {
   });
 }
 
-function flashEnemy(enemy) {
-  ctx.fillStyle = "white";
-  ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
-}
-
 function checkCollisions() {
-  bullets.forEach((bullet, bIndex) => {
-    enemies.forEach((enemy, eIndex) => {
+  for (let bIndex = bullets.length - 1; bIndex >= 0; bIndex--) {
+    const bullet = bullets[bIndex];
+    for (let eIndex = enemies.length - 1; eIndex >= 0; eIndex--) {
+      const enemy = enemies[eIndex];
       const collided =
         bullet.x < enemy.x + enemy.width &&
         bullet.x + bullet.width > enemy.x &&
@@ -231,9 +250,14 @@ function checkCollisions() {
         bullet.y + bullet.height > enemy.y;
 
       if (collided) {
-        flashEnemy(enemy);
-        explosionSound.currentTime = 0;
-        explosionSound.play();
+        // Ativa o efeito visual de flash no inimigo
+        enemy.isFlashing = true;
+        enemy.flashTimer = Date.now() + 50; // Flash dura 50ms
+
+        if (audioEnabled) {
+          explosionSound.currentTime = 0;
+          explosionSound.play().catch(e => console.error("Erro ao tocar som de explosão:", e));
+        }
 
         if (bullet.type === "explosive") {
           enemies = enemies.filter((e) => {
@@ -242,6 +266,7 @@ function checkCollisions() {
             return dist >= 50;
           });
           bullets.splice(bIndex, 1);
+          break; // Sai do loop de inimigos para evitar erros no índice
         } else if (bullet.type === "piercing") {
           score += enemy.points;
           enemies.splice(eIndex, 1);
@@ -249,10 +274,11 @@ function checkCollisions() {
           score += enemy.points;
           enemies.splice(eIndex, 1);
           bullets.splice(bIndex, 1);
+          break; // Sai do loop de inimigos
         }
       }
-    });
-  });
+    }
+  }
 
   if (enemies.length === 0) {
     level++;
