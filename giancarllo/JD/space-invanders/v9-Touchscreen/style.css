@@ -1,114 +1,110 @@
-/* Estilo geral do body */
+/* Reset básico */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
 body {
-    margin: 0;
-    padding: 0;
-    font-family: Arial, sans-serif;
-    background: #0b1020;
-    color: white;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    min-height: 100vh;
+  background: #0b1020;
+  font-family: Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 }
 
-/* Canvas do jogo */
+/* Container do jogo centralizado */
 #gameContainer {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
 }
 
+/* Canvas */
 canvas {
-    border: 2px solid #22d3ee;
-    background: #0b1020;
-    display: block;
-    max-width: 95vw;
-    max-height: 70vh;
+  border: 2px solid #22d3ee;
+  background: #0b1020;
+  display: block;
+  max-width: 100%;
+  height: auto;
 }
 
-/* Overlay de menu e instruções */
-.overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0,0,0,0.9);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    z-index: 10;
-}
-
-.overlay h1 { font-size: 60px; margin-bottom: 40px; }
-.overlay h2 { font-size: 40px; margin-bottom: 30px; }
-.overlay p  { font-size: 20px; margin-bottom: 20px; }
-
-.overlay button {
-    font-size: 20px;
-    padding: 15px 30px;
-    margin: 10px;
-    cursor: pointer;
-    background-color: #222;
-    color: white;
-    border: 2px solid white;
-    border-radius: 10px;
-    transition: all 0.2s ease;
-}
-
-.overlay button:hover {
-    background-color: #555;
-    border-color: yellow;
-}
-
-/* Botões touchscreen */
+/* Touch Controls (apenas mobile) */
 #touchControls {
-    margin-top: 10px;
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    z-index: 5;
+  display: none; /* padrão é escondido */
+  position: absolute;
+  bottom: 10px;
+  width: 100%;
+  justify-content: center;
+  gap: 15px;
 }
 
 #touchControls button {
-    font-size: 24px;
-    padding: 15px 20px;
-    border-radius: 10px;
-    border: 2px solid white;
-    background-color: #222;
-    color: white;
-    cursor: pointer;
-    transition: all 0.2s;
+  width: 60px;
+  height: 60px;
+  font-size: 24px;
+  border: none;
+  border-radius: 10px;
+  background-color: rgba(255, 255, 255, 0.3);
+  color: #000;
+  touch-action: none;
 }
 
-#touchControls button:hover {
-    background-color: #444;
-    border-color: yellow;
+/* Overlay do menu e instruções */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #0b1020dd;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+  text-align: center;
+  color: #fff;
+}
+
+.overlay h1,
+.overlay h2 {
+  margin-bottom: 20px;
+}
+
+.overlay button {
+  margin: 10px;
+  padding: 10px 20px;
+  font-size: 18px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  background-color: #22d3ee;
+  color: #000;
 }
 
 /* Footer fixo */
 #footer {
-    position: fixed;
-    bottom: 10px;
-    font-size: 16px;
-    text-align: center;
-    width: 100%;
-    z-index: 15;
+  width: 100%;
+  text-align: center;
+  background-color: #111;
+  color: #fff;
+  padding: 10px;
+  font-size: 14px;
+  position: relative; /* para não sobrepor o canvas */
 }
 
-#footer a { color: yellow; text-decoration: none; }
-#footer a:hover { text-decoration: underline; }
-
-/* Responsividade */
+/* Media Queries para mobile */
 @media (max-width: 768px) {
-    .overlay h1 { font-size: 40px; }
-    .overlay h2 { font-size: 28px; }
-    .overlay p  { font-size: 16px; }
-    .overlay button { font-size: 18px; padding: 12px 25px; }
+  #touchControls {
+    display: flex;
+  }
 
-    #touchControls button { font-size: 20px; padding: 10px 15px; }
+  canvas {
+    border: 2px solid #22d3ee;
+    width: 95%;
+    height: auto;
+  }
 }

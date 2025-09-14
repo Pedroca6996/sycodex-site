@@ -1,7 +1,22 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-// ---------------------- Variáveis do jogador e jogo ----------------------
+// Detecta se é mobile
+const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+// Ajusta canvas para responsividade
+function resizeCanvas() {
+    if (isMobile) {
+        canvas.width = window.innerWidth * 0.95;
+        canvas.height = window.innerHeight * 0.7;
+    } else {
+        canvas.width = 800;
+        canvas.height = 600;
+    }
+}
+window.addEventListener("resize", resizeCanvas);
+resizeCanvas();
+
 let player = {
     x: canvas.width / 2 - 25,
     y: canvas.height - 60,
@@ -22,57 +37,51 @@ let score = 0;
 let lives = 3;
 let gameOver = false;
 let level = 1;
-let shootCooldown = 0;
 
-// Sons
 const shootSound = new Audio("sounds/shoot.mp3");
 const explosionSound = new Audio("sounds/explosion.mp3");
 
-// ---------------------- Controles ----------------------
 let rightPressed = false;
 let leftPressed = false;
+let shootCooldown = 0;
 
-// ---------------------- Menu e Tela Inicial ----------------------
-const menuScreen = document.getElementById("menuScreen");
-const instructionsScreen = document.getElementById("instructionsScreen");
-const playBtn = document.getElementById("playBtn");
-const instructionsBtn = document.getElementById("instructionsBtn");
-const backFromInstructions = document.getElementById("backFromInstructions");
-const touchControls = document.getElementById("touchControls");
-const leftBtn = document.getElementById("leftBtn");
-const rightBtn = document.getElementById("rightBtn");
-const shootBtn = document.getElementById("shootBtn");
-
-// ---------------------- Funções de Controle ----------------------
+// ---------------- Teclado ----------------
 document.addEventListener("keydown", (e) => {
-    if (e.code === "ArrowRight") rightPressed = true;
-    if (e.code === "ArrowLeft") leftPressed = true;
-    if (e.code === "Space" && shootCooldown <= 0 && !gameOver) {
-        shoot();
-        shootCooldown = 20;
+    if (!isMobile) {
+        if (e.code === "ArrowRight") rightPressed = true;
+        if (e.code === "ArrowLeft") leftPressed = true;
+        if (e.code === "Space" && shootCooldown <= 0 && !gameOver) {
+            shoot();
+            shootCooldown = 20;
+        }
     }
 });
-
 document.addEventListener("keyup", (e) => {
-    if (e.code === "ArrowRight") rightPressed = false;
-    if (e.code === "ArrowLeft") leftPressed = false;
-});
-
-// Touchscreen
-leftBtn.addEventListener("touchstart", () => leftPressed = true);
-leftBtn.addEventListener("touchend", () => leftPressed = false);
-
-rightBtn.addEventListener("touchstart", () => rightPressed = true);
-rightBtn.addEventListener("touchend", () => rightPressed = false);
-
-shootBtn.addEventListener("touchstart", () => {
-    if (shootCooldown <= 0 && !gameOver) {
-        shoot();
-        shootCooldown = 20;
+    if (!isMobile) {
+        if (e.code === "ArrowRight") rightPressed = false;
+        if (e.code === "ArrowLeft") leftPressed = false;
     }
 });
 
-// ---------------------- Funções do Jogo ----------------------
+// ---------------- Touch Controls ----------------
+if (isMobile) {
+    document.getElementById("touchControls").style.display = "flex";
+
+    document.getElementById("leftBtn").addEventListener("touchstart", () => leftPressed = true);
+    document.getElementById("leftBtn").addEventListener("touchend", () => leftPressed = false);
+
+    document.getElementById("rightBtn").addEventListener("touchstart", () => rightPressed = true);
+    document.getElementById("rightBtn").addEventListener("touchend", () => rightPressed = false);
+
+    document.getElementById("shootBtn").addEventListener("touchstart", () => {
+        if (shootCooldown <= 0 && !gameOver) {
+            shoot();
+            shootCooldown = 20;
+        }
+    });
+}
+
+// ---------------- Inimigos ----------------
 function createEnemies() {
     enemies = [];
     specialEnemies = [];
@@ -83,7 +92,9 @@ function createEnemies() {
         specialEnemies.push({ x: i * 180 + 60, y: 70, width: 40, height: 30, dx: 1.2 + level * 0.9, points: 50, color: "#0ff" });
     }
 }
+createEnemies();
 
+// ---------------- Tiros ----------------
 function shoot() {
     if (player.powerTriple) {
         bullets.push({ x: player.x + player.width / 2 - 20, y: player.y, width: 6, height: 15, dy: -5 });
@@ -96,22 +107,25 @@ function shoot() {
     shootSound.play();
 }
 
+// ---------------- Power-Ups ----------------
 function spawnPowerUp() {
     if (Math.random() < 0.004) {
         const type = Math.floor(Math.random() * 4);
         let color = "#ff0";
-        if (type === 0) color = "#22d3ee";
-        if (type === 1) color = "#f43f5e";
-        if (type === 2) color = "#34d399";
-        if (type === 3) color = "#facc15";
+        if (type === 0) color = "#22d3ee"; // nave larga
+        if (type === 1) color = "#f43f5e"; // tiros rápidos
+        if (type === 2) color = "#34d399"; // vida extra
+        if (type === 3) color = "#facc15"; // tiro triplo
         powerUps.push({ x: Math.random() * (canvas.width - 20), y: 0, width: 20, height: 20, dy: 2, type, color });
     }
 }
 
+// ---------------- Explosões ----------------
 function createExplosion(x, y) {
     explosions.push({ x, y, radius: 0, maxRadius: 20 });
 }
 
+// ---------------- Pontuação ----------------
 function saveScore(score) {
     let scores = JSON.parse(localStorage.getItem("topScores")) || [];
     if (!scores.includes(score)) scores.push(score);
@@ -120,7 +134,7 @@ function saveScore(score) {
     localStorage.setItem("topScores", JSON.stringify(scores));
 }
 
-// ---------------------- Atualização e Desenho ----------------------
+// ---------------- Update ----------------
 function update() {
     if (gameOver) return;
 
@@ -188,6 +202,8 @@ function update() {
         }
     });
 
+    // Power-ups
+    spawnPowerUp();
     powerUps.forEach((p, pIndex) => {
         p.y += p.dy;
         if (p.x < player.x + player.width &&
@@ -198,7 +214,7 @@ function update() {
             if (p.type === 1) player.speed = 12;
             if (p.type === 2) lives++;
             if (p.type === 3) player.powerTriple = true;
-            player.powerTimer = 7 * 60; 
+            player.powerTimer = 7 * 60;
             powerUps.splice(pIndex, 1);
         }
         if (p.y > canvas.height) powerUps.splice(pIndex, 1);
@@ -221,15 +237,17 @@ function update() {
         createEnemies();
     }
 
-    // Tiros inimigos aleatórios
+    // Tiros inimigos
     if (!gameOver) {
-        if (allEnemies.length > 0 && Math.random() < 0.002) {
-            const shooter = allEnemies[Math.floor(Math.random() * allEnemies.length)];
+        const shooters = enemies.concat(specialEnemies);
+        if (shooters.length > 0 && Math.random() < 0.002) {
+            const shooter = shooters[Math.floor(Math.random() * shooters.length)];
             enemyBullets.push({ x: shooter.x + shooter.width / 2 - 3, y: shooter.y + shooter.height, width: 6, height: 15, dy: 4 });
         }
     }
 }
 
+// ---------------- Draw ----------------
 function draw() {
     ctx.fillStyle = "#0b1020";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -243,35 +261,41 @@ function draw() {
         ctx.fillStyle = "#fff";
         ctx.font = "20px Arial";
         ctx.fillText("Pontuação: " + score, canvas.width / 2 - 60, canvas.height / 2 + 40);
+        const scores = JSON.parse(localStorage.getItem("topScores")) || [];
+        ctx.fillText("Top 5:", canvas.width / 2 - 40, canvas.height / 2 + 80);
+        scores.forEach((s, i) => ctx.fillText(`${i + 1}. ${s}`, canvas.width / 2 - 30, canvas.height / 2 + 110 + i * 25));
+        ctx.fillStyle = "#0ff";
+        ctx.fillRect(canvas.width / 2 - 60, canvas.height / 2 + 250, 120, 40);
+        ctx.fillStyle = "#000";
+        ctx.fillText("RESTART", canvas.width / 2 - 40, canvas.height / 2 + 278);
         return;
     }
 
-    // Jogador
+    // Player
     ctx.fillStyle = "#0f0";
     ctx.fillRect(player.x, player.y, player.width, player.height);
 
-    // Tiros jogador
+    // Bullets
     ctx.fillStyle = "#ff0";
-    bullets.forEach((bullet) => ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height));
+    bullets.forEach(b => ctx.fillRect(b.x, b.y, b.width, b.height));
 
-    // Tiros inimigos
-    ctx.fillStyle = "#f43f5e"; 
-    enemyBullets.forEach((bullet) => ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height));
+    ctx.fillStyle = "#f43f5e";
+    enemyBullets.forEach(b => ctx.fillRect(b.x, b.y, b.width, b.height));
 
-    // Inimigos
-    [...enemies, ...specialEnemies].forEach((enemy) => {
+    // Enemies
+    [...enemies, ...specialEnemies].forEach(enemy => {
         ctx.fillStyle = enemy.color;
         ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
     });
 
-    // PowerUps
-    powerUps.forEach((p) => {
+    // Power-ups
+    powerUps.forEach(p => {
         ctx.fillStyle = p.color;
         ctx.fillRect(p.x, p.y, p.width, p.height);
     });
 
     // Explosões
-    explosions.forEach((ex) => {
+    explosions.forEach(ex => {
         ctx.beginPath();
         ctx.arc(ex.x, ex.y, ex.radius, 0, Math.PI * 2);
         ctx.fillStyle = "rgba(255,255,0,0.5)";
@@ -284,38 +308,37 @@ function draw() {
     ctx.fillText("Score: " + score, 20, 30);
     ctx.fillText("Vidas: " + lives, canvas.width - 100, 30);
     ctx.fillText("Level: " + level, canvas.width / 2 - 30, 30);
+
+    let powerTextY = 55;
+    if (player.powerTriple) {
+        ctx.fillStyle = "#facc15";
+        ctx.fillText("Tiro Triplo: " + Math.ceil(player.powerTimer / 60) + "s", 20, powerTextY);
+        powerTextY += 25;
+    }
+    if (player.speed > 7) {
+        ctx.fillStyle = "#f43f5e";
+        ctx.fillText("Tiros Rápidos: " + Math.ceil(player.powerTimer / 60) + "s", 20, powerTextY);
+        powerTextY += 25;
+    }
+    if (player.width > 50) {
+        ctx.fillStyle = "#22d3ee";
+        ctx.fillText("Nave Larga: " + Math.ceil(player.powerTimer / 60) + "s", 20, powerTextY);
+    }
 }
 
-// ---------------------- Canvas Responsivo ----------------------
-function resizeCanvas() {
-    const containerWidth = window.innerWidth * 0.95;
-    const containerHeight = window.innerHeight * 0.7;
+// ---------------- Click restart ----------------
+canvas.addEventListener("click", (e) => {
+    if (!gameOver) return;
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    if (x > canvas.width / 2 - 60 && x < canvas.width / 2 + 60 &&
+        y > canvas.height / 2 + 250 && y < canvas.height / 2 + 290) {
+        restartGame();
+    }
+});
 
-    const scaleX = containerWidth / 800;
-    const scaleY = containerHeight / 600;
-
-    canvas.style.width = containerWidth + "px";
-    canvas.style.height = containerHeight + "px";
-
-    // Ajuste posições
-    player.x = canvas.width / 2 - player.width / 2;
-    player.y = canvas.height - player.height - 10;
-
-    [...enemies, ...specialEnemies].forEach(enemy => {
-        enemy.x *= scaleX;
-        enemy.y *= scaleY;
-    });
-
-    powerUps.forEach(p => {
-        p.x *= scaleX;
-        p.y *= scaleY;
-    });
-}
-
-window.addEventListener("resize", resizeCanvas);
-resizeCanvas();
-
-// ---------------------- Restart ----------------------
+// ---------------- Restart ----------------
 function restartGame() {
     player = { x: canvas.width / 2 - 25, y: canvas.height - 60, width: 50, height: 30, speed: 7, powerTriple: false, powerTimer: 0 };
     bullets = [];
@@ -328,30 +351,12 @@ function restartGame() {
     shootCooldown = 0;
     gameOver = false;
     createEnemies();
-    resizeCanvas();
 }
 
-// ---------------------- Loop do Jogo ----------------------
+// ---------------- Game loop ----------------
 function gameLoop() {
     update();
     draw();
     requestAnimationFrame(gameLoop);
 }
-
-// ---------------------- Botões do Menu ----------------------
-playBtn.addEventListener("click", () => {
-    menuScreen.style.display = "none";
-    canvas.style.display = "block";
-    touchControls.style.display = "flex";
-    gameLoop();
-});
-
-instructionsBtn.addEventListener("click", () => {
-    menuScreen.style.display = "none";
-    instructionsScreen.style.display = "flex";
-});
-
-backFromInstructions.addEventListener("click", () => {
-    instructionsScreen.style.display = "none";
-    menuScreen.style.display = "flex";
-});
+gameLoop();
