@@ -1,111 +1,114 @@
-/* Body e centralização */
+/* Estilo geral do body */
 body {
-  margin: 0;
-  padding: 0;
-  font-family: Arial, sans-serif;
-  background: #0b1020;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    background: #0b1020;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 100vh;
 }
 
-/* Canvas centralizado */
+/* Canvas do jogo */
 #gameContainer {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 canvas {
-  border: 2px solid #22d3ee;
-  background: #0b1020;
-  display: block;
-  margin: 0 auto;
-  max-width: 100%;
-  height: auto;
+    border: 2px solid #22d3ee;
+    background: #0b1020;
+    display: block;
+    max-width: 95vw;
+    max-height: 70vh;
 }
 
-/* Overlay (menu e instruções) */
+/* Overlay de menu e instruções */
 .overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.95);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  z-index: 10;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.9);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    z-index: 10;
 }
 
-.overlay h1 { font-size: 50px; margin-bottom: 30px; color: #22d3ee; }
-.overlay h2 { font-size: 40px; margin-bottom: 20px; color: #22d3ee; }
-.overlay p { font-size: 18px; margin-bottom: 20px; color: #fff; }
+.overlay h1 { font-size: 60px; margin-bottom: 40px; }
+.overlay h2 { font-size: 40px; margin-bottom: 30px; }
+.overlay p  { font-size: 20px; margin-bottom: 20px; }
 
 .overlay button {
-  font-size: 20px;
-  padding: 12px 25px;
-  margin: 10px;
-  cursor: pointer;
-  background-color: #222;
-  color: white;
-  border: 2px solid #22d3ee;
-  border-radius: 10px;
-  transition: all 0.2s ease;
+    font-size: 20px;
+    padding: 15px 30px;
+    margin: 10px;
+    cursor: pointer;
+    background-color: #222;
+    color: white;
+    border: 2px solid white;
+    border-radius: 10px;
+    transition: all 0.2s ease;
 }
 
 .overlay button:hover {
-  background-color: #555;
-  border-color: yellow;
+    background-color: #555;
+    border-color: yellow;
 }
 
-/* Controles touchscreen */
+/* Botões touchscreen */
 #touchControls {
-  display: none;
-  width: 100%;
-  max-width: 400px;
-  display: flex;
-  justify-content: space-between;
-  margin-top: 10px;
-  z-index: 15;
+    margin-top: 10px;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    z-index: 5;
 }
 
 #touchControls button {
-  font-size: 24px;
-  padding: 15px 25px;
-  border-radius: 10px;
-  border: 2px solid #22d3ee;
-  background-color: rgba(0,0,0,0.5);
-  color: white;
+    font-size: 24px;
+    padding: 15px 20px;
+    border-radius: 10px;
+    border: 2px solid white;
+    background-color: #222;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s;
 }
 
-/* Footer */
+#touchControls button:hover {
+    background-color: #444;
+    border-color: yellow;
+}
+
+/* Footer fixo */
 #footer {
-  position: fixed;
-  bottom: 5px;
-  font-size: 16px;
-  color: #fff;
-  z-index: 20;
+    position: fixed;
+    bottom: 10px;
+    font-size: 16px;
+    text-align: center;
+    width: 100%;
+    z-index: 15;
 }
 
-#footer a {
-  color: yellow;
-  text-decoration: none;
-}
+#footer a { color: yellow; text-decoration: none; }
+#footer a:hover { text-decoration: underline; }
 
-#footer a:hover {
-  text-decoration: underline;
-}
+/* Responsividade */
+@media (max-width: 768px) {
+    .overlay h1 { font-size: 40px; }
+    .overlay h2 { font-size: 28px; }
+    .overlay p  { font-size: 16px; }
+    .overlay button { font-size: 18px; padding: 12px 25px; }
 
-/* Responsividade mobile */
-@media (max-width: 600px) {
-  .overlay h1 { font-size: 36px; }
-  .overlay h2 { font-size: 28px; }
-  .overlay button { font-size: 18px; padding: 10px 20px; }
-  #touchControls button { font-size: 20px; padding: 12px 18px; }
+    #touchControls button { font-size: 20px; padding: 10px 15px; }
 }
