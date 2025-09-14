@@ -239,17 +239,39 @@ function draw() {
 // Clique RESTART
 canvas.addEventListener("click", (e) => {
   if (!gameOver) return;
+
   const rect = canvas.getBoundingClientRect();
-  const x = e.clientX - rect.left;
-  const y = e.clientY - rect.top;
-  if (x>canvas.width/2-60 && x<canvas.width/2+60 && y>canvas.height/2+250 && y<canvas.height/2+290) restartGame();
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
+
+  const x = (e.clientX - rect.left) * scaleX;
+  const y = (e.clientY - rect.top) * scaleY;
+
+  // Coordenadas do botão RESTART
+  const btnX1 = canvas.width / 2 - 60;
+  const btnX2 = canvas.width / 2 + 60;
+  const btnY1 = canvas.height / 2 + 250;
+  const btnY2 = canvas.height / 2 + 290;
+
+  if (x >= btnX1 && x <= btnX2 && y >= btnY1 && y <= btnY2) {
+    restartGame();
+  }
 });
 
 function restartGame() {
-  player={x:canvas.width/2-25,y:canvas.height-60,width:50,height:30,speed:7,powerTriple:false,powerTimer:0};
-  bullets=[]; enemyBullets=[]; powerUps=[]; explosions=[]; score=0; lives=3; level=1; shootCooldown=0; gameOver=false;
+  player = { x: canvas.width / 2 - 25, y: canvas.height - 60, width: 50, height: 30, speed: 7, powerTriple: false, powerTimer: 0 };
+  bullets = [];
+  enemyBullets = [];
+  powerUps = [];
+  explosions = [];
+  score = 0;
+  lives = 3;
+  level = 1;
+  shootCooldown = 0;
+  gameOver = false;
   createEnemies();
 }
+
 
 // ---------- MENU BOTÕES ----------
 const menuScreen = document.getElementById("menuScreen");
