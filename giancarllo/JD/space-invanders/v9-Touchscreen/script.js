@@ -1,23 +1,13 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-// ---------- Responsividade ----------
-function resizeCanvas() {
-  const scale = Math.min(window.innerWidth / 800, window.innerHeight / 600);
-  canvas.width = 800 * scale;
-  canvas.height = 600 * scale;
+// Detecta se é mobile
+const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
-  // Reposiciona jogador proporcionalmente se estiver no menu
-  if (!player.x && !player.y) {
-    player.x = canvas.width / 2 - player.width / 2;
-    player.y = canvas.height - player.height - 30 * scale;
-  }
-}
+// Container do jogo
+const gameContainer = document.getElementById("gameContainer");
 
-window.addEventListener("resize", resizeCanvas);
-resizeCanvas();
-
-// ---------- Jogador ----------
+// Player
 let player = {
   x: canvas.width / 2 - 25,
   y: canvas.height - 60,
@@ -28,7 +18,7 @@ let player = {
   powerTimer: 0
 };
 
-// ---------- Variáveis ----------
+// Arrays e variáveis do jogo
 let bullets = [];
 let enemyBullets = [];
 let enemies = [];
@@ -41,56 +31,14 @@ let gameOver = false;
 let level = 1;
 let shootCooldown = 0;
 
+// Sons
 const shootSound = new Audio("sounds/shoot.mp3");
 const explosionSound = new Audio("sounds/explosion.mp3");
 
+// Controles teclado
 let rightPressed = false;
 let leftPressed = false;
 
-// ---------- Menu e Controles Touch ----------
-const menuScreen = document.getElementById("menuScreen");
-const instructionsScreen = document.getElementById("instructionsScreen");
-const playBtn = document.getElementById("playBtn");
-const instructionsBtn = document.getElementById("instructionsBtn");
-const backFromInstructions = document.getElementById("backFromInstructions");
-const touchControls = document.getElementById("touchControls");
-const leftBtn = document.getElementById("leftBtn");
-const rightBtn = document.getElementById("rightBtn");
-const shootBtn = document.getElementById("shootBtn");
-
-playBtn.addEventListener("click", () => {
-  menuScreen.style.display = "none";
-  canvas.style.display = "block";
-  if (/Mobi|Android/i.test(navigator.userAgent)) touchControls.style.display = "flex";
-  player.x = canvas.width / 2 - player.width / 2;
-  player.y = canvas.height - player.height - 30;
-});
-
-instructionsBtn.addEventListener("click", () => {
-  menuScreen.style.display = "none";
-  instructionsScreen.style.display = "flex";
-});
-
-backFromInstructions.addEventListener("click", () => {
-  instructionsScreen.style.display = "none";
-  menuScreen.style.display = "flex";
-});
-
-// ---------- Touch Events ----------
-leftBtn.addEventListener("touchstart", () => leftPressed = true);
-leftBtn.addEventListener("touchend", () => leftPressed = false);
-
-rightBtn.addEventListener("touchstart", () => rightPressed = true);
-rightBtn.addEventListener("touchend", () => rightPressed = false);
-
-shootBtn.addEventListener("touchstart", () => {
-  if (shootCooldown <= 0 && !gameOver) {
-    shoot();
-    shootCooldown = 20;
-  }
-});
-
-// ---------- Controles teclado ----------
 document.addEventListener("keydown", (e) => {
   if (e.code === "ArrowRight") rightPressed = true;
   if (e.code === "ArrowLeft") leftPressed = true;
@@ -105,7 +53,27 @@ document.addEventListener("keyup", (e) => {
   if (e.code === "ArrowLeft") leftPressed = false;
 });
 
-// ---------- Funções do jogo ----------
+// Botões touchscreen
+const leftBtn = document.getElementById("leftBtn");
+const rightBtn = document.getElementById("rightBtn");
+const shootBtn = document.getElementById("shootBtn");
+
+if (isMobile) {
+  leftBtn.addEventListener("touchstart", () => leftPressed = true);
+  leftBtn.addEventListener("touchend", () => leftPressed = false);
+
+  rightBtn.addEventListener("touchstart", () => rightPressed = true);
+  rightBtn.addEventListener("touchend", () => rightPressed = false);
+
+  shootBtn.addEventListener("touchstart", () => {
+    if (shootCooldown <= 0 && !gameOver) {
+      shoot();
+      shootCooldown = 20;
+    }
+  });
+}
+
+// Funções do jogo
 function createEnemies() {
   enemies = [];
   specialEnemies = [];
@@ -155,113 +123,77 @@ function saveScore(score) {
   localStorage.setItem("topScores", JSON.stringify(scores));
 }
 
-// ---------- Update e Draw ----------
 function update() {
   if (gameOver) return;
 
   if (rightPressed && player.x < canvas.width - player.width) player.x += player.speed;
   if (leftPressed && player.x > 0) player.x -= player.speed;
-
   if (shootCooldown > 0) shootCooldown--;
 
-  bullets.forEach((bullet, bIndex) => {
-    bullet.y += bullet.dy;
-    if (bullet.y < 0) bullets.splice(bIndex, 1);
+  bullets.forEach((b, i) => {
+    b.y += b.dy;
+    if (b.y < 0) bullets.splice(i, 1);
   });
 
-  enemyBullets.forEach((bullet, bIndex) => {
-    bullet.y += bullet.dy;
-    if (bullet.x < player.x + player.width &&
-        bullet.x + bullet.width > player.x &&
-        bullet.y < player.y + player.height &&
-        bullet.y + bullet.height > player.y) {
-      lives--;
-      enemyBullets.splice(bIndex, 1);
-      if (lives <= 0 && !gameOver) {
-        gameOver = true;
-        saveScore(score);
-        shootSound.pause();
-        explosionSound.pause();
-      }
+  enemyBullets.forEach((b, i) => {
+    b.y += b.dy;
+    if (b.x < player.x + player.width && b.x + b.width > player.x &&
+        b.y < player.y + player.height && b.y + b.height > player.y) {
+      lives--; enemyBullets.splice(i, 1);
+      if (lives <= 0) { gameOver = true; saveScore(score); shootSound.pause(); explosionSound.pause(); }
     }
-    if (bullet.y > canvas.height) enemyBullets.splice(bIndex, 1);
+    if (b.y > canvas.height) enemyBullets.splice(i, 1);
   });
 
-  const allEnemies = enemies.concat(specialEnemies);
-  allEnemies.forEach((enemy) => {
+  [...enemies, ...specialEnemies].forEach(enemy => {
     enemy.x += enemy.dx;
-    if (enemy.x + enemy.width > canvas.width || enemy.x < 0) {
-      enemy.dx *= -1;
-      enemy.y += 15;
-    }
+    if (enemy.x + enemy.width > canvas.width || enemy.x < 0) { enemy.dx *= -1; enemy.y += 15; }
 
-    bullets.forEach((bullet, bIndex) => {
-      if (bullet.x < enemy.x + enemy.width &&
-          bullet.x + bullet.width > enemy.x &&
-          bullet.y < enemy.y + enemy.height &&
-          bullet.y + bullet.height > enemy.y) {
+    bullets.forEach((b, i) => {
+      if (b.x < enemy.x + enemy.width && b.x + b.width > enemy.x &&
+          b.y < enemy.y + enemy.height && b.y + b.height > enemy.y) {
         if (enemies.includes(enemy)) enemies.splice(enemies.indexOf(enemy), 1);
         else specialEnemies.splice(specialEnemies.indexOf(enemy), 1);
-        bullets.splice(bIndex, 1);
-        score += enemy.points;
-        explosionSound.currentTime = 0;
-        explosionSound.play();
-        createExplosion(enemy.x + enemy.width / 2, enemy.y + enemy.height / 2);
+        bullets.splice(i, 1); score += enemy.points;
+        explosionSound.currentTime = 0; explosionSound.play();
+        createExplosion(enemy.x + enemy.width/2, enemy.y + enemy.height/2);
       }
     });
 
     if (enemy.y + enemy.height >= canvas.height - player.height) {
-      lives--;
-      if (enemies.includes(enemy)) enemies.splice(enemies.indexOf(enemy), 1);
+      lives--; if (enemies.includes(enemy)) enemies.splice(enemies.indexOf(enemy), 1);
       else specialEnemies.splice(specialEnemies.indexOf(enemy), 1);
-      if (lives <= 0 && !gameOver) {
-        gameOver = true;
-        saveScore(score);
-        shootSound.pause();
-        explosionSound.pause();
-      }
+      if (lives <= 0) { gameOver = true; saveScore(score); shootSound.pause(); explosionSound.pause(); }
     }
   });
 
-  powerUps.forEach((p, pIndex) => {
+  powerUps.forEach((p, i) => {
     p.y += p.dy;
-    if (p.x < player.x + player.width &&
-        p.x + p.width > player.x &&
-        p.y < player.y + player.height &&
-        p.y + p.height > player.y) {
+    if (p.x < player.x + player.width && p.x + p.width > player.x &&
+        p.y < player.y + player.height && p.y + p.height > player.y) {
       if (p.type === 0) player.width = 80;
       if (p.type === 1) player.speed = 12;
       if (p.type === 2) lives++;
       if (p.type === 3) player.powerTriple = true;
-      player.powerTimer = 7 * 60; 
-      powerUps.splice(pIndex, 1);
+      player.powerTimer = 7*60;
+      powerUps.splice(i, 1);
     }
-    if (p.y > canvas.height) powerUps.splice(pIndex, 1);
+    if (p.y > canvas.height) powerUps.splice(i, 1);
   });
 
-  explosions.forEach((ex, index) => {
-    ex.radius += 2;
-    if (ex.radius > ex.maxRadius) explosions.splice(index, 1);
-  });
+  explosions.forEach((ex, i) => { ex.radius += 2; if (ex.radius > ex.maxRadius) explosions.splice(i, 1); });
 
   if (player.powerTimer > 0) player.powerTimer--;
-  else {
-    player.width = 50;
-    player.speed = 7;
-    player.powerTriple = false;
-  }
+  else { player.width = 50; player.speed = 7; player.powerTriple = false; }
 
-  if (enemies.length === 0 && specialEnemies.length === 0) {
-    level++;
-    createEnemies();
-  }
+  if (enemies.length === 0 && specialEnemies.length === 0) { level++; createEnemies(); }
 
   // Tiros inimigos
   if (!gameOver) {
     const shooters = enemies.concat(specialEnemies);
     if (shooters.length > 0 && Math.random() < 0.002) {
-      const shooter = shooters[Math.floor(Math.random() * shooters.length)];
-      enemyBullets.push({ x: shooter.x + shooter.width / 2 - 3, y: shooter.y + shooter.height, width: 6, height: 15, dy: 4 });
+      const s = shooters[Math.floor(Math.random() * shooters.length)];
+      enemyBullets.push({x: s.x + s.width/2 -3, y: s.y + s.height, width: 6, height: 15, dy: 4});
     }
   }
 }
@@ -272,104 +204,90 @@ function draw() {
 
   if (gameOver) {
     ctx.fillStyle = "#111";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillRect(0,0,canvas.width,canvas.height);
     ctx.fillStyle = "#f43f5e";
     ctx.font = "48px Arial";
-    ctx.fillText("GAME OVER", canvas.width / 2 - 140, canvas.height / 2);
-    ctx.fillStyle = "#fff";
-    ctx.font = "20px Arial";
-    ctx.fillText("Pontuação: " + score, canvas.width / 2 - 60, canvas.height / 2 + 40);
-    const scores = JSON.parse(localStorage.getItem("topScores")) || [];
-    ctx.fillText("Top 5:", canvas.width / 2 - 40, canvas.height / 2 + 80);
-    scores.forEach((s, i) => ctx.fillText(`${i + 1}. ${s}`, canvas.width / 2 - 30, canvas.height / 2 + 110 + i * 25));
-    ctx.fillStyle = "#0ff";
-    ctx.fillRect(canvas.width / 2 - 60, canvas.height / 2 + 250, 120, 40);
-    ctx.fillStyle = "#000";
-    ctx.fillText("RESTART", canvas.width / 2 - 40, canvas.height / 2 + 278);
+    ctx.fillText("GAME OVER", canvas.width/2-140, canvas.height/2);
+    ctx.fillStyle = "#fff"; ctx.font = "20px Arial";
+    ctx.fillText("Pontuação: "+score, canvas.width/2-60, canvas.height/2+40);
+    const scores = JSON.parse(localStorage.getItem("topScores"))||[];
+    ctx.fillText("Top 5:", canvas.width/2-40, canvas.height/2+80);
+    scores.forEach((s,i)=>ctx.fillText(`${i+1}. ${s}`, canvas.width/2-30, canvas.height/2+110+i*25));
+    ctx.fillStyle="#0ff"; ctx.fillRect(canvas.width/2-60, canvas.height/2+250, 120, 40);
+    ctx.fillStyle="#000"; ctx.fillText("RESTART", canvas.width/2-40, canvas.height/2+278);
     return;
   }
 
-  ctx.fillStyle = "#0f0";
-  ctx.fillRect(player.x, player.y, player.width, player.height);
+  ctx.fillStyle="#0f0"; ctx.fillRect(player.x,player.y,player.width,player.height);
+  ctx.fillStyle="#ff0"; bullets.forEach(b=>ctx.fillRect(b.x,b.y,b.width,b.height));
+  ctx.fillStyle="#f43f5e"; enemyBullets.forEach(b=>ctx.fillRect(b.x,b.y,b.width,b.height));
+  [...enemies,...specialEnemies].forEach(e=>{ctx.fillStyle=e.color; ctx.fillRect(e.x,e.y,e.width,e.height);});
+  powerUps.forEach(p=>{ctx.fillStyle=p.color; ctx.fillRect(p.x,p.y,p.width,p.height);});
+  explosions.forEach(ex=>{ctx.beginPath(); ctx.arc(ex.x,ex.y,ex.radius,0,Math.PI*2); ctx.fillStyle="rgba(255,255,0,0.5)"; ctx.fill(); });
 
-  ctx.fillStyle = "#ff0";
-  bullets.forEach((bullet) => ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height));
+  ctx.fillStyle="#fff"; ctx.font="20px Arial";
+  ctx.fillText("Score: "+score,20,30);
+  ctx.fillText("Vidas: "+lives,canvas.width-100,30);
+  ctx.fillText("Level: "+level,canvas.width/2-30,30);
 
-  ctx.fillStyle = "#f43f5e"; 
-  enemyBullets.forEach((bullet) => ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height));
-
-  [...enemies, ...specialEnemies].forEach((enemy) => {
-    ctx.fillStyle = enemy.color;
-    ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
-  });
-
-  powerUps.forEach((p) => {
-    ctx.fillStyle = p.color;
-    ctx.fillRect(p.x, p.y, p.width, p.height);
-  });
-
-  explosions.forEach((ex) => {
-    ctx.beginPath();
-    ctx.arc(ex.x, ex.y, ex.radius, 0, Math.PI * 2);
-    ctx.fillStyle = "rgba(255,255,0,0.5)";
-    ctx.fill();
-  });
-
-  ctx.fillStyle = "#fff";
-  ctx.font = "20px Arial";
-  ctx.fillText("Score: " + score, 20, 30);
-  ctx.fillText("Vidas: " + lives, canvas.width - 100, 30);
-  ctx.fillText("Level: " + level, canvas.width / 2 - 30, 30);
-
-  let powerTextY = 55;
-  if (player.powerTriple) {
-    ctx.fillStyle = "#facc15";
-    ctx.fillText("Tiro Triplo: " + Math.ceil(player.powerTimer / 60) + "s", 20, powerTextY);
-    powerTextY += 25;
-  }
-  if (player.speed > 7) {
-    ctx.fillStyle = "#f43f5e";
-    ctx.fillText("Tiros Rápidos: " + Math.ceil(player.powerTimer / 60) + "s", 20, powerTextY);
-    powerTextY += 25;
-  }
-  if (player.width > 50) {
-    ctx.fillStyle = "#22d3ee";
-    ctx.fillText("Nave Larga: " + Math.ceil(player.powerTimer / 60) + "s", 20, powerTextY);
-  }
+  let powerY=55;
+  if(player.powerTriple){ctx.fillStyle="#facc15"; ctx.fillText("Tiro Triplo: "+Math.ceil(player.powerTimer/60)+"s",20,powerY); powerY+=25;}
+  if(player.speed>7){ctx.fillStyle="#f43f5e"; ctx.fillText("Tiros Rápidos: "+Math.ceil(player.powerTimer/60)+"s",20,powerY); powerY+=25;}
+  if(player.width>50){ctx.fillStyle="#22d3ee"; ctx.fillText("Nave Larga: "+Math.ceil(player.powerTimer/60)+"s",20,powerY);}
 }
 
-// ---------- Click para restart ----------
+// Clique RESTART
 canvas.addEventListener("click", (e) => {
   if (!gameOver) return;
   const rect = canvas.getBoundingClientRect();
   const x = e.clientX - rect.left;
   const y = e.clientY - rect.top;
-  if (x > canvas.width / 2 - 60 && x < canvas.width / 2 + 60 &&
-      y > canvas.height / 2 + 250 && y < canvas.height / 2 + 290) {
-    restartGame();
-  }
+  if (x>canvas.width/2-60 && x<canvas.width/2+60 && y>canvas.height/2+250 && y<canvas.height/2+290) restartGame();
 });
 
-// ---------- Restart ----------
 function restartGame() {
-  player = { x: canvas.width / 2 - 25, y: canvas.height - 60, width: 50, height: 30, speed: 7, powerTriple: false, powerTimer: 0 };
-  bullets = [];
-  enemyBullets = [];
-  powerUps = [];
-  explosions = [];
-  score = 0;
-  lives = 3;
-  level = 1;
-  shootCooldown = 0;
-  gameOver = false;
+  player={x:canvas.width/2-25,y:canvas.height-60,width:50,height:30,speed:7,powerTriple:false,powerTimer:0};
+  bullets=[]; enemyBullets=[]; powerUps=[]; explosions=[]; score=0; lives=3; level=1; shootCooldown=0; gameOver=false;
   createEnemies();
 }
 
-// ---------- Game Loop ----------
-function gameLoop() {
-  update();
-  draw();
-  requestAnimationFrame(gameLoop);
-}
+// ---------- MENU BOTÕES ----------
+const menuScreen = document.getElementById("menuScreen");
+const instructionsScreen = document.getElementById("instructionsScreen");
+const playBtn = document.getElementById("playBtn");
+const instructionsBtn = document.getElementById("instructionsBtn");
+const backFromInstructions = document.getElementById("backFromInstructions");
 
+playBtn.addEventListener("click", () => {
+  menuScreen.style.display = "none";
+  canvas.style.display = "block";
+  if(isMobile) document.getElementById("touchControls").style.display = "flex";
+});
+
+instructionsBtn.addEventListener("click", () => {
+  menuScreen.style.display = "none";
+  instructionsScreen.style.display = "flex";
+});
+
+backFromInstructions.addEventListener("click", () => {
+  instructionsScreen.style.display = "none";
+  menuScreen.style.display = "flex";
+});
+
+// ---------- Responsividade canvas ----------
+function resizeCanvas() {
+  const ratio = 800/600;
+  const maxWidth = window.innerWidth - 20;
+  const maxHeight = window.innerHeight - 120; 
+  let width = maxWidth;
+  let height = width / ratio;
+  if (height > maxHeight) { height = maxHeight; width = height*ratio; }
+  canvas.width = 800; canvas.height = 600;
+  canvas.style.width = width+"px"; canvas.style.height = height+"px";
+}
+window.addEventListener("resize", resizeCanvas);
+resizeCanvas();
+
+// ---------- LOOP ----------
+function gameLoop() { update(); draw(); requestAnimationFrame(gameLoop); }
 gameLoop();
