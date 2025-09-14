@@ -1,6 +1,20 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
+const menuScreen = document.getElementById("menuScreen");
+const instructionsScreen = document.getElementById("instructionsScreen");
+const touchControls = document.getElementById("touchControls");
+const playBtn = document.getElementById("playBtn");
+const instructionsBtn = document.getElementById("instructionsBtn");
+const backFromInstructions = document.getElementById("backFromInstructions");
+const leftBtn = document.getElementById("leftBtn");
+const rightBtn = document.getElementById("rightBtn");
+const shootBtn = document.getElementById("shootBtn");
+
+// Detecta se é mobile
+const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+
+// ---------------------- Dados do jogador ----------------------
 let player = {
   x: canvas.width / 2 - 25,
   y: canvas.height - 60,
@@ -11,6 +25,7 @@ let player = {
   powerTimer: 0
 };
 
+// ---------------------- Variáveis do jogo ----------------------
 let bullets = [];
 let enemyBullets = [];
 let enemies = [];
@@ -21,18 +36,18 @@ let score = 0;
 let lives = 3;
 let gameOver = false;
 let level = 1;
+let shootCooldown = 0;
 
 const shootSound = new Audio("sounds/shoot.mp3");
 const explosionSound = new Audio("sounds/explosion.mp3");
 
+// ---------------------- Controle teclado ----------------------
 let rightPressed = false;
 let leftPressed = false;
-let shootCooldown = 0;
 
 document.addEventListener("keydown", (e) => {
   if (e.code === "ArrowRight") rightPressed = true;
   if (e.code === "ArrowLeft") leftPressed = true;
-
   if (e.code === "Space" && shootCooldown <= 0 && !gameOver) {
     shoot();
     shootCooldown = 20;
@@ -44,6 +59,16 @@ document.addEventListener("keyup", (e) => {
   if (e.code === "ArrowLeft") leftPressed = false;
 });
 
+// ---------------------- Controle touchscreen ----------------------
+if (isMobile) {
+  leftBtn.addEventListener("touchstart", () => leftPressed = true);
+  leftBtn.addEventListener("touchend", () => leftPressed = false);
+  rightBtn.addEventListener("touchstart", () => rightPressed = true);
+  rightBtn.addEventListener("touchend", () => rightPressed = false);
+  shootBtn.addEventListener("touchstart", () => { if(shootCooldown<=0) {shoot(); shootCooldown=20;} });
+}
+
+// ---------------------- Funções do jogo ----------------------
 function createEnemies() {
   enemies = [];
   specialEnemies = [];
@@ -54,7 +79,6 @@ function createEnemies() {
     specialEnemies.push({ x: i * 180 + 60, y: 70, width: 40, height: 30, dx: 1.2 + level * 0.9, points: 50, color: "#0ff" });
   }
 }
-
 createEnemies();
 
 function shoot() {
@@ -93,12 +117,12 @@ function saveScore(score) {
   localStorage.setItem("topScores", JSON.stringify(scores));
 }
 
+// ---------------------- Atualização ----------------------
 function update() {
   if (gameOver) return;
 
   if (rightPressed && player.x < canvas.width - player.width) player.x += player.speed;
   if (leftPressed && player.x > 0) player.x -= player.speed;
-
   if (shootCooldown > 0) shootCooldown--;
 
   bullets.forEach((bullet, bIndex) => {
@@ -170,7 +194,7 @@ function update() {
       if (p.type === 1) player.speed = 12;
       if (p.type === 2) lives++;
       if (p.type === 3) player.powerTriple = true;
-      player.powerTimer = 7 * 60; 
+      player.powerTimer = 7 * 60;
       powerUps.splice(pIndex, 1);
     }
     if (p.y > canvas.height) powerUps.splice(pIndex, 1);
@@ -203,6 +227,7 @@ function update() {
   }
 }
 
+// ---------------------- Desenho ----------------------
 function draw() {
   ctx.fillStyle = "#0b1020";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -230,22 +255,22 @@ function draw() {
   ctx.fillRect(player.x, player.y, player.width, player.height);
 
   ctx.fillStyle = "#ff0";
-  bullets.forEach((bullet) => ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height));
+  bullets.forEach(bullet => ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height));
 
-  ctx.fillStyle = "#f43f5e"; 
-  enemyBullets.forEach((bullet) => ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height));
+  ctx.fillStyle = "#f43f5e";
+  enemyBullets.forEach(bullet => ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height));
 
-  [...enemies, ...specialEnemies].forEach((enemy) => {
+  [...enemies, ...specialEnemies].forEach(enemy => {
     ctx.fillStyle = enemy.color;
     ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
   });
 
-  powerUps.forEach((p) => {
+  powerUps.forEach(p => {
     ctx.fillStyle = p.color;
     ctx.fillRect(p.x, p.y, p.width, p.height);
   });
 
-  explosions.forEach((ex) => {
+  explosions.forEach(ex => {
     ctx.beginPath();
     ctx.arc(ex.x, ex.y, ex.radius, 0, Math.PI * 2);
     ctx.fillStyle = "rgba(255,255,0,0.5)";
@@ -275,7 +300,7 @@ function draw() {
   }
 }
 
-// ----------------- Click para reiniciar -----------------
+// ---------------------- Click para restart ----------------------
 canvas.addEventListener("click", (e) => {
   if (!gameOver) return;
   const rect = canvas.getBoundingClientRect();
@@ -287,6 +312,7 @@ canvas.addEventListener("click", (e) => {
   }
 });
 
+// ---------------------- Restart ----------------------
 function restartGame() {
   player = { x: canvas.width / 2 - 25, y: canvas.height - 60, width: 50, height: 30, speed: 7, powerTriple: false, powerTimer: 0 };
   bullets = [];
@@ -301,48 +327,28 @@ function restartGame() {
   createEnemies();
 }
 
-// ----------------- Responsividade -----------------
-function resizeCanvas() {
-  const aspectRatio = 800 / 600;
-  let newWidth = window.innerWidth;
-  let newHeight = window.innerWidth / aspectRatio;
-  if (newHeight > window.innerHeight) {
-    newHeight = window.innerHeight;
-    newWidth = newHeight * aspectRatio;
-  }
-  canvas.width = newWidth;
-  canvas.height = newHeight;
-
-  player.x = Math.min(player.x, canvas.width - player.width);
-  player.y = canvas.height - 60;
-}
-window.addEventListener("resize", resizeCanvas);
-window.onload = () => {
-  resizeCanvas();
-  if (isTouchDevice()) document.getElementById("touchControls").style.display = "block";
-};
-
-// ----------------- Touchscreen -----------------
-function bindTouchButton(id, down, up) {
-  const btn = document.getElementById(id);
-  btn.addEventListener("touchstart", e => { e.preventDefault(); down(); });
-  btn.addEventListener("touchend", e => { e.preventDefault(); up(); });
-}
-
-bindTouchButton("leftBtn", () => leftPressed = true, () => leftPressed = false);
-bindTouchButton("rightBtn", () => rightPressed = true, () => rightPressed = false);
-bindTouchButton("shootBtn", () => { if (!gameOver) shoot(); }, () => {});
-
-// ----------------- Detectar touch device -----------------
-function isTouchDevice() {
-  return 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-}
-
-// ----------------- Loop do jogo -----------------
+// ---------------------- Loop do jogo ----------------------
 function gameLoop() {
   update();
   draw();
   requestAnimationFrame(gameLoop);
 }
 
-gameLoop();
+// ---------------------- Menu e Instruções ----------------------
+function startGame() {
+  menuScreen.style.display = "none";
+  instructionsScreen.style.display = "none";
+  canvas.style.display = "block";
+  if (isMobile) touchControls.style.display = "flex";
+  gameLoop();
+}
+
+playBtn.addEventListener("click", startGame);
+instructionsBtn.addEventListener("click", () => {
+  menuScreen.style.display = "none";
+  instructionsScreen.style.display = "flex";
+});
+backFromInstructions.addEventListener("click", () => {
+  instructionsScreen.style.display = "none";
+  menuScreen.style.display = "flex";
+});

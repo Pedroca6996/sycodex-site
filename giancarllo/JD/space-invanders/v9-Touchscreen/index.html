@@ -8,17 +8,34 @@
   <link rel="icon" href="../../../../imagens/favicon.ico" type="image/x-icon">
 </head>
 <body>
-  <canvas id="gameCanvas" width="800" height="600"></canvas>
-
-  <!-- Controles touchscreen -->
-  <div id="touchControls">
-    <button id="leftBtn">⬅️</button>
-    <button id="shootBtn">🔥</button>
-    <button id="rightBtn">➡️</button>
+  <!-- Menu inicial -->
+  <div id="menuScreen" class="overlay">
+    <h1>Space Invaders</h1>
+    <button id="playBtn">Jogar</button>
+    <button id="instructionsBtn">Instruções</button>
   </div>
-<div id="footer">
-        Giancarllo de Lima Alves - Pong Versão 9 Touchscreen - <a href="https://si.walexandre.com/si2024/view.php?id=2048">#0002048</a>
+
+  <!-- Tela de instruções -->
+  <div id="instructionsScreen" class="overlay" style="display:none;">
+    <h2>Como jogar</h2>
+    <p>Use as setas do teclado ou os botões touchscreen:</p>
+    <p>⬅️ Mover esquerda | ➡️ Mover direita | 🟢 Atirar</p>
+    <button id="backFromInstructions">Voltar</button>
+  </div>
+
+  <!-- Canvas centralizado -->
+  <div id="gameContainer">
+    <canvas id="gameCanvas" width="800" height="600" style="display:none;"></canvas>
+    <div id="touchControls" style="display:none;">
+      <button id="leftBtn">⬅️</button>
+      <button id="shootBtn">🟢</button>
+      <button id="rightBtn">➡️</button>
     </div>
+  </div>
+
+  <!-- Footer fixo -->
+  <div id="footer">Giancarllo de Lima Alves - Pong Versão 9 Touchscreen - <a href="https://si.walexandre.com/si2024/view.php?id=2048">#0002048</a></div>
+
   <script src="script.js"></script>
 </body>
 </html>
