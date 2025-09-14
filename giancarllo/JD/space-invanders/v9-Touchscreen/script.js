@@ -11,8 +11,34 @@ const leftBtn = document.getElementById("leftBtn");
 const rightBtn = document.getElementById("rightBtn");
 const shootBtn = document.getElementById("shootBtn");
 
+const footer = document.getElementById("footer");
+
 // Detecta se é mobile
 const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+
+// ---------------------- Ajuste responsivo ----------------------
+function resizeCanvas() {
+  // Mantém proporção 4:3
+  const maxWidth = window.innerWidth;
+  const maxHeight = window.innerHeight - footer.offsetHeight - 20;
+  let width = maxWidth;
+  let height = (width * 3) / 4;
+
+  if (height > maxHeight) {
+    height = maxHeight;
+    width = (height * 4) / 3;
+  }
+
+  canvas.width = width;
+  canvas.height = height;
+
+  // Centraliza canvas
+  canvas.style.display = "block";
+  canvas.style.margin = "0 auto";
+}
+
+window.addEventListener("resize", resizeCanvas);
+resizeCanvas();
 
 // ---------------------- Dados do jogador ----------------------
 let player = {
@@ -61,11 +87,14 @@ document.addEventListener("keyup", (e) => {
 
 // ---------------------- Controle touchscreen ----------------------
 if (isMobile) {
+  touchControls.style.display = "flex";
   leftBtn.addEventListener("touchstart", () => leftPressed = true);
   leftBtn.addEventListener("touchend", () => leftPressed = false);
   rightBtn.addEventListener("touchstart", () => rightPressed = true);
   rightBtn.addEventListener("touchend", () => rightPressed = false);
   shootBtn.addEventListener("touchstart", () => { if(shootCooldown<=0) {shoot(); shootCooldown=20;} });
+} else {
+  touchControls.style.display = "none";
 }
 
 // ---------------------- Funções do jogo ----------------------
@@ -105,10 +134,12 @@ function spawnPowerUp() {
   }
 }
 
+// ---------------------- Explosões ----------------------
 function createExplosion(x, y) {
   explosions.push({ x, y, radius: 0, maxRadius: 20 });
 }
 
+// ---------------------- Pontuação ----------------------
 function saveScore(score) {
   let scores = JSON.parse(localStorage.getItem("topScores")) || [];
   if (!scores.includes(score)) scores.push(score);
@@ -232,25 +263,7 @@ function draw() {
   ctx.fillStyle = "#0b1020";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  if (gameOver) {
-    ctx.fillStyle = "#111";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = "#f43f5e";
-    ctx.font = "48px Arial";
-    ctx.fillText("GAME OVER", canvas.width / 2 - 140, canvas.height / 2);
-    ctx.fillStyle = "#fff";
-    ctx.font = "20px Arial";
-    ctx.fillText("Pontuação: " + score, canvas.width / 2 - 60, canvas.height / 2 + 40);
-    const scores = JSON.parse(localStorage.getItem("topScores")) || [];
-    ctx.fillText("Top 5:", canvas.width / 2 - 40, canvas.height / 2 + 80);
-    scores.forEach((s, i) => ctx.fillText(`${i + 1}. ${s}`, canvas.width / 2 - 30, canvas.height / 2 + 110 + i * 25));
-    ctx.fillStyle = "#0ff";
-    ctx.fillRect(canvas.width / 2 - 60, canvas.height / 2 + 250, 120, 40);
-    ctx.fillStyle = "#000";
-    ctx.fillText("RESTART", canvas.width / 2 - 40, canvas.height / 2 + 278);
-    return;
-  }
-
+  // Desenho do jogador, inimigos, tiros, powerups e explosões
   ctx.fillStyle = "#0f0";
   ctx.fillRect(player.x, player.y, player.width, player.height);
 
@@ -300,7 +313,7 @@ function draw() {
   }
 }
 
-// ---------------------- Click para restart ----------------------
+// ---------------------- Click restart ----------------------
 canvas.addEventListener("click", (e) => {
   if (!gameOver) return;
   const rect = canvas.getBoundingClientRect();
@@ -327,14 +340,14 @@ function restartGame() {
   createEnemies();
 }
 
-// ---------------------- Loop do jogo ----------------------
+// ---------------------- Loop principal ----------------------
 function gameLoop() {
   update();
   draw();
   requestAnimationFrame(gameLoop);
 }
 
-// ---------------------- Menu e Instruções ----------------------
+// ---------------------- Menu ----------------------
 function startGame() {
   menuScreen.style.display = "none";
   instructionsScreen.style.display = "none";

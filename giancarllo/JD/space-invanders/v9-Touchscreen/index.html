@@ -8,6 +8,7 @@
   <link rel="icon" href="../../../../imagens/favicon.ico" type="image/x-icon">
 </head>
 <body>
+
   <!-- Menu inicial -->
   <div id="menuScreen" class="overlay">
     <h1>Space Invaders</h1>
@@ -23,10 +24,12 @@
     <button id="backFromInstructions">Voltar</button>
   </div>
 
-  <!-- Canvas centralizado -->
-  <div id="gameContainer">
+  <!-- Container do jogo -->
+  <div id="gameContainer" style="display:flex; flex-direction:column; align-items:center;">
     <canvas id="gameCanvas" width="800" height="600" style="display:none;"></canvas>
-    <div id="touchControls" style="display:none;">
+
+    <!-- Controles touchscreen -->
+    <div id="touchControls" style="display:none; margin-top: 10px;">
       <button id="leftBtn">⬅️</button>
       <button id="shootBtn">🟢</button>
       <button id="rightBtn">➡️</button>
@@ -34,7 +37,10 @@
   </div>
 
   <!-- Footer fixo -->
-  <div id="footer">Giancarllo de Lima Alves - Pong Versão 9 Touchscreen - <a href="https://si.walexandre.com/si2024/view.php?id=2048">#0002048</a></div>
+  <div id="footer">
+    Giancarllo de Lima Alves - Pong Versão 9 Touchscreen - 
+    <a href="https://si.walexandre.com/si2024/view.php?id=2048">#0002048</a>
+  </div>
 
   <script src="script.js"></script>
 </body>

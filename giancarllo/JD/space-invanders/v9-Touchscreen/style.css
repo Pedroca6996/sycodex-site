@@ -1,3 +1,4 @@
+/* Body e centralização */
 body {
   margin: 0;
   padding: 0;
@@ -5,86 +6,106 @@ body {
   background: #0b1020;
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
-  height: 100vh;
-  overflow: hidden;
-  position: relative;
+  justify-content: center;
+  min-height: 100vh;
 }
 
-/* Centralizar canvas e controles */
+/* Canvas centralizado */
 #gameContainer {
-  position: relative;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
 }
 
-/* Canvas do jogo */
 canvas {
   border: 2px solid #22d3ee;
   background: #0b1020;
   display: block;
+  margin: 0 auto;
+  max-width: 100%;
+  height: auto;
 }
 
 /* Overlay (menu e instruções) */
 .overlay {
   position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  background-color: rgba(0,0,0,0.9);
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.95);
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  z-index: 10;
   text-align: center;
+  z-index: 10;
 }
 
-.overlay h1, .overlay h2 {
-  color: #0ff;
-}
+.overlay h1 { font-size: 50px; margin-bottom: 30px; color: #22d3ee; }
+.overlay h2 { font-size: 40px; margin-bottom: 20px; color: #22d3ee; }
+.overlay p { font-size: 18px; margin-bottom: 20px; color: #fff; }
 
 .overlay button {
   font-size: 20px;
-  padding: 15px 30px;
+  padding: 12px 25px;
   margin: 10px;
   cursor: pointer;
   background-color: #222;
   color: white;
-  border: 2px solid white;
+  border: 2px solid #22d3ee;
   border-radius: 10px;
   transition: all 0.2s ease;
 }
 
 .overlay button:hover {
-  background-color: #444;
+  background-color: #555;
   border-color: yellow;
 }
 
-/* Footer fixo */
-#footer {
-  position: fixed;
-  bottom: 10px;
-  font-size: 16px;
-  color: white;
-  z-index: 5;
-}
-
-/* Botões touch (somente mobile) */
+/* Controles touchscreen */
 #touchControls {
-  position: absolute;
-  bottom: 10px;
+  display: none;
+  width: 100%;
+  max-width: 400px;
   display: flex;
-  gap: 20px;
-  z-index: 5;
+  justify-content: space-between;
+  margin-top: 10px;
+  z-index: 15;
 }
 
 #touchControls button {
-  font-size: 30px;
-  padding: 15px 20px;
+  font-size: 24px;
+  padding: 15px 25px;
   border-radius: 10px;
-  border: none;
-  background-color: rgba(255,255,255,0.2);
+  border: 2px solid #22d3ee;
+  background-color: rgba(0,0,0,0.5);
   color: white;
+}
+
+/* Footer */
+#footer {
+  position: fixed;
+  bottom: 5px;
+  font-size: 16px;
+  color: #fff;
+  z-index: 20;
+}
+
+#footer a {
+  color: yellow;
+  text-decoration: none;
+}
+
+#footer a:hover {
+  text-decoration: underline;
+}
+
+/* Responsividade mobile */
+@media (max-width: 600px) {
+  .overlay h1 { font-size: 36px; }
+  .overlay h2 { font-size: 28px; }
+  .overlay button { font-size: 18px; padding: 10px 20px; }
+  #touchControls button { font-size: 20px; padding: 12px 18px; }
 }
