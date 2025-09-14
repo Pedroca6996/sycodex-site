@@ -1,185 +1,271 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
+// Sons
+const bounceSound = new Audio("sounds/bounce.mp3");
+const scoreSound  = new Audio("sounds/score.mp3");
+const winSound    = new Audio("sounds/win.mp3");
+
 // Jogadores
-let paddleHeight = 100;
-let paddleWidth = 15;
-let player1Y = canvas.height / 2 - paddleHeight / 2;
-let player2Y = canvas.height / 2 - paddleHeight / 2;
-let paddleSpeed = 7;
+const paddleHeight = 100;
+const paddleWidth = 15;
+let paddle1Y = canvas.height / 2 - paddleHeight / 2;
+let paddle2Y = canvas.height / 2 - paddleHeight / 2;
+let paddleSpeed = 8;
 
 // Bola
-let ballSize = 15;
 let ballX = canvas.width / 2;
 let ballY = canvas.height / 2;
-let ballSpeedX = 4;
-let ballSpeedY = 4;
+let ballSize = 15;
+let ballSpeedX = 3;
+let ballSpeedY = 2;
+let initialSpeed = 3;
+const speedIncrement = 0.3;
+const maxSpeed = 12;
 
-// Placar
-let player1Score = 0;
-let player2Score = 0;
+// Placar e status
+let score1 = 0, score2 = 0;
 let winningScore = 5;
+let gameOver = false;
+let highlightPaddle = null;
+let highlightTimer = 0;
+let isPaused = false;
+let gameLoopId = null;
 
-// Controle
-let upPressed = false, downPressed = false;
-let wPressed = false, sPressed = false;
-let paused = false;
+// Teclas
+let keys = {};
+document.addEventListener("keydown", e => keys[e.key] = true);
+document.addEventListener("keyup", e => keys[e.key] = false);
 
-// Sons (ajuste os caminhos conforme sua estrutura)
-const hitSound = new Audio("../../../../sounds/hit.wav");
-const scoreSound = new Audio("../../../../sounds/score.wav");
-const wallSound = new Audio("../../../../sounds/wall.wav");
-
-// Responsividade
+// ----------------- Responsividade -----------------
 function resizeCanvas() {
     const aspectRatio = 1000 / 700;
     let newWidth = window.innerWidth;
     let newHeight = window.innerWidth / aspectRatio;
-
     if (newHeight > window.innerHeight) {
         newHeight = window.innerHeight;
         newWidth = newHeight * aspectRatio;
     }
-
     canvas.width = newWidth;
     canvas.height = newHeight;
+
+    // Reajusta posição dos paddles proporcionalmente
+    paddle1Y = Math.min(paddle1Y, canvas.height - paddleHeight);
+    paddle2Y = Math.min(paddle2Y, canvas.height - paddleHeight);
 }
 window.addEventListener("resize", resizeCanvas);
 
-// Desenho
-function drawPaddle(x, y) {
-    ctx.fillStyle = "white";
+// ----------------- Bola e Paddle -----------------
+function resetBall() {
+    ballX = canvas.width / 2;
+    ballY = canvas.height / 2;
+    ballSpeedX = Math.random() > 0.5 ? initialSpeed : -initialSpeed;
+    ballSpeedY = Math.random() > 0.5 ? initialSpeed - 1 : -(initialSpeed - 1);
+}
+
+function drawPaddle(x, y, highlight) {
+    ctx.fillStyle = highlight ? "yellow" : "cyan";
+    ctx.shadowColor = "white";
+    ctx.shadowBlur = 15;
     ctx.fillRect(x, y, paddleWidth, paddleHeight);
+    ctx.shadowBlur = 0;
 }
 
 function drawBall() {
     ctx.beginPath();
-    ctx.arc(ballX, ballY, ballSize, 0, Math.PI * 2);
-    ctx.fillStyle = "white";
+    ctx.arc(ballX, ballY, ballSize / 2, 0, Math.PI * 2);
+    ctx.fillStyle = "magenta";
+    ctx.shadowColor = "white";
+    ctx.shadowBlur = 15;
     ctx.fill();
-    ctx.closePath();
+    ctx.shadowBlur = 0;
 }
 
 function drawScore() {
-    ctx.font = "30px Arial";
-    ctx.fillText(player1Score, canvas.width / 4, 50);
-    ctx.fillText(player2Score, 3 * canvas.width / 4, 50);
+    ctx.font = "40px Arial";
+    ctx.fillStyle = "lime";
+    ctx.fillText(score1, canvas.width / 4, 50);
+    ctx.fillText(score2, 3 * canvas.width / 4, 50);
 }
 
-// Movimento
-function movePaddles() {
-    if (wPressed && player1Y > 0) player1Y -= paddleSpeed;
-    if (sPressed && player1Y < canvas.height - paddleHeight) player1Y += paddleSpeed;
-    if (upPressed && player2Y > 0) player2Y -= paddleSpeed;
-    if (downPressed && player2Y < canvas.height - paddleHeight) player2Y += paddleSpeed;
+function drawWinScreen() {
+    ctx.font = "50px Arial";
+    ctx.fillStyle = "lime";
+    let winner = score1 >= winningScore ? "Jogador 1" : "Jogador 2";
+    ctx.fillText("Vitória do " + winner, canvas.width / 2 - 200, canvas.height / 2);
+    ctx.font = "25px Arial";
+    ctx.fillText("Pressione ENTER para reiniciar", canvas.width / 2 - 180, canvas.height / 2 + 50);
 }
 
-function moveBall() {
+function update() {
+    if (gameOver || isPaused) return;
+
+    // Controle teclado
+    if (keys["w"] && paddle1Y > 0) paddle1Y -= paddleSpeed;
+    if (keys["s"] && paddle1Y < canvas.height - paddleHeight) paddle1Y += paddleSpeed;
+    if (keys["ArrowUp"] && paddle2Y > 0) paddle2Y -= paddleSpeed;
+    if (keys["ArrowDown"] && paddle2Y < canvas.height - paddleHeight) paddle2Y += paddleSpeed;
+
+    // Movimento bola
     ballX += ballSpeedX;
     ballY += ballSpeedY;
 
     // Colisão topo/fundo
-    if (ballY - ballSize < 0 || ballY + ballSize > canvas.height) {
-        ballSpeedY *= -1;
-        wallSound.play();
+    if (ballY - ballSize / 2 < 0 || ballY + ballSize / 2 > canvas.height) {
+        ballSpeedY = -ballSpeedY;
+        if (Math.abs(ballSpeedY) < maxSpeed) {
+            ballSpeedY += ballSpeedY > 0 ? speedIncrement : -speedIncrement;
+        }
+        bounceSound.play();
     }
 
-    // Colisão com jogadores
-    if (
-        ballX - ballSize < paddleWidth &&
-        ballY > player1Y &&
-        ballY < player1Y + paddleHeight
-    ) {
-        ballSpeedX *= -1;
-        hitSound.play();
+    // Colisão com paddles
+    if (ballX - ballSize / 2 < paddleWidth && ballY > paddle1Y && ballY < paddle1Y + paddleHeight) {
+        ballSpeedX = -ballSpeedX;
+        if (Math.abs(ballSpeedX) < maxSpeed) ballSpeedX += ballSpeedX > 0 ? speedIncrement : -speedIncrement;
+        bounceSound.play();
     }
-
-    if (
-        ballX + ballSize > canvas.width - paddleWidth &&
-        ballY > player2Y &&
-        ballY < player2Y + paddleHeight
-    ) {
-        ballSpeedX *= -1;
-        hitSound.play();
+    if (ballX + ballSize / 2 > canvas.width - paddleWidth && ballY > paddle2Y && ballY < paddle2Y + paddleHeight) {
+        ballSpeedX = -ballSpeedX;
+        if (Math.abs(ballSpeedX) < maxSpeed) ballSpeedX += ballSpeedX > 0 ? speedIncrement : -speedIncrement;
+        bounceSound.play();
     }
 
     // Pontuação
     if (ballX < 0) {
-        player2Score++;
+        score2++;
         scoreSound.play();
-        resetBall();
-    } else if (ballX > canvas.width) {
-        player1Score++;
-        scoreSound.play();
+        highlightPaddle = "right";
+        highlightTimer = 60;
         resetBall();
     }
+    if (ballX > canvas.width) {
+        score1++;
+        scoreSound.play();
+        highlightPaddle = "left";
+        highlightTimer = 60;
+        resetBall();
+    }
+
+    // Vitória
+    if (score1 >= winningScore || score2 >= winningScore) {
+        gameOver = true;
+        winSound.play();
+    }
+
+    if (highlightTimer > 0) highlightTimer--;
+    else highlightPaddle = null;
 }
 
-function resetBall() {
-    ballX = canvas.width / 2;
-    ballY = canvas.height / 2;
-    ballSpeedX *= -1;
-    ballSpeedY = 4 * (Math.random() > 0.5 ? 1 : -1);
-}
-
-// Loop principal
-function gameLoop() {
-    if (!paused) {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        drawPaddle(0, player1Y);
-        drawPaddle(canvas.width - paddleWidth, player2Y);
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (gameOver) drawWinScreen();
+    else {
+        drawPaddle(0, paddle1Y, highlightPaddle === "left");
+        drawPaddle(canvas.width - paddleWidth, paddle2Y, highlightPaddle === "right");
         drawBall();
         drawScore();
-        movePaddles();
-        moveBall();
     }
-    requestAnimationFrame(gameLoop);
 }
 
-// Controles teclado
-document.addEventListener("keydown", (e) => {
-    if (e.key === "ArrowUp") upPressed = true;
-    if (e.key === "ArrowDown") downPressed = true;
-    if (e.key === "w" || e.key === "W") wPressed = true;
-    if (e.key === "s" || e.key === "S") sPressed = true;
+function gameLoop() {
+    update();
+    draw();
+    gameLoopId = requestAnimationFrame(gameLoop);
+}
+
+// ----------------- Menus -----------------
+const startScreen = document.getElementById("startScreen");
+const instructionsScreen = document.getElementById("instructionsScreen");
+const settingsScreen = document.getElementById("settingsScreen");
+
+function startGame() {
+    score1 = 0;
+    score2 = 0;
+    gameOver = false;
+    isPaused = false;
+    resetBall();
+
+    startScreen.style.display = "none";
+    instructionsScreen.style.display = "none";
+    settingsScreen.style.display = "none";
+    canvas.style.display = "block";
+    document.getElementById("gameControls").style.display = "block";
+
+    if (!gameLoopId) gameLoop();
+}
+
+function backToMenu() {
+    isPaused = false;
+    gameOver = false;
+    score1 = 0;
+    score2 = 0;
+    highlightPaddle = null;
+    highlightTimer = 0;
+
+    if (gameLoopId) cancelAnimationFrame(gameLoopId);
+    gameLoopId = null;
+
+    startScreen.style.display = "flex";
+    canvas.style.display = "none";
+    document.getElementById("gameControls").style.display = "none";
+}
+
+document.getElementById("playBtn").addEventListener("click", startGame);
+document.getElementById("instructionsBtn").addEventListener("click", () => {
+    startScreen.style.display = "none";
+    instructionsScreen.style.display = "block";
 });
-document.addEventListener("keyup", (e) => {
-    if (e.key === "ArrowUp") upPressed = false;
-    if (e.key === "ArrowDown") downPressed = false;
-    if (e.key === "w" || e.key === "W") wPressed = false;
-    if (e.key === "s" || e.key === "S") sPressed = false;
+document.getElementById("backFromInstructions").addEventListener("click", () => {
+    instructionsScreen.style.display = "none";
+    startScreen.style.display = "flex";
+});
+document.getElementById("settingsBtn").addEventListener("click", () => {
+    startScreen.style.display = "none";
+    settingsScreen.style.display = "block";
+});
+document.getElementById("backFromSettings").addEventListener("click", () => {
+    settingsScreen.style.display = "none";
+    startScreen.style.display = "flex";
+});
+document.getElementById("saveSettings").addEventListener("click", () => {
+    const speedInput = parseFloat(document.getElementById("initialSpeed").value);
+    const winInput = parseInt(document.getElementById("winningScoreInput").value);
+    if (!isNaN(speedInput) && speedInput > 0) initialSpeed = speedInput;
+    if (!isNaN(winInput) && winInput > 0) winningScore = winInput;
+    settingsScreen.style.display = "none";
+    startScreen.style.display = "flex";
 });
 
-// Controles touch
-function bindTouchButton(id, callbackDown, callbackUp) {
+// Pause/Menu
+document.getElementById("pauseBtn").addEventListener("click", () => { if (gameLoopId) isPaused = !isPaused; });
+document.getElementById("menuBtn").addEventListener("click", backToMenu);
+
+// Reiniciar com Enter
+document.addEventListener("keydown", e => {
+    if (e.key === "Enter" && gameOver) {
+        score1 = 0;
+        score2 = 0;
+        gameOver = false;
+        resetBall();
+    }
+});
+
+// ----------------- Touchscreen -----------------
+function bindTouchButton(id, down, up) {
     const btn = document.getElementById(id);
-    btn.addEventListener("touchstart", (e) => {
-        e.preventDefault();
-        callbackDown();
-    });
-    btn.addEventListener("touchend", (e) => {
-        e.preventDefault();
-        callbackUp();
-    });
+    btn.addEventListener("touchstart", e => { e.preventDefault(); down(); });
+    btn.addEventListener("touchend", e => { e.preventDefault(); up(); });
 }
 
-bindTouchButton("p1Up", () => (wPressed = true), () => (wPressed = false));
-bindTouchButton("p1Down", () => (sPressed = true), () => (sPressed = false));
-bindTouchButton("p2Up", () => (upPressed = true), () => (upPressed = false));
-bindTouchButton("p2Down", () => (downPressed = true), () => (downPressed = false));
+bindTouchButton("p1Up", () => keys["w"]=true, () => keys["w"]=false);
+bindTouchButton("p1Down", () => keys["s"]=true, () => keys["s"]=false);
+bindTouchButton("p2Up", () => keys["ArrowUp"]=true, () => keys["ArrowUp"]=false);
+bindTouchButton("p2Down", () => keys["ArrowDown"]=true, () => keys["ArrowDown"]=false);
 
-// Detecta touch device
-function isTouchDevice() {
-    return 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-}
-
-// Inicialização
+// Mostrar controles só em touch
+function isTouchDevice() { return 'ontouchstart' in window || navigator.maxTouchPoints > 0; }
 window.onload = () => {
     resizeCanvas();
-    if (isTouchDevice()) {
-        document.getElementById("touchControls").style.display = "flex";
-    } else {
-        document.getElementById("touchControls").style.display = "none";
-    }
-    gameLoop();
+    if (isTouchDevice()) document.getElementById("touchControls").style.display = "flex";
 };
