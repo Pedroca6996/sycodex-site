@@ -2,10 +2,9 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Giancarllo de Lima Alves - Pong Versão Touchscreen</title>
+    <title>Giancarllo de Lima Alves - Pong Versão 8</title>
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="../../../../imagens/favicon.ico" type="image/x-icon">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
     <!-- Tela inicial -->
@@ -19,8 +18,7 @@
     <!-- Tela de instruções -->
     <div id="instructionsScreen" class="overlay" style="display:none;">
         <h2>Instruções</h2>
-        <p>Jogador 1: W/S ou botões touch à esquerda</p>
-        <p>Jogador 2: ↑/↓ ou botões touch à direita</p>
+        <p>Jogador 1: W/S | Jogador 2: ↑/↓</p>
         <p>Marque pontos e vença!</p>
         <button id="backFromInstructions">Voltar</button>
     </div>
@@ -43,7 +41,7 @@
     </div>
 
     <!-- Canvas do jogo -->
-    <canvas id="gameCanvas" style="display:none;"></canvas>
+    <canvas id="gameCanvas" width="1000" height="700" style="display:none;"></canvas>
 
     <!-- Botões de controle do jogo -->
     <div id="gameControls" style="display:none;">
@@ -51,21 +49,23 @@
         <button id="menuBtn">Menu</button>
     </div>
 
-    <!-- Botões Touchscreen -->
+    <!-- Controles Touchscreen (aparecem só em celular) -->
     <div id="touchControls" style="display:none;">
-        <div class="touch-side left">
-            <button id="p1Up">▲</button>
-            <button id="p1Down">▼</button>
+        <!-- Jogador 1 -->
+        <div class="touch-column left">
+            <button class="touch-btn" id="p1Up">▲</button>
+            <button class="touch-btn" id="p1Down">▼</button>
         </div>
-        <div class="touch-side right">
-            <button id="p2Up">▲</button>
-            <button id="p2Down">▼</button>
+        <!-- Jogador 2 -->
+        <div class="touch-column right">
+            <button class="touch-btn" id="p2Up">▲</button>
+            <button class="touch-btn" id="p2Down">▼</button>
         </div>
     </div>
 
     <!-- Rodapé -->
     <div id="footer">
-        Giancarllo de Lima Alves - Pong Versão Touchscreen - <a href="https://si.walexandre.com/si2024/view.php?id=2047">#0002047</a>
+        Giancarllo de Lima Alves - Versão 8 - <a href="https://mantis.exemplo.com/view.php?id=0001411">#0001411</a>
     </div>
 
     <script src="script.js"></script>
