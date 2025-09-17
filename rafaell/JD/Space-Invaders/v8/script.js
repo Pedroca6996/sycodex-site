@@ -1,6 +1,9 @@
 // =================================================================================
 // Versão 8.6 - O CÓDIGO COMPLETO (FINALMENTE)
 // =================================================================================
+// NOTA: Este script assume que seu HTML tem <canvas id="backgroundCanvas"></canvas>
+// e <canvas id="gameCanvas"></canvas>, como discutido anteriormente.
+// =================================================================================
 
 // --- Elementos do Canvas e HTML ---
 const gameCanvas = document.getElementById("gameCanvas");
@@ -11,6 +14,7 @@ const highScoreFormContainer = document.getElementById("highScoreFormContainer")
 const highScoreForm = document.getElementById("highScoreForm");
 const playerNameInput = document.getElementById("playerName");
 
+// Ajusta o tamanho do canvas de fundo
 bgCanvas.width = window.innerWidth;
 bgCanvas.height = window.innerHeight;
 
@@ -81,23 +85,123 @@ function updateBullets() { for (let i = bullets.length - 1; i >= 0; i--) { bulle
 function updateEnemies() { let hitEdge = false; enemies.forEach(e => { e.x += enemyDirection * enemySpeed; if (e.x < 0 || e.x + e.width > gameCanvas.width) hitEdge = true; }); if (hitEdge) { enemyDirection *= -1; enemies.forEach(e => { e.y += 20; if (e.y + e.height >= player.y) endGame(); }); } }
 function handleEnemyShooting() { if (Math.random() < 0.003 + (level * 0.0005) && enemies.length > 0) { const shooter = enemies[Math.floor(Math.random() * enemies.length)]; enemyBullets.push({ x: shooter.x + shooter.width / 2 - 2, y: shooter.y + shooter.height, width: 4, height: 12, speed: 4.5 + level * 0.2 }); } }
 function updateEnemyBullets() { for (let i = enemyBullets.length - 1; i >= 0; i--) { enemyBullets[i].y += enemyBullets[i].speed; if (enemyBullets[i].y > gameCanvas.height) enemyBullets.splice(i, 1); } }
-function spawnPowerUp() { if (Math.random() < 0.01 + level * 0.002) { const types = ["doubleShot", "wideShip", "piercing", "bomb"]; const type = types[Math.floor(Math.random() * types.length)]; powerUps.push({ x: Math.random() * (gameCanvas.width - 30), y: 0, width: 30, height: 30, type, speed: 5 }); } }
-function updatePowerUps() { for (let i = powerUps.length - 1; i >= 0; i--) { powerUps[i].y += powerUps[i].speed; if (powerUps[i].y > gameCanvas.height) powerUps.splice(i, 1); } }
+
+function spawnPowerUp() {
+    if (Math.random() < 0.01 + level * 0.002) {
+        const types = ["doubleShot", "wideShip", "piercing", "bomb"];
+        const type = types[Math.floor(Math.random() * types.length)];
+        powerUps.push({
+            x: Math.random() * (gameCanvas.width - 30),
+            y: 0,
+            width: 30,
+            height: 30,
+            type,
+            speed: 5
+        });
+    }
+}
+function updatePowerUps() {
+    for (let i = powerUps.length - 1; i >= 0; i--) {
+        powerUps[i].y += powerUps[i].speed;
+        if (powerUps[i].y > gameCanvas.height) {
+            powerUps.splice(i, 1);
+        }
+    }
+}
 function checkCollisions() {
+    // Tiros do jogador vs inimigos
     for (let bIndex = bullets.length - 1; bIndex >= 0; bIndex--) {
         const b = bullets[bIndex];
         for (let eIndex = enemies.length - 1; eIndex >= 0; eIndex--) {
             const e = enemies[eIndex];
-            if (b && e && b.x < e.x + e.width && b.x + b.width > e.x && b.y < e.y + e.height && b.y + b.height > e.y) { playSound('explosion'); score += e.points; enemies.splice(eIndex, 1); if (b.type !== 'piercing') { bullets.splice(bIndex, 1); break; } }
+            if (b && e && b.x < e.x + e.width && b.x + b.width > e.x && b.y < e.y + e.height && b.y + b.height > e.y) {
+                playSound('explosion');
+                score += e.points;
+                enemies.splice(eIndex, 1);
+                if (b.type !== 'piercing') {
+                    bullets.splice(bIndex, 1);
+                    break; 
+                }
+            }
         }
     }
-    if (enemies.length === 0 && gameState === 'playing') { level++; enemySpeed += 0.5; createEnemies(); }
-    for (let i = enemyBullets.length - 1; i >= 0; i--) { const b = enemyBullets[i]; if (!player.isHit && b.x < player.x + player.width && b.x + b.width > player.x && b.y < player.y + player.height && b.y + b.height > player.y) { enemyBullets.splice(i, 1); lives--; playSound('playerHit'); if (lives > 0) { player.isHit = true; player.hitTimer = Date.now(); } else { endGame(); } } }
-    for (let i = powerUps.length - 1; i >= 0; i--) { const p = powerUps[i]; if (p.x < player.x + player.width && p.x + p.width > player.x && p.y < player.y + player.height && p.y + p.height > player.y) { activatePowerUp(p.type); powerUps.splice(i, 1); } }
+
+    if (enemies.length === 0 && gameState === 'playing') {
+        level++;
+        enemySpeed += 0.5;
+        createEnemies();
+    }
+
+    // Tiros inimigos vs jogador
+    for (let i = enemyBullets.length - 1; i >= 0; i--) {
+        const b = enemyBullets[i];
+        if (!player.isHit && b.x < player.x + player.width && b.x + b.width > player.x && b.y < player.y + player.height && b.y + b.height > player.y) {
+            enemyBullets.splice(i, 1);
+            lives--;
+            playSound('playerHit');
+            if (lives > 0) {
+                player.isHit = true;
+                player.hitTimer = Date.now();
+            } else {
+                endGame();
+            }
+        }
+    }
+    // Power-ups vs jogador
+    for (let i = powerUps.length - 1; i >= 0; i--) {
+        const p = powerUps[i];
+        if (p.x < player.x + player.width && p.x + p.width > player.x && p.y < player.y + player.height && p.y + p.height > player.y) {
+            activatePowerUp(p.type);
+            powerUps.splice(i, 1);
+        }
+    }
 }
-function activatePowerUp(type) { playSound('powerup'); const now = Date.now(); if (type === "doubleShot") { player.doubleShot = true; powerUpTimers.doubleShot = now + POWER_UP_DURATION; } if (type === "wideShip") { player.width = player.baseWidth + 20; powerUpTimers.wideShip = now + POWER_UP_DURATION; } if (type === "piercing") { bulletType = "piercing"; powerUpTimers.piercing = now + POWER_UP_DURATION; } if (type === "bomb") { enemies.forEach(e => score += e.points); enemies = []; } }
-function updatePowerUpTimers() { const now = Date.now(); if (powerUpTimers.doubleShot && now > powerUpTimers.doubleShot) player.doubleShot = false; if (powerUpTimers.wideShip && now > powerUpTimers.wideShip) player.width = player.baseWidth; if (powerUpTimers.piercing && now > powerUpTimers.piercing) bulletType = "normal"; }
-function endGame() { playSound('gameOver'); if (checkIfHighScore(score)) { gameState = 'enteringName'; highScoreFormContainer.classList.remove("hidden"); playerNameInput.focus(); } else { gameState = 'gameOver'; } }
+function activatePowerUp(type) {
+    playSound('powerup');
+    const now = Date.now();
+    if (type === "doubleShot") {
+        player.doubleShot = true;
+        powerUpTimers.doubleShot = now + POWER_UP_DURATION;
+    }
+    if (type === "wideShip") {
+        player.width = player.baseWidth + 20;
+        powerUpTimers.wideShip = now + POWER_UP_DURATION;
+    }
+    if (type === "piercing") {
+        bulletType = "piercing";
+        powerUpTimers.piercing = now + POWER_UP_DURATION;
+    }
+    if (type === "bomb") {
+        enemies.forEach(e => score += e.points);
+        enemies = [];
+    }
+}
+function updatePowerUpTimers() {
+    const now = Date.now();
+    if (powerUpTimers.doubleShot && now > powerUpTimers.doubleShot) {
+        player.doubleShot = false;
+        powerUpTimers.doubleShot = 0;
+    }
+    if (powerUpTimers.wideShip && now > powerUpTimers.wideShip) {
+        player.width = player.baseWidth;
+        powerUpTimers.wideShip = 0;
+    }
+    if (powerUpTimers.piercing && now > powerUpTimers.piercing) {
+        bulletType = "normal";
+        powerUpTimers.piercing = 0;
+    }
+}
+function endGame() {
+    playSound('gameOver');
+    if (checkIfHighScore(score)) {
+        gameState = 'enteringName';
+        highScoreFormContainer.classList.remove("hidden");
+        playerNameInput.focus();
+    } else {
+        gameState = 'gameOver';
+    }
+}
+
 // --- Funções de Desenho ---
 function setNeonStyle(color, blur = 10) { ctx.fillStyle = color; ctx.shadowColor = color; ctx.shadowBlur = blur; }
 function resetShadow() { ctx.shadowBlur = 0; }
@@ -130,17 +234,7 @@ function drawPowerUp(p) {
     ctx.fillText(text, p.x + p.width / 2, p.y + p.height / 2 + 5);
     ctx.textAlign = 'start';
 }
-function drawHUD() {
-    setNeonStyle(colors.text, 5);
-    ctx.font = `20px ${FONT_FAMILY}`;
-    ctx.textAlign = 'start';
-    ctx.fillText(`PONTUAÇÃO: ${score}`, 10, 30);
-    ctx.textAlign = 'center';
-    ctx.fillText(`NÍVEL: ${level}`, gameCanvas.width / 2, 30);
-    ctx.textAlign = 'end';
-    ctx.fillText(`VIDAS: ${lives}`, gameCanvas.width - 10, 30);
-    resetShadow();
-}
+function drawHUD() { setNeonStyle(colors.text, 5); ctx.font = `20px ${FONT_FAMILY}`; ctx.textAlign = 'start'; ctx.fillText(`PONTUAÇÃO: ${score}`, 10, 30); ctx.textAlign = 'center'; ctx.fillText(`NÍVEL: ${level}`, gameCanvas.width / 2, 30); ctx.textAlign = 'end'; ctx.fillText(`VIDAS: ${lives}`, gameCanvas.width - 10, 30); resetShadow(); }
 
 // --- Funções de UI (Menus, Telas) ---
 const menuButtons = { play: { x: 300, y: 300, width: 200, height: 50, text: 'JOGAR' }, ranking: { x: 300, y: 370, width: 200, height: 50, text: 'RANKING' }, settings: { x: 300, y: 440, width: 200, height: 50, text: 'OPÇÕES' } };
@@ -221,37 +315,15 @@ highScoreForm.addEventListener("submit", (e) => { e.preventDefault(); saveHighSc
 gameCanvas.addEventListener('click', (e) => {
     const mouse = { x: e.clientX - gameCanvas.getBoundingClientRect().left, y: e.clientY - gameCanvas.getBoundingClientRect().top };
     const isInside = (p, b) => p.x > b.x && p.x < b.x + b.width && p.y > b.y && p.y < b.y + b.height;
-
-    if (gameState === 'menu') {
-        if (isInside(mouse, menuButtons.play)) resetGame();
-        if (isInside(mouse, menuButtons.ranking)) gameState = 'ranking';
-        if (isInside(mouse, menuButtons.settings)) gameState = 'settings';
-    } else if (gameState === 'ranking') {
-        if (isInside(mouse, backButton)) gameState = 'menu';
-    } else if (gameState === 'settings') {
-        if (isInside(mouse, backButton)) gameState = 'menu';
-        for (const key in settingsButtons) {
-            if (isInside(mouse, settingsButtons[key])) {
-                const [action, volumeType] = key.split('_');
-                if (action === 'minus') volumes[volumeType] = Math.max(0, volumes[volumeType] - 0.1);
-                if (action === 'plus') volumes[volumeType] = Math.min(1, volumes[volumeType] + 0.1);
-                volumes[volumeType] = parseFloat(volumes[volumeType].toFixed(1));
-            }
-        }
-        localStorage.setItem('gameVolumes', JSON.stringify(volumes));
-    } else if (gameState === 'gameOver') {
-        const btns = { tryAgain: { x: 300, y: 280, width: 200, height: 50 }, ranking: { x: 300, y: 350, width: 200, height: 50 }, mainMenu: { x: 300, y: 420, width: 200, height: 50 } };
-        if (isInside(mouse, btns.tryAgain)) resetGame();
-        if (isInside(mouse, btns.ranking)) gameState = 'ranking';
-        if (isInside(mouse, btns.mainMenu)) gameState = 'menu';
-    }
+    if (gameState === 'menu') { if (isInside(mouse, menuButtons.play)) resetGame(); if (isInside(mouse, menuButtons.ranking)) gameState = 'ranking'; if (isInside(mouse, menuButtons.settings)) gameState = 'settings'; }
+    else if (gameState === 'ranking') { if (isInside(mouse, backButton)) gameState = 'menu'; }
+    else if (gameState === 'settings') { if (isInside(mouse, backButton)) gameState = 'menu'; for (const key in settingsButtons) { if (isInside(mouse, settingsButtons[key])) { const [action, volumeType] = key.split('_'); if (action === 'minus') volumes[volumeType] = Math.max(0, volumes[volumeType] - 0.1); if (action === 'plus') volumes[volumeType] = Math.min(1, volumes[volumeType] + 0.1); volumes[volumeType] = parseFloat(volumes[volumeType].toFixed(1)); } } localStorage.setItem('gameVolumes', JSON.stringify(volumes)); }
+    else if (gameState === 'gameOver') { const btns = { tryAgain: { x: 300, y: 280, width: 200, height: 50 }, ranking: { x: 300, y: 350, width: 200, height: 50 }, mainMenu: { x: 300, y: 420, width: 200, height: 50 } }; if (isInside(mouse, btns.tryAgain)) resetGame(); if (isInside(mouse, btns.ranking)) gameState = 'ranking'; if (isInside(mouse, btns.mainMenu)) gameState = 'menu'; }
 });
 
 // --- Game Loop Principal ---
 async function main() {
-    // Garante que a fonte customizada seja carregada antes de iniciar o jogo
     await document.fonts.load(`1em ${FONT_FAMILY}`);
-    
     function gameLoop() {
         drawAndUpdateStars();
         ctx.clearRect(0, 0, gameCanvas.width, gameCanvas.height);
@@ -261,7 +333,7 @@ async function main() {
             case 'ranking': drawRankingScreen(); break;
             case 'settings': drawSettingsScreen(); break;
             case 'gameOver': drawGameOver(); break;
-            case 'enteringName': drawGame(); break; // Jogo fica pausado no fundo
+            case 'enteringName': drawGame(); break;
         }
         requestAnimationFrame(gameLoop);
     }
