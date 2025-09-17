@@ -1,0 +1,49 @@
+body {
+  margin: 0;
+  background-color: #000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  position: relative; /* Necessário para posicionar o formulário */
+}
+
+canvas {
+  border: 2px solid #fff;
+}
+
+/* NOVO: Estilos para o formulário de high score */
+#highScoreFormContainer {
+  position: absolute;
+  background-color: #111;
+  color: #fff;
+  border: 2px solid lime;
+  padding: 20px;
+  text-align: center;
+  font-family: Arial, sans-serif;
+}
+
+#highScoreFormContainer.hidden {
+  display: none;
+}
+
+#highScoreFormContainer input {
+  background-color: #333;
+  color: #fff;
+  border: 1px solid #fff;
+  padding: 10px;
+  font-size: 20px;
+  text-transform: uppercase;
+  width: 80px;
+  text-align: center;
+}
+
+#highScoreFormContainer button {
+  background-color: lime;
+  color: black;
+  border: none;
+  padding: 10px 20px;
+  font-size: 18px;
+  cursor: pointer;
+  margin-left: 10px;
+}
