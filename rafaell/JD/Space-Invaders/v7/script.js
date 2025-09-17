@@ -471,12 +471,15 @@ function drawGameOver() {
     ctx.fillText("Ranking - Top 5", canvas.width / 2, canvas.height / 2 + 20);
 
     const highScores = getHighScores();
+
     if (highScores.length === 0) {
-        ctx.fillText("Nenhuma pontuação registrada!", canvas.width / 2, canvas.height / 2 + 60);
+        // Isso será exibido se o ranking estiver vazio
     } else {
         highScores.forEach((s, index) => {
-            const text = `${index + 1}. ${s.name.padEnd(3, ' ')} ... ${s.score}`;
-            ctx.fillText(text, canvas.width / 2, canvas.height / 2 + 60 + index * 30);
+            if (s && typeof s.name === 'string' && typeof s.score === 'number') {
+                const text = `${index + 1}. ${s.name.padEnd(5, ' ')} ... ${s.score}`;
+                ctx.fillText(text, canvas.width / 2, canvas.height / 2 + 60 + index * 30);
+            }
         });
     }
 
