@@ -2,11 +2,20 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8" />
-  <title>Space Invaders v6</title>
+  <title>Space Invaders v7.2</title>
   <link rel="stylesheet" href="style.css" />
   <link rel="icon" href="../../../../imagens/favicon.ico" type="image/x-icon">
 </head>
 <body>
+  <div id="highScoreFormContainer" class="hidden">
+    <h2>Nova Pontuação Alta!</h2>
+    <p>Digite seu nome (5 caracteres):</p>
+    <form id="highScoreForm">
+      <input type="text" id="playerName" maxlength="5" autofocus autocomplete="off">
+      <button type="submit">Salvar</button>
+    </form>
+  </div>
+  
   <canvas id="gameCanvas" width="800" height="600"></canvas>
   <script src="script.js"></script>
 </body>
