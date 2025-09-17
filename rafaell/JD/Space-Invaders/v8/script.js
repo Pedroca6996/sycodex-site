@@ -55,6 +55,7 @@ let bulletType = "normal";
 let powerUpTimers = {};
 const POWER_UP_DURATION = 10000;
 const keys = {};
+let uiActionInProgress = false;
 
 // --- Funções de Inicialização e Reset ---
 function initializePlayer() { player = { x: gameCanvas.width / 2 - 25, y: gameCanvas.height - 70, width: 50, height: 25, baseWidth: 50, speed: 5, doubleShot: false, isHit: false, hitTimer: 0 }; }
@@ -311,8 +312,12 @@ function saveHighScore(name, newScore) { const hs = getHighScores(); hs.push({ n
 // --- Event Listeners ---
 document.addEventListener("keydown", (e) => { keys[e.key] = true; if (!audioEnabled) audioEnabled = true; });
 document.addEventListener("keyup", (e) => { keys[e.key] = false; });
-highScoreForm.addEventListener("submit", (e) => { e.preventDefault(); saveHighScore(playerNameInput.value.toUpperCase().slice(0, 5) || "AAA", score); highScoreFormContainer.classList.add("hidden"); gameState = 'gameOver'; });
+highScoreForm.addEventListener("submit", (e) => { e.preventDefault(); saveHighScore(playerNameInput.value.toUpperCase().slice(0, 5) || "AAA", score); highScoreFormContainer.classList.add("hidden"); gameState = 'gameOver'; uiActionInProgress = true;});
 gameCanvas.addEventListener('click', (e) => {
+    if (uiActionInProgress) {
+        uiActionInProgress = false;
+        return;
+    }
     const mouse = { x: e.clientX - gameCanvas.getBoundingClientRect().left, y: e.clientY - gameCanvas.getBoundingClientRect().top };
     const isInside = (p, b) => p.x > b.x && p.x < b.x + b.width && p.y > b.y && p.y < b.y + b.height;
     if (gameState === 'menu') { if (isInside(mouse, menuButtons.play)) resetGame(); if (isInside(mouse, menuButtons.ranking)) gameState = 'ranking'; if (isInside(mouse, menuButtons.settings)) gameState = 'settings'; }
