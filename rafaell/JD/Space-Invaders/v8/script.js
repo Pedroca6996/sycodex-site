@@ -1,5 +1,5 @@
 // =================================================================================
-// Versão 8.6 - O CÓDIGO COMPLETO (FINALMENTE)
+// Versão 8.9.1 - A VERSÃO QUE FINALMENTE FUNCIONA
 // =================================================================================
 
 // --- Elementos do Canvas e HTML ---
@@ -11,7 +11,6 @@ const highScoreFormContainer = document.getElementById("highScoreFormContainer")
 const highScoreForm = document.getElementById("highScoreForm");
 const playerNameInput = document.getElementById("playerName");
 
-// Ajusta o tamanho do canvas de fundo
 bgCanvas.width = window.innerWidth;
 bgCanvas.height = window.innerHeight;
 
@@ -21,39 +20,42 @@ let audioEnabled = false;
 const FONT_FAMILY = '"Orbitron", sans-serif';
 
 // --- Configurações Visuais ---
-const colors = {
-    background: 'rgba(10, 4, 13, 0.85)',
-    player: '#00ff7f',
-    enemy1: '#ff41be',
-    enemySpecial: '#ffd300',
-    bulletPlayer: '#96e6b3',
-    bulletEnemy: '#ff41be',
-    text: '#f0f6fc',
-    glow: '#00ff7f',
+const colors = { 
+    background: 'rgba(10, 4, 13, 0.85)', 
+    player: '#00ff7f', 
+    enemy1: '#ff41be', 
+    enemySpecial: '#ffd300', 
+    bulletPlayer: '#96e6b3', 
+    bulletEnemy: '#ff41be', 
+    text: '#f0f6fc', 
+    glow: '#00ff7f', 
     powerup: '#a371f7'
 };
+
+// --- Sprites Pré-renderizados ---
+const sprites = {};
 
 // --- Fundo Estrelado ---
 let stars = [];
 function createStars(count) { 
-    for (let i = 0; i < count; i++) 
-        { stars.push({ x: Math.random() * bgCanvas.width, y: Math.random() * bgCanvas.height, radius: Math.random() * 1.5 + 0.5, speed: Math.random() * 0.4 + 0.1 }); 
+    for (let i = 0; i < count; i++) { 
+        stars.push({ 
+            x: Math.random() * bgCanvas.width, y: Math.random() * bgCanvas.height, radius: Math.random() * 1.5 + 0.5, speed: Math.random() * 0.4 + 0.1 
+        }); 
     } 
 }
 function drawAndUpdateStars() { 
     bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height); 
     bgCtx.fillStyle = '#FFFFFF'; 
     stars.forEach(star => { 
-        star.y += star.speed; 
-        if (star.y > bgCanvas.height) { 
-            star.y = 0; star.x = Math.random() * bgCanvas.width; 
-        } 
-        bgCtx.beginPath(); 
+        star.y += star.speed; if (star.y > bgCanvas.height) { 
+            star.y = 0; 
+            star.x = Math.random() * bgCanvas.width; 
+        } bgCtx.beginPath(); 
         bgCtx.arc(star.x, star.y, star.radius, 0, Math.PI * 2); 
         bgCtx.fill(); 
     }); 
 }
-
 // --- Áudio ---
 const sounds = { 
     shoot: new Audio("../sounds/shoot.mp3"), 
@@ -62,7 +64,26 @@ const sounds = {
     gameOver: new Audio("../sounds/game-over.mp3"), 
     playerHit: new Audio("../sounds/explosion.mp3") 
 };
-let volumes = JSON.parse(localStorage.getItem('gameVolumes')) || { shoot: 0.4, explosion: 0.5, powerup: 0.7, gameOver: 0.6, playerHit: 0.6 };
+let volumes = JSON.parse(localStorage.getItem('gameVolumes')) || { 
+    shoot: 0.4, 
+    explosion: 0.5, 
+    powerup: 0.7, 
+    gameOver: 0.6, 
+    playerHit: 0.6 
+};
+function preloadAudio() {
+    console.log("Iniciando pré-carregamento de áudio...");
+    const promises = Object.values(sounds).map(sound => {
+        return new Promise((resolve) => {
+            // O evento 'canplaythrough' é disparado quando o browser pode tocar o som até o fim
+            sound.addEventListener('canplaythrough', resolve, { once: true });
+        });
+    });
+
+    return Promise.all(promises).then(() => {
+        console.log("Áudio pré-carregado com sucesso!");
+    });
+}
 function playSound(type) { 
     if (!audioEnabled) return; 
     const sound = sounds[type]; 
@@ -74,55 +95,54 @@ function playSound(type) {
 // --- Entidades e Variáveis do Jogo ---
 let player;
 let bullets = [], enemyBullets = [], enemies = [], powerUps = [];
-let score = 0, lives = 3, level = 1, enemyDirection = 1, enemySpeed = 1.5, lastShotTime = 0;
+let score = 0, lives = 2, level = 1, enemyDirection = 1, enemySpeed = 1.5, lastShotTime = 0;
 const shotInterval = 500;
 let bulletType = "normal";
 let powerUpTimers = {};
 const POWER_UP_DURATION = 5000;
 const keys = {};
+const MAX_POWERUPS_ON_SCREEN = 4;
 let uiActionInProgress = false;
-let nextLifeScore = 1000;
+let nextLifeScore = 1500;
 let hoveredButton = null;
 
 // --- Funções de Inicialização e Reset ---
 function initializePlayer() { 
-    player = { x: gameCanvas.width / 2 - 25, y: gameCanvas.height - 70, width: 50, height: 25, baseWidth: 50, speed: 5, doubleShot: false, isHit: false, hitTimer: 0 }; 
+    player = { 
+        x: gameCanvas.width / 2 - 25, y: gameCanvas.height - 70, width: 50, height: 25, baseWidth: 50, speed: 5, doubleShot: false, isHit: false, hitTimer: 0 
+    }; 
 }
-// resetGame
-function resetGame() {
-    score = 0;
-    lives = 2; // <-- ALTERADO DE 3 PARA 2
-    level = 1;
-    enemySpeed = 1.5;
-    nextLifeScore = 1000; // <-- ADICIONADO: Reseta o placar para a próxima vida
-    bullets = [];
-    enemyBullets = [];
-    enemies = [];
-    powerUps = [];
-    initializePlayer();
-    powerUpTimers = { doubleShot: 0, wideShip: 0, piercing: 0 };
-    bulletType = "normal";
-    highScoreFormContainer.classList.add("hidden");
-    createEnemies();
-    gameState = 'playing';
+function resetGame() { 
+    score = 0; 
+    lives = 2; 
+    level = 1; 
+    enemySpeed = 1.5; 
+    nextLifeScore = 1000; 
+    bullets = []; 
+    enemyBullets = []; 
+    enemies = []; 
+    powerUps = []; 
+    initializePlayer(); 
+    powerUpTimers = { 
+        doubleShot: 0, 
+        wideShip: 0, 
+        piercing: 0 
+    }; 
+    bulletType = "normal"; 
+    highScoreFormContainer.classList.add("hidden"); 
+    createEnemies(); 
+    gameState = 'playing'; 
 }
-// Substitua sua função createEnemies por esta:
-function createEnemies() {
-    const eRows = 4, eCols = 10, eSize = 35;
-    enemies = []; // Limpa o array antes de preencher
-    for (let r = 0; r < eRows; r++) {
-        for (let c = 0; c < eCols; c++) {
-            const isSpecial = Math.random() < 0.1;
-            enemies.push({
-                x: c * (eSize + 15) + 60,
-                y: r * (eSize + 15) + 50,
-                width: eSize,
-                height: eSize,
-                isSpecial: isSpecial,
-                points: isSpecial ? 60 : 10 // <-- ALTERADO DE 500/60 PARA 100/10
-            });
-        }
-    }
+function createEnemies() { 
+    const eRows = 4, eCols = 10, eSize = 35; 
+    enemies = []; 
+    for (let r = 0; r < eRows; r++) { 
+        for (let c = 0; c < eCols; c++) { 
+            const isSpecial = Math.random() < 0.1; enemies.push({ 
+                x: c * (eSize + 15) + 60, y: r * (eSize + 15) + 50, width: eSize, height: eSize, isSpecial: isSpecial, points: isSpecial ? 100 : 20 
+            }); 
+        } 
+    } 
 }
 
 // --- Lógica de Update (Jogo) ---
@@ -144,61 +164,69 @@ function handlePlayerMovement() {
     if (keys["ArrowRight"] && player.x + player.width < gameCanvas.width) player.x += player.speed; 
 }
 function handleShooting() { 
-    if (keys[" "] && Date.now() - lastShotTime > shotInterval) { shootBullet(); lastShotTime = Date.now(); } 
+    if (keys[" "] && Date.now() - lastShotTime > shotInterval) { 
+    shootBullet(); lastShotTime = Date.now(); 
+    } 
 }
-function shootBullet() {
-    playSound('shoot');
-    const base = {
-        y: player.y,
-        width: 5,
-        height: 15,
-        type: bulletType,
-        speed: bulletType === "piercing" ? 9 : 7
-    };
-    // 1. Tiro(s) Central(is)
-    // Sempre dispara pelo menos um tiro central
-    bullets.push({ ...base, x: player.x + player.width / 2 - base.width / 2 });
-    // Adiciona um segundo tiro central se o doubleShot estiver ativo
-    if (player.doubleShot) {
-        bullets.push({ ...base, x: player.x + player.width / 2 - base.width / 2 + 10 }); // Leve desvio para não sobrepor
-    }
-    // 2. Tiros Diagonais se wideShip estiver ativo
-    if (player.width > player.baseWidth) {
-        bullets.push({ ...base, x: player.x, angle: -0.25 }); // Tiro diagonal esquerdo
-        bullets.push({ ...base, x: player.x + player.width - base.width, angle: 0.25 }); // Tiro diagonal direito
-    }
+function shootBullet() { 
+    playSound('shoot'); 
+    const base = { y: player.y, width: 5, height: 15, type: bulletType, speed: bulletType === "piercing" ? 9 : 7, angle: 0 }; 
+    if (player.doubleShot) { 
+    bullets.push({ ...base, x: player.x + player.width * 0.2 }); 
+    bullets.push({ ...base, x: player.x + player.width * 0.8 - base.width }); 
+    } 
+    else { 
+    bullets.push({ ...base, x: player.x + player.width / 2 - base.width / 2 }); 
+    } 
+    if (player.width > player.baseWidth) { 
+    bullets.push({ ...base, x: player.x, angle: -0.25 }); 
+    bullets.push({ ...base, x: player.x + player.width, angle: 0.25 }); 
+    } 
 }
-function updateBullets() {
-    for (let i = bullets.length - 1; i >= 0; i--) {
-        const b = bullets[i];
-        b.y -= b.speed;
-        // LÓGICA: Move o projétil no eixo X se ele tiver um ângulo
-        if (b.angle) {
-            b.x += b.angle * b.speed;
-        }
-
-        if (b.y < 0) {
-            bullets.splice(i, 1);
-        }
-    }
+function updateBullets() { 
+    for (let i = bullets.length - 1; i >= 0; i--) { 
+        const b = bullets[i]; 
+        b.y -= b.speed; 
+        if (b.angle) { 
+            b.x += b.angle * b.speed; 
+        } if (b.y + b.height < 0) bullets.splice(i, 1); 
+    } 
 }
 function updateEnemies() { 
-    let hitEdge = false; enemies.forEach(e => { e.x += enemyDirection * enemySpeed; if (e.x < 0 || e.x + e.width > gameCanvas.width) hitEdge = true; }); 
-    if (hitEdge) { enemyDirection *= -1; enemies.forEach(e => { e.y += 20; if (e.y + e.height >= player.y) endGame(); }); } 
+    let hitEdge = false; 
+    enemies.forEach(e => { 
+        e.x += enemyDirection * enemySpeed; 
+        if (e.x < 0 || e.x + e.width > gameCanvas.width) hitEdge = true; 
+    }); 
+    if (hitEdge) { 
+        enemyDirection *= -1; 
+        enemies.forEach(e => { 
+            e.y += 20; 
+            if (e.y + e.height >= player.y) endGame(); 
+        }); 
+    } 
 }
 function handleEnemyShooting() { 
-    if (Math.random() < 0.003 + (level * 0.0005) && enemies.length > 0) { const shooter = enemies[Math.floor(Math.random() * enemies.length)]; 
-        enemyBullets.push({ x: shooter.x + shooter.width / 2 - 2, y: shooter.y + shooter.height, width: 4, height: 12, speed: 4.5 + level * 0.2 }); 
+    if (Math.random() < 0.003 + (level * 0.0005) && enemies.length > 0) { 
+        const shooter = enemies[Math.floor(Math.random() * enemies.length)]; 
+        enemyBullets.push({ 
+            x: shooter.x + shooter.width / 2 - 2, y: shooter.y + shooter.height, width: 4, height: 12, speed: 4.5 + level * 0.2 
+        }); 
     } 
 }
 function updateEnemyBullets() { 
-    for (let i = enemyBullets.length - 1; i >= 0; i--) { enemyBullets[i].y += enemyBullets[i].speed; 
+    for (let i = enemyBullets.length - 1; i >= 0; i--) { 
+        enemyBullets[i].y += enemyBullets[i].speed; 
         if (enemyBullets[i].y > gameCanvas.height) enemyBullets.splice(i, 1); 
     } 
 }
+// Spawnar Power Ups
 function spawnPowerUp() {
-    if (Math.random() < 0.01 + level * 0.002) {
-        // REBALANCEAMENTO: "bomb" é mais raro que os outros.
+    if (powerUps.length >= MAX_POWERUPS_ON_SCREEN) {
+        return;
+    }
+    const spawnChance = 0.008 + level * 0.001;
+    if (Math.random() < spawnChance) {
         const types = [
             "doubleShot", "wideShip", "piercing",
             "doubleShot", "wideShip", "piercing",
@@ -206,7 +234,6 @@ function spawnPowerUp() {
             "bomb" 
         ];
         const type = types[Math.floor(Math.random() * types.length)];
-        // REBALANCEAMENTO: "bomb" é o power-up mais rápido.
         const speedMap = {
             "bomb": 9,
             "piercing": 6,
@@ -225,107 +252,87 @@ function spawnPowerUp() {
         });
     }
 }
-function updatePowerUps() {
-    for (let i = powerUps.length - 1; i >= 0; i--) {
-        powerUps[i].y += powerUps[i].speed;
-        if (powerUps[i].y > gameCanvas.height) {
-            powerUps.splice(i, 1);
-        }
-    }
+function updatePowerUps() { 
+    for (let i = powerUps.length - 1; i >= 0; i--) { 
+        powerUps[i].y += powerUps[i].speed; 
+        if (powerUps[i].y > gameCanvas.height) powerUps.splice(i, 1); 
+    } 
 }
 function checkCollisions() {
-    // Tiros do jogador vs inimigos
     for (let bIndex = bullets.length - 1; bIndex >= 0; bIndex--) {
         const b = bullets[bIndex];
         for (let eIndex = enemies.length - 1; eIndex >= 0; eIndex--) {
             const e = enemies[eIndex];
-            if (b && e && b.x < e.x + e.width && b.x + b.width > e.x && b.y < e.y + e.height && b.y + b.height > e.y) {
-                playSound('explosion');
-                score += e.points;
-
-                // LÓGICA DE VIDA EXTRA ADICIONADA AQUI
-                if (score >= nextLifeScore) {
-                    lives++;
-                    nextLifeScore += 1000; // Define o próximo marco
-                    // Pode adicionar um som de "vida extra" aqui se quiser!
-                }
-
-                enemies.splice(eIndex, 1);
-                if (b.type !== 'piercing') {
-                    bullets.splice(bIndex, 1);
-                    break;
-                }
-            }
+            if (b && e && b.x < e.x + e.width && b.x + b.width > e.x && b.y < e.y + e.height && b.y + b.height > e.y) { playSound('explosion'); score += e.points; if (score >= nextLifeScore) { lives++; nextLifeScore += 1000; } enemies.splice(eIndex, 1); if (b.type !== 'piercing') { bullets.splice(bIndex, 1); break; } }
         }
     }
-
-    if (enemies.length === 0 && gameState === 'playing') {
-        level++;
-        enemySpeed += 0.5;
-        createEnemies();
+    if (enemies.length === 0 && gameState === 'playing') { 
+        level++; enemySpeed += 0.5; createEnemies(); 
     }
-
-    // Tiros inimigos vs jogador
-    for (let i = enemyBullets.length - 1; i >= 0; i--) {
-        const b = enemyBullets[i];
-        if (!player.isHit && b.x < player.x + player.width && b.x + b.width > player.x && b.y < player.y + player.height && b.y + b.height > player.y) {
-            enemyBullets.splice(i, 1);
-            lives--;
-            playSound('playerHit');
-            if (lives > 0) {
-                player.isHit = true;
-                player.hitTimer = Date.now();
-            } else {
-                endGame();
-            }
-        }
+    for (let i = enemyBullets.length - 1; i >= 0; i--) { 
+        const b = enemyBullets[i]; 
+        if (!player.isHit && b.x < player.x + player.width && b.x + b.width > player.x && b.y < player.y + player.height && b.y + b.height > player.y) { 
+            enemyBullets.splice(i, 1); 
+            lives--; 
+            playSound('playerHit'); 
+            if (lives > 0) { 
+                player.isHit = true; 
+                player.hitTimer = Date.now(); 
+            } else { 
+                endGame(); 
+            } 
+        } 
     }
-    // Power-ups vs jogador
-    for (let i = powerUps.length - 1; i >= 0; i--) {
-        const p = powerUps[i];
-        if (p.x < player.x + player.width && p.x + p.width > player.x && p.y < player.y + player.height && p.y + p.height > player.y) {
-            activatePowerUp(p.type);
-            powerUps.splice(i, 1);
-        }
+    for (let i = powerUps.length - 1; i >= 0; i--) { 
+        const p = powerUps[i]; 
+        if (p.x < player.x + player.width && p.x + p.width > player.x && p.y < player.y + player.height && p.y + p.height > player.y) { 
+            activatePowerUp(p.type); 
+            powerUps.splice(i, 1); 
+        } 
     }
 }
-function activatePowerUp(type) {
-    playSound('powerup');
-    const now = Date.now();
-    if (type === "doubleShot") {
-        player.doubleShot = true;
-        powerUpTimers.doubleShot = now + POWER_UP_DURATION;
-    }
-    if (type === "wideShip") {
-        player.width = player.baseWidth + 20;
-        powerUpTimers.wideShip = now + POWER_UP_DURATION;
-    }
-    if (type === "piercing") {
-        bulletType = "piercing";
-        powerUpTimers.piercing = now + POWER_UP_DURATION;
-    }
-    if (type === "bomb") {
-        enemies.forEach(e => score += e.points);
-        enemies = [];
-    }
+function activatePowerUp(type) { 
+    playSound('powerup'); 
+    const now = Date.now(); 
+    if (type === "doubleShot") { 
+        player.doubleShot = true; 
+        powerUpTimers.doubleShot = now + POWER_UP_DURATION; 
+    } 
+    if (type === "wideShip") { 
+        player.width = player.baseWidth + 20; 
+        powerUpTimers.wideShip = now + POWER_UP_DURATION; 
+    } 
+    if (type === "piercing") { 
+        bulletType = "piercing"; 
+        powerUpTimers.piercing = now + POWER_UP_DURATION; 
+    } 
+    if (type === "bomb") { 
+        enemies.forEach(e => {score += e.points; 
+            if (score >= nextLifeScore) { 
+                lives++; nextLifeScore += 1000; 
+            }
+        }); 
+        enemies = []; 
+    } 
 }
-function updatePowerUpTimers() {
-    const now = Date.now();
-    if (powerUpTimers.doubleShot && now > powerUpTimers.doubleShot) {
-        player.doubleShot = false;
+function updatePowerUpTimers() { 
+    const now = Date.now(); 
+    if (powerUpTimers.doubleShot && now > powerUpTimers.doubleShot) { 
+        player.doubleShot = false; 
         powerUpTimers.doubleShot = 0;
-    }
-    if (powerUpTimers.wideShip && now > powerUpTimers.wideShip) {
-        player.width = player.baseWidth;
+    } 
+    if (powerUpTimers.wideShip && now > powerUpTimers.wideShip) { 
+        player.width = player.baseWidth; 
         powerUpTimers.wideShip = 0;
-    }
-    if (powerUpTimers.piercing && now > powerUpTimers.piercing) {
-        bulletType = "normal";
+    } 
+    if (powerUpTimers.piercing && now > powerUpTimers.piercing) { 
+        bulletType = "normal"; 
         powerUpTimers.piercing = 0;
-    }
+    } 
 }
+// Game-Over
 function endGame() {
-    playSound('gameOver');
+    playSound('gameOver');    
     if (checkIfHighScore(score)) {
         gameState = 'enteringName';
         highScoreFormContainer.classList.remove("hidden");
@@ -334,293 +341,198 @@ function endGame() {
         gameState = 'gameOver';
     }
 }
-
-// --- Funções de Desenho ---
-function setNeonStyle(color, blur = 10) { ctx.fillStyle = color; ctx.shadowColor = color; ctx.shadowBlur = blur; }
-function resetShadow() { ctx.shadowBlur = 0; }
-// MODIFIQUE SUA FUNÇÃO drawGame para ficar assim:
-function drawGame() {
-    ctx.fillStyle = colors.background;
-    ctx.fillRect(0, 0, gameCanvas.width, gameCanvas.height);
-    drawPlayer();
-    bullets.forEach(drawPlayerBullet); // Usa a nova função de míssil
-    enemies.forEach(drawEnemy);
-    enemyBullets.forEach(drawEnemyBullet); // Usa a nova função de plasma
-    powerUps.forEach(drawPowerUp);
-    drawHUD();
-    drawPowerUpHUD();
+// --- Funções de Desenho e Sprites ---
+function setNeonStyle(targetCtx, color, blur = 10) { 
+    targetCtx.fillStyle = color; 
+    targetCtx.shadowColor = color; 
+    targetCtx.shadowBlur = blur; 
 }
-function drawPlayer() {
-    if (player.isHit && Math.floor((Date.now() - player.hitTimer) / 100) % 2 === 0) return;
-    
-    setNeonStyle(colors.player);
-    ctx.beginPath();
-    
-    // Corpo principal da nave
-    ctx.moveTo(player.x + player.width / 2, player.y); // Ponta do nariz
-    ctx.lineTo(player.x, player.y + player.height * 0.8); // Asa esquerda
-    ctx.lineTo(player.x + player.width * 0.2, player.y + player.height); // Traseira esquerda
-    ctx.lineTo(player.x + player.width * 0.8, player.y + player.height); // Traseira direita
-    ctx.lineTo(player.x + player.width, player.y + player.height * 0.8); // Asa direita
-    ctx.closePath();
-    ctx.fill();
-
-    // Detalhe da cabine
-    ctx.fillStyle = colors.background;
-    ctx.fillRect(player.x + player.width / 2 - 5, player.y + 12, 10, 8);
-    
-    resetShadow();
+function resetShadow(targetCtx) { 
+    targetCtx.shadowBlur = 0; 
 }
-// ADICIONE ESTA FUNÇÃO COMPLETA AO SEU CÓDIGO
-function drawPowerUpHUD() {
-    const now = Date.now();
-    // Filtra apenas os poderes que estão realmente ativos
-    const active = Object.entries(powerUpTimers).filter(([type, end]) => end > 0 && end > now);
-    
-    if (active.length === 0) return;
-
-    let yPos = 60;
-    ctx.font = `bold 14px ${FONT_FAMILY}`;
-    ctx.textAlign = 'start';
-    setNeonStyle(colors.text, 3);
-    ctx.fillText("PODERES ATIVOS:", 10, yPos);
-    resetShadow();
-    yPos += 5;
-
-    active.forEach(([type, end]) => {
-        yPos += 25;
-        const timeLeft = Math.max(0, end - now);
-        const percent = timeLeft / POWER_UP_DURATION;
-        
-        // Barra de fundo
-        ctx.fillStyle = "rgba(255, 255, 255, 0.2)";
-        ctx.fillRect(10, yPos, 150, 10);
-        
-        // Barra de tempo
-        ctx.fillStyle = colors.player;
-        ctx.fillRect(10, yPos, 150 * percent, 10);
-
-        // Texto do poder
-        setNeonStyle(colors.text, 3);
-        ctx.font = `12px ${FONT_FAMILY}`;
-        ctx.fillText(type.toUpperCase(), 170, yPos + 9);
-        resetShadow();
+function createSprite(width, height, drawFunction) { 
+    const tC = document.createElement('canvas'); 
+    const tCtx = tC.getContext('2d'); 
+    tC.width = width; 
+    tC.height = height; 
+    const margin = 15; 
+    const obj = { 
+        x: margin, y: margin, width: width - (margin * 2), height: height - (margin * 2), centerX: width / 2, centerY: height / 2 
+    }; 
+    drawFunction(tCtx, obj); 
+    return tC; 
+}
+function createAllSprites() {
+    sprites.player = createSprite(player.width + 30, player.height + 30, (tCtx, p) => {
+        setNeonStyle(tCtx, colors.player); 
+        tCtx.beginPath(); 
+        tCtx.moveTo(p.x + p.width / 2, p.y); 
+        tCtx.lineTo(p.x, p.y + p.height); 
+        tCtx.lineTo(p.x + p.width, p.y + p.height); 
+        tCtx.closePath(); 
+        tCtx.fill();
+        tCtx.fillStyle = colors.background; 
+        tCtx.fillRect(p.x + p.width / 2 - 5, p.y + 12, 10, 8); 
+        resetShadow(tCtx);
     });
-}
-// drawEnemy
-function drawEnemy(e) {
-    const w = e.width;
-    const h = e.height;
-    const centerX = e.x + w / 2;
-    const centerY = e.y + h / 2;
-
-    // Define a cor base do UFO (prata ou dourado)
-    const ufoBodyColor = e.isSpecial ? colors.enemySpecial : '#C0C0C0'; // Prata para o básico
-    
-    // --- Desenho do UFO ---
-    setNeonStyle(ufoBodyColor, 8);
-    
-    // 1. Corpo prateado do UFO (disco)
-    ctx.beginPath();
-    ctx.ellipse(centerX, centerY + 5, w / 2, h / 4, 0, 0, Math.PI * 2);
-    ctx.fill();
-    resetShadow();
-
-    // 2. Cabeça do Alien (verde)
-    ctx.fillStyle = colors.player; // Reutilizando o verde do jogador
-    ctx.beginPath();
-    ctx.arc(centerX, centerY, w / 8, 0, Math.PI * 2);
-    ctx.fill();
-
-    // 3. Cúpula de vidro semi-transparente
-    ctx.fillStyle = 'rgba(200, 220, 255, 0.4)'; // Azul-claro com 40% de opacidade
-    ctx.beginPath();
-    ctx.arc(centerX, centerY, w / 4, Math.PI, 0); // Semicírculo
-    ctx.fill();
-
-    // 4. Brilho na cúpula para dar o efeito de vidro
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-    ctx.beginPath();
-    ctx.arc(centerX - w * 0.1, centerY - h * 0.1, w / 12, 0, Math.PI * 2);
-    ctx.fill();
-}
-// Bala do player
-function drawPlayerBullet(b) {
-    setNeonStyle(colors.bulletPlayer, 8);
-    ctx.beginPath();
-    // Corpo do míssil
-    ctx.rect(b.x, b.y, b.width, b.height);
-    // Ponta
-    ctx.moveTo(b.x, b.y);
-    ctx.lineTo(b.x + b.width / 2, b.y - 5);
-    ctx.lineTo(b.x + b.width, b.y);
-    // "Asas" traseiras
-    ctx.moveTo(b.x, b.y + b.height);
-    ctx.lineTo(b.x - 2, b.y + b.height + 4);
-    ctx.lineTo(b.x + 2, b.y + b.height);
-    ctx.moveTo(b.x + b.width, b.y + b.height);
-    ctx.lineTo(b.x + b.width - 2, b.y + b.height);
-    ctx.lineTo(b.x + b.width + 2, b.y + b.height + 4);
-    ctx.fill();
-    resetShadow();
-}
-
-// Bala do inimigo
-function drawEnemyBullet(b) {
-    const centerX = b.x + b.width / 2;
-    const centerY = b.y + b.height / 2;
-
-    // 1. ANIMAÇÃO: O raio do tiro muda aleatoriamente a cada frame para criar um efeito de pulsação.
-    // O tamanho vai variar entre 120% e 160% do tamanho base.
-    const pulseRadius = b.width * (1.2 + Math.random() * 0.4);
-
-    // 2. COR: Cria um gradiente radial para o efeito "mini-sol".
-    const gradient = ctx.createRadialGradient(
-        centerX, centerY, 0, // Ponto inicial (centro do tiro, raio 0)
-        centerX, centerY, pulseRadius // Ponto final (centro do tiro, raio pulsante)
-    );
-
-    // Adiciona as cores ao gradiente
-    gradient.addColorStop(0, 'white');         // Núcleo superaquecido branco
-    gradient.addColorStop(0.4, '#FFD700');     // Meio do gradiente dourado/amarelo
-    gradient.addColorStop(1, colors.bulletEnemy); // Borda com a cor original do tiro inimigo
-
-    // 3. DESENHO: Aplica o gradiente e o brilho neon.
-    ctx.shadowColor = colors.bulletEnemy;
-    ctx.shadowBlur = 15;
-    
-    ctx.fillStyle = gradient;
-    ctx.beginPath();
-    ctx.arc(centerX, centerY, pulseRadius, 0, Math.PI * 2);
-    ctx.fill();
-
-    resetShadow();
-}
-// ========================================================================
-// NOVAS FUNÇÕES DE DESENHO DOS ÍCONES (VERSÃO FINAL)
-// ========================================================================
-
-function drawDoubleShotIcon(ctx, x, y, size) {
-    // Desenha dois mísseis com espaçamento e cores diferentes
-    const missileWidth = size * 0.15;
-    const missileHeight = size * 0.6;
-
-    // Função auxiliar para desenhar um míssil
-    const drawMissile = (mx) => {
-        // Corpo do míssil (verde, como o do jogador)
-        ctx.fillStyle = colors.player;
-        ctx.beginPath();
-        ctx.rect(mx, y - missileHeight / 2, missileWidth, missileHeight);
-        ctx.fill();
-        
-        // Ponta do míssil (branca e brilhante)
-        setNeonStyle('#FFFFFF', 5);
-        ctx.beginPath();
-        ctx.moveTo(mx, y - missileHeight / 2);
-        ctx.lineTo(mx + missileWidth / 2, y - missileHeight / 2 - 6);
-        ctx.lineTo(mx + missileWidth, y - missileHeight / 2);
-        ctx.fill();
-        resetShadow();
+    const createEnemySprite = (isSpecial) => {
+        return createSprite(35 + 30, 35 + 30, (tCtx, e) => {
+            const ufoBodyColor = isSpecial ? colors.enemySpecial : '#C0C0C0';
+            setNeonStyle(tCtx, ufoBodyColor, 8); 
+            tCtx.beginPath(); 
+            tCtx.ellipse(e.centerX, e.centerY + 5, e.width / 2, e.height / 4, 0, 0, Math.PI * 2); 
+            tCtx.fill(); 
+            resetShadow(tCtx);
+            tCtx.fillStyle = colors.player; 
+            tCtx.beginPath(); 
+            tCtx.arc(e.centerX, e.centerY, e.width / 8, 0, Math.PI * 2); 
+            tCtx.fill();
+            tCtx.fillStyle = 'rgba(200, 220, 255, 0.4)'; 
+            tCtx.beginPath(); 
+            tCtx.arc(e.centerX, e.centerY, e.width / 4, Math.PI, 0); 
+            tCtx.fill();
+            tCtx.fillStyle = 'rgba(255, 255, 255, 0.7)'; 
+            tCtx.beginPath(); 
+            tCtx.arc(e.centerX - e.width * 0.1, e.centerY - e.height * 0.1, e.width / 12, 0, Math.PI * 2); 
+            tCtx.fill();
+        });
     };
-
-    // Desenha os dois mísseis com um espaçamento claro entre eles
-    drawMissile(x - size * 0.3); // Míssil da Esquerda
-    drawMissile(x + size * 0.15); // Míssil da Direita
+    sprites.enemy = createEnemySprite(false);
+    sprites.enemySpecial = createEnemySprite(true);
 }
-
-function drawWideShipIcon(ctx, x, y, size) {
-    // Desenha um escudo com múltiplas cores
-    // Camada de fundo do escudo (branca)
-    setNeonStyle('#FFFFFF', 15);
-    ctx.beginPath();
+function drawGame() { 
+    ctx.fillStyle = colors.background; 
+    ctx.fillRect(0, 0, gameCanvas.width, gameCanvas.height); 
+    drawPlayer(); 
+    bullets.forEach(drawPlayerBullet); 
+    enemies.forEach(drawEnemy); 
+    enemyBullets.forEach(drawEnemyBullet); 
+    powerUps.forEach(drawPowerUp); 
+    drawHUD(); 
+    drawPowerUpHUD(); 
+}
+function drawPlayer() { 
+    if (player.isHit && Math.floor((Date.now() - player.hitTimer) / 100) % 2 === 0) return; 
+    if(sprites.player) ctx.drawImage(sprites.player, player.x - 15, player.y - 15); 
+}
+function drawEnemy(e) { 
+    const spriteToDraw = e.isSpecial ? sprites.enemySpecial : sprites.enemy; 
+    if(spriteToDraw) ctx.drawImage(spriteToDraw, e.x - 15, e.y - 15); 
+}
+function drawPlayerBullet(b) { 
+    setNeonStyle(ctx, colors.bulletPlayer, 8); 
+    ctx.beginPath(); 
+    ctx.rect(b.x, b.y, b.width, b.height); 
+    ctx.moveTo(b.x, b.y); 
+    ctx.lineTo(b.x + b.width / 2, b.y - 5); 
+    ctx.lineTo(b.x + b.width, b.y); 
+    ctx.moveTo(b.x, b.y + b.height); 
+    ctx.lineTo(b.x - 2, b.y + b.height + 4); 
+    ctx.lineTo(b.x + 2, b.y + b.height); 
+    ctx.moveTo(b.x + b.width, b.y + b.height); 
+    ctx.lineTo(b.x + b.width - 2, b.y + b.height); 
+    ctx.lineTo(b.x + b.width + 2, b.y + b.height + 4); 
+    ctx.fill(); 
+    resetShadow(ctx); 
+}
+function drawEnemyBullet(b) { 
+    const cX = b.x + b.width / 2, cY = b.y + b.height / 2; const pR = b.width * (1.2 + Math.random() * 0.4); 
+    const grad = ctx.createRadialGradient(cX, cY, 0, cX, cY, pR); 
+    grad.addColorStop(0, 'white'); 
+    grad.addColorStop(0.4, '#FFD700'); 
+    grad.addColorStop(1, colors.bulletEnemy); 
+    ctx.shadowColor = colors.bulletEnemy; 
+    ctx.shadowBlur = 15; 
+    ctx.fillStyle = grad; 
+    ctx.beginPath(); 
+    ctx.arc(cX, cY, pR, 0, Math.PI * 2); 
+    ctx.fill(); resetShadow(ctx); 
+}
+function drawDoubleShotIcon(ctx, x, y, size) { 
+    const mW = size * 0.15, mH = size * 0.6; 
+    const drawM = (mx) => { 
+        ctx.fillStyle = colors.player; 
+        ctx.beginPath(); 
+        ctx.rect(mx, y - mH / 2, mW, mH); 
+        ctx.fill(); 
+        setNeonStyle(ctx, '#FFFFFF', 5); 
+        ctx.beginPath(); 
+        ctx.moveTo(mx, y - mH / 2); 
+        ctx.lineTo(mx + mW / 2, y - mH / 2 - 6); 
+        ctx.lineTo(mx + mW, y - mH / 2); 
+        ctx.fill(); 
+        resetShadow(ctx); 
+    }; 
+    drawM(x - size * 0.3); 
+    drawM(x + size * 0.15); 
+}
+function drawWideShipIcon(ctx, x, y, size) { 
+    setNeonStyle(ctx, '#FFFFFF', 15); 
+    ctx.beginPath(); 
     ctx.moveTo(x - size * 0.4, y - size * 0.5); 
     ctx.lineTo(x + size * 0.4, y - size * 0.5); 
     ctx.lineTo(x + size * 0.4, y + size * 0.2); 
     ctx.quadraticCurveTo(x, y + size * 0.6, x - size * 0.4, y + size * 0.2); 
-    ctx.closePath();
-    ctx.fill();
-    resetShadow();
-
-    // Camada da frente do escudo (roxa)
-    setNeonStyle(colors.powerup, 10);
-    ctx.beginPath();
+    ctx.closePath(); 
+    ctx.fill(); 
+    resetShadow(ctx); 
+    setNeonStyle(ctx, colors.powerup, 10); 
+    ctx.beginPath(); 
     ctx.moveTo(x - size * 0.3, y - size * 0.4); 
     ctx.lineTo(x + size * 0.3, y - size * 0.4); 
     ctx.lineTo(x + size * 0.3, y + size * 0.15); 
     ctx.quadraticCurveTo(x, y + size * 0.45, x - size * 0.3, y + size * 0.15); 
-    ctx.closePath();
-    ctx.fill();
-    resetShadow();
+    ctx.closePath(); 
+    ctx.fill(); 
+    resetShadow(ctx); 
 }
-
-function drawPiercingIcon(ctx, x, y, size) {
-    // Flecha com ponta simétrica e grande
-    // Corpo da flecha (roxo)
-    ctx.fillStyle = colors.powerup;
-    ctx.fillRect(x - 2, y - size * 0.1, 4, size * 0.6);
-
-    // Ponta da flecha (branca e afiada)
-    setNeonStyle('#FFFFFF', 10);
-    ctx.beginPath();
-    ctx.moveTo(x, y - size * 0.5); // Ponta de cima
-    ctx.lineTo(x + size * 0.4, y); // Canto direito da ponta
-    ctx.lineTo(x - size * 0.4, y); // Canto esquerdo da ponta
-    ctx.closePath();
-    ctx.fill();
-    resetShadow();
+function drawPiercingIcon(ctx, x, y, size) { 
+    ctx.fillStyle = colors.powerup; 
+    ctx.fillRect(x - 2, y - size * 0.1, 4, size * 0.6); 
+    setNeonStyle(ctx, '#FFFFFF', 10); 
+    ctx.beginPath(); 
+    ctx.moveTo(x, y - size * 0.5); 
+    ctx.lineTo(x + size * 0.4, y); 
+    ctx.lineTo(x - size * 0.4, y); 
+    ctx.closePath(); 
+    ctx.fill(); 
+    resetShadow(ctx); 
 }
-
-function drawNukeIcon(ctx, x, y, size) {
-    // Nuke com corpo, cauda e aletas
-    // Aletas da cauda (prata)
-    ctx.fillStyle = '#A9A9A9'; // Cinza escuro
-    ctx.beginPath();
-    ctx.moveTo(x - size * 0.4, y - size * 0.5);
-    ctx.lineTo(x - size * 0.2, y - size * 0.3);
-    ctx.lineTo(x, y - size * 0.5);
-    ctx.moveTo(x + size * 0.4, y - size * 0.5);
-    ctx.lineTo(x + size * 0.2, y - size * 0.3);
-    ctx.lineTo(x, y - size * 0.5);
-    ctx.fill();
-    
-    // Corpo da cauda (a parte "quadrada")
-    ctx.fillStyle = '#C0C0C0'; // Prata
-    ctx.fillRect(x - size * 0.2, y - size * 0.3, size * 0.4, size * 0.4);
-
-    // Corpo principal da bomba (amarelo/dourado)
-    setNeonStyle(colors.enemySpecial, 15);
-    ctx.beginPath();
-    ctx.arc(x, y + size * 0.1, size * 0.35, 0, Math.PI * 2);
-    ctx.fill();
-    resetShadow();
+function drawNukeIcon(ctx, x, y, size) { 
+    ctx.fillStyle = '#A9A9A9'; 
+    ctx.beginPath(); 
+    ctx.moveTo(x - size * 0.4, y - size * 0.5); 
+    ctx.lineTo(x - size * 0.2, y - size * 0.3); 
+    ctx.lineTo(x, y - size * 0.5); 
+    ctx.moveTo(x + size * 0.4, y - size * 0.5); 
+    ctx.lineTo(x + size * 0.2, y - size * 0.3); 
+    ctx.lineTo(x, y - size * 0.5); 
+    ctx.fill(); 
+    ctx.fillStyle = '#C0C0C0'; 
+    ctx.fillRect(x - size * 0.2, y - size * 0.3, size * 0.4, size * 0.4); 
+    setNeonStyle(ctx, colors.enemySpecial, 15); 
+    ctx.beginPath(); 
+    ctx.arc(x, y + size * 0.1, size * 0.35, 0, Math.PI * 2); 
+    ctx.fill(); 
+    resetShadow(ctx); 
 }
-
-
-// --- FUNÇÃO drawPowerUp PRINCIPAL (SUBSTITUA A SUA POR ESTA) ---
-function drawPowerUp(p) {
-    const centerX = p.x + p.width / 2;
-    const centerY = p.y + p.height / 2;
-    const size = p.width; // O tamanho base para o ícone
-
-    ctx.beginPath();
-
-    switch (p.type) {
-        case 'doubleShot':
-            drawDoubleShotIcon(ctx, centerX, centerY, size);
-            break;
-        case 'wideShip':
-            drawWideShipIcon(ctx, centerX, centerY, size);
-            break;
-        case 'piercing':
-            drawPiercingIcon(ctx, centerX, centerY, size);
-            break;
-        case 'bomb':
-            drawNukeIcon(ctx, centerX, centerY, size);
-            break;
-    }
+function drawPowerUp(p) { 
+    const cX = p.x + p.width/2; 
+    const cY = p.y + p.height/2; 
+    const size = p.width; 
+    switch (p.type) { 
+        case 'doubleShot': drawDoubleShotIcon(ctx, cX, cY, size); 
+        break; 
+        case 'wideShip': drawWideShipIcon(ctx, cX, cY, size); 
+        break; 
+        case 'piercing': drawPiercingIcon(ctx, cX, cY, size); 
+        break; 
+        case 'bomb': drawNukeIcon(ctx, cX, cY, size); 
+        break; 
+    } 
 }
 function drawHUD() { 
-    setNeonStyle(colors.text, 5); 
+    setNeonStyle(ctx, colors.text, 5); 
     ctx.font = `20px ${FONT_FAMILY}`; 
     ctx.textAlign = 'start'; 
     ctx.fillText(`PONTUAÇÃO: ${score}`, 10, 30); 
@@ -628,168 +540,196 @@ function drawHUD() {
     ctx.fillText(`NÍVEL: ${level}`, gameCanvas.width / 2, 30); 
     ctx.textAlign = 'end'; 
     ctx.fillText(`VIDAS: ${lives}`, gameCanvas.width - 10, 30); 
-    resetShadow(); 
+    resetShadow(ctx); 
+}
+function drawPowerUpHUD() { 
+    const now = Date.now(); 
+    const active = Object.entries(powerUpTimers).filter(([type, end]) => end > 0 && end > now); 
+    if (active.length === 0) return; 
+    let yPos = 60; 
+    ctx.font = `bold 14px ${FONT_FAMILY}`; 
+    ctx.textAlign = 'start'; 
+    setNeonStyle(ctx, colors.text, 3); 
+    ctx.fillText("PODERES ATIVOS:", 10, yPos); 
+    resetShadow(ctx); 
+    yPos += 5; 
+    active.forEach(([type, end]) => { 
+        yPos += 25; 
+        const timeLeft = Math.max(0, end - now); 
+        const percent = timeLeft / POWER_UP_DURATION; 
+        ctx.fillStyle = "rgba(255, 255, 255, 0.2)"; 
+        ctx.fillRect(10, yPos, 150, 10); 
+        ctx.fillStyle = colors.player; 
+        ctx.fillRect(10, yPos, 150 * percent, 10); 
+        setNeonStyle(ctx, colors.text, 3); 
+        ctx.font = `12px ${FONT_FAMILY}`; 
+        ctx.fillText(type.toUpperCase(), 170, yPos + 9); 
+        resetShadow(ctx); 
+    }); 
 }
 
 // --- Funções de UI (Menus, Telas) ---
 const menuButtons = { 
-    play: { x: 300, y: 300, width: 200, height: 50, text: 'JOGAR' }, 
-    ranking: { x: 300, y: 370, width: 200, height: 50, text: 'RANKING' }, 
-    settings: { x: 300, y: 440, width: 200, height: 50, text: 'OPÇÕES' } };
-const backButton = { x: 300, y: 500, width: 200, height: 50, text: 'VOLTAR' };
+    play: { 
+        x: 300, y: 300, width: 200, height: 50, text: 'JOGAR' 
+    }, 
+    ranking: { 
+        x: 300, y: 370, width: 200, height: 50, text: 'RANKING' 
+    }, 
+    settings: { 
+        x: 300, y: 440, width: 200, height: 50, text: 'OPÇÕES' 
+    } 
+};
+const backButton = { 
+    x: 300, y: 500, width: 200, height: 50, text: 'VOLTAR' 
+};
 const gameOverButtons = { 
-    tryAgain: { x: 300, y: 280, width: 200, height: 50, text: 'JOGAR NOVAMENTE' }, 
-    ranking: { x: 300, y: 350, width: 200, height: 50, text: 'RANKING' }, 
-    mainMenu: { x: 300, y: 420, width: 200, height: 50, text: 'MENU' } 
+    tryAgain: { 
+        x: 300, y: 280, width: 200, height: 50, text: 'JOGAR NOVAMENTE' 
+    }, 
+    ranking: { 
+        x: 300, y: 350, width: 200, height: 50, text: 'RANKING' 
+    }, 
+    mainMenu: { 
+        x: 300, y: 420, width: 200, height: 50, text: 'MENU' 
+    } 
 };
 let settingsButtons = {};
-
-function drawMenu() {
-    // 1. Desenha o fundo da tela de menu
-    ctx.fillStyle = colors.background;
-    ctx.fillRect(0, 0, gameCanvas.width, gameCanvas.height);
-    
-    // 2. Desenha o título principal em duas linhas
-    setNeonStyle(colors.glow, 15);
-    ctx.font = `bold 80px ${FONT_FAMILY}`;
-    ctx.textAlign = 'center';
-    ctx.fillText('SPACE', gameCanvas.width / 2, 160);
-    ctx.fillText('INVADERS', gameCanvas.width / 2, 240);
-    resetShadow();
-    
-    // 3. Desenha os botões do menu
-    Object.values(menuButtons).forEach(b => drawButton(b));
+function drawMenu() { 
+    drawScreenTemplate('SPACE INVADERS', 180, menuButtons, 80, true); 
 }
-function getActiveButtons() {
-    if (gameState === 'menu') return Object.values(menuButtons);
-    if (gameState === 'ranking') return [backButton];
-    if (gameState === 'settings') return [backButton, ...Object.values(settingsButtons)];
-    if (gameState === 'gameOver') return Object.values(gameOverButtons); // Agora usa a constante
-    return [];
-}
-function drawRankingScreen() {
-    drawScreenTemplate('RANKING', 100, { back: backButton }, 50);
-    const hs = getHighScores();
-    ctx.font = `24px ${FONT_FAMILY}`;
-    ctx.textAlign = 'center';
-    setNeonStyle(colors.text, 5);
-    if (hs.length === 0) { ctx.fillText('NENHUM RECORDE', gameCanvas.width / 2, 200); }
-    else { hs.forEach((s, i) => ctx.fillText(`${i + 1}. ${s.name.padEnd(5, ' ')} - ${s.score}`, gameCanvas.width / 2, 180 + i * 40)); }
-    resetShadow();
+function drawRankingScreen() { 
+    drawScreenTemplate('RANKING', 100, { back: backButton }, 50); 
+    const hs = getHighScores(); 
+    ctx.font = `24px ${FONT_FAMILY}`; 
+    ctx.textAlign = 'center'; 
+    setNeonStyle(ctx, colors.text, 5); 
+    if (hs.length === 0) { 
+        ctx.fillText('NENHUM RECORDE', gameCanvas.width / 2, 200); 
+    } else { 
+        hs.forEach((s, i) => ctx.fillText(`${i + 1}. ${s.name.padEnd(5, ' ')} - ${s.score}`, gameCanvas.width / 2, 180 + i * 40)); 
+    } resetShadow(ctx); 
 }
 function drawSettingsScreen() {
     drawScreenTemplate('OPÇÕES', 100, { back: backButton }, 50);
-    
-    settingsButtons = {};
-    let y = 180;
-    const totalContentWidth = 380; // Largura total do bloco de controle de volume
-    const startX = (gameCanvas.width - totalContentWidth) / 2;
-
+    ctx.font = `22px ${FONT_FAMILY}`;
+    settingsButtons = {}; let y = 180;
+    const totalContentWidth = 380; const startX = (gameCanvas.width - totalContentWidth) / 2;
     for (const key in volumes) {
         const text = `${key.charAt(0).toUpperCase() + key.slice(1)}: ${Math.round(volumes[key] * 100)}%`;
-
-        // Botão de diminuir (-)
         const minusBtn = { x: startX, y: y - 25, width: 50, height: 40, text: '-' };
-        settingsButtons[`minus_${key}`] = minusBtn;
-        drawButton(minusBtn);
-
-        // Texto
-        setNeonStyle(colors.text, 5);
-        ctx.font = `22px ${FONT_FAMILY}`;
-        ctx.textAlign = 'center';
-        ctx.fillText(text, startX + (totalContentWidth / 2), y);
-        resetShadow();
-
-        // Botão de aumentar (+)
         const plusBtn = { x: startX + totalContentWidth - 50, y: y - 25, width: 50, height: 40, text: '+' };
-        settingsButtons[`plus_${key}`] = plusBtn;
+        settingsButtons[`minus_${key}`] = minusBtn; settingsButtons[`plus_${key}`] = plusBtn;
+        drawButton(minusBtn);
+        setNeonStyle(ctx, colors.text, 5); ctx.textAlign = 'center'; ctx.fillText(text, startX + (totalContentWidth / 2), y); 
+        resetShadow(ctx);
         drawButton(plusBtn);
-        
         y += 60;
     }
     ctx.textAlign = 'start';
 }
-function drawGameOver() {
+function drawGameOver() { 
     drawScreenTemplate('FIM DE JOGO', 150, gameOverButtons, 60); 
-    setNeonStyle(colors.text, 5);
-    ctx.font = `24px ${FONT_FAMILY}`;
-    ctx.textAlign = 'center';
-    ctx.fillText(`PONTUAÇÃO FINAL: ${score}`, gameCanvas.width / 2, 220);
-    resetShadow();
+    setNeonStyle(ctx, colors.text, 5); 
+    ctx.font = `24px ${FONT_FAMILY}`; 
+    ctx.textAlign = 'center'; 
+    ctx.fillText(`PONTUAÇÃO FINAL: ${score}`, gameCanvas.width / 2, 220); 
+    resetShadow(ctx); 
 }
-function drawScreenTemplate(title, y, buttons, fontSize) {
-    // 1. Desenha o fundo da tela
-    ctx.fillStyle = colors.background;
+function drawScreenTemplate(title, y, buttons, fontSize, isMainMenu = false) {
+    ctx.fillStyle = colors.background; 
     ctx.fillRect(0, 0, gameCanvas.width, gameCanvas.height);
-    
-    // 2. Desenha o título (para telas como Ranking, Opções, Fim de Jogo)
-    if (title) { // Apenas desenha se um título for fornecido
-        setNeonStyle(colors.glow, 15);
-        ctx.font = `bold ${fontSize}px ${FONT_FAMILY}`;
+    if (isMainMenu) {
+        setNeonStyle(ctx, colors.glow, 15); 
+        ctx.font = `bold 80px ${FONT_FAMILY}`; 
         ctx.textAlign = 'center';
-        ctx.fillText(title, gameCanvas.width / 2, y);
-        resetShadow();
+        ctx.fillText('SPACE', gameCanvas.width / 2, 160);
+        ctx.fillText('INVADERS', gameCanvas.width / 2, 240);
+        resetShadow(ctx);
+    } else if (title) {
+        setNeonStyle(ctx, colors.glow, 15); 
+        ctx.font = `bold ${fontSize}px ${FONT_FAMILY}`; 
+        ctx.textAlign = 'center'; 
+        ctx.fillText(title, gameCanvas.width / 2, y); 
+        resetShadow(ctx);
     }
-    
-    // 3. Desenha os botões da tela
     Object.values(buttons).forEach(b => drawButton(b));
 }
-// Botões
 function drawButton(b) {
-    // CORREÇÃO: Compara as propriedades do botão (posição e texto), em vez da referência do objeto.
-    // Isso garante que o hover funcione para botões que são recriados a cada frame, como os de volume.
     const isHovered = hoveredButton && b.x === hoveredButton.x && b.y === hoveredButton.y && b.text === hoveredButton.text;
     const scale = isHovered ? 1.05 : 1.0; 
-    
-    const newWidth = b.width * scale;
-    const newHeight = b.height * scale;
-    const newX = b.x - (newWidth - b.width) / 2;
+    const newWidth = b.width * scale; 
+    const newHeight = b.height * scale; 
+    const newX = b.x - (newWidth - b.width) / 2; 
     const newY = b.y - (newHeight - b.height) / 2;
-
     if (isHovered) {
-        // --- ESTADO HOVER ---
-        ctx.shadowColor = '#FFFFFF';
-        ctx.shadowBlur = 20;
+        ctx.shadowColor = '#FFFFFF'; 
+        ctx.shadowBlur = 20; 
         ctx.fillStyle = colors.player;
-        drawRoundedRect(newX, newY, newWidth, newHeight, 12);
-        ctx.fill();
-        resetShadow();
-        ctx.fillStyle = colors.background;
-        ctx.font = `bold ${b.text.length > 10 ? '17' : '19'}px ${FONT_FAMILY}`;
-        ctx.textAlign = 'center';
+        drawRoundedRect(newX, newY, newWidth, newHeight, 12); 
+        ctx.fill(); 
+        resetShadow(ctx);
+        ctx.fillStyle = colors.background; 
+        ctx.font = `bold ${b.text.length > 10 ? '17' : '19'}px ${FONT_FAMILY}`; 
+        ctx.textAlign = 'center'; 
         ctx.fillText(b.text, newX + newWidth / 2, newY + newHeight / 2 + 8);
-
     } else {
-        // --- ESTADO NORMAL ---
-        setNeonStyle(colors.glow, 10);
-        ctx.strokeStyle = colors.glow;
+        setNeonStyle(ctx, colors.glow, 10); 
+        ctx.strokeStyle = colors.glow; 
         ctx.lineWidth = 2;
-        drawRoundedRect(b.x, b.y, b.width, b.height, 10);
+        drawRoundedRect(b.x, b.y, b.width, b.height, 10); 
         ctx.stroke();
-        ctx.fillStyle = colors.glow;
-        ctx.font = `bold ${b.text.length > 10 ? '16' : '18'}px ${FONT_FAMILY}`;
-        ctx.textAlign = 'center';
+        ctx.font = `bold ${b.text.length > 10 ? '16' : '18'}px ${FONT_FAMILY}`; 
+        ctx.textAlign = 'center'; 
         ctx.fillText(b.text, b.x + b.width / 2, b.y + b.height / 2 + 8);
     }
-    resetShadow();
-    ctx.textAlign = 'start';
+    resetShadow(ctx); ctx.textAlign = 'start';
 }
-function drawRoundedRect(x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.lineTo(x + w - r, y); ctx.arcTo(x + w, y, x + w, y + r, r); ctx.lineTo(x + w, y + h - r); ctx.arcTo(x + w, y + h, x + w - r, y + h, r); ctx.lineTo(x + r, y + h); ctx.arcTo(x, y + h, x, y + h - r, r); ctx.lineTo(x, y + r); ctx.arcTo(x, y, x + r, y, r); ctx.closePath(); }
+function drawRoundedRect(x, y, w, h, r) { 
+    ctx.beginPath(); 
+    ctx.moveTo(x + r, y); 
+    ctx.lineTo(x + w - r, y); 
+    ctx.arcTo(x + w, y, x + w, y + r, r); 
+    ctx.lineTo(x + w, y + h - r); 
+    ctx.arcTo(x + w, y + h, x + w - r, y + h, r); 
+    ctx.lineTo(x + r, y + h); 
+    ctx.arcTo(x, y + h, x, y + h - r, r); 
+    ctx.lineTo(x, y + r); 
+    ctx.arcTo(x, y, x + r, y, r); 
+    ctx.closePath(); 
+}
 
 // --- Lógica de High Score ---
-function getHighScores() { return JSON.parse(localStorage.getItem("highScores")) || []; }
-function checkIfHighScore(s) { const hs = getHighScores(); return s > 0 && (hs.length < 5 || s > hs[hs.length - 1].score); }
-function saveHighScore(name, newScore) { const hs = getHighScores(); hs.push({ name, score: newScore }); hs.sort((a, b) => b.score - a.score); localStorage.setItem("highScores", JSON.stringify(hs.slice(0, 5))); }
+function getHighScores() { 
+    return JSON.parse(localStorage.getItem("highScores")) || []; 
+}
+function checkIfHighScore(s) { 
+    const hs = getHighScores(); 
+    return s > 0 && (hs.length < 5 || s > hs[hs.length - 1].score); 
+}
+function saveHighScore(name, newScore) { 
+    const hs = getHighScores(); hs.push({ name, score: newScore }); 
+    hs.sort((a, b) => b.score - a.score); 
+    localStorage.setItem("highScores", JSON.stringify(hs.slice(0, 5))); 
+}
 
 // --- Event Listeners ---
-document.addEventListener("keydown", (e) => { keys[e.key] = true; if (!audioEnabled) audioEnabled = true; });
-document.addEventListener("keyup", (e) => { keys[e.key] = false; });
-highScoreForm.addEventListener("submit", (e) => { e.preventDefault(); saveHighScore(playerNameInput.value.toUpperCase().slice(0, 5) || "AAA", score); highScoreFormContainer.classList.add("hidden"); gameState = 'gameOver'; uiActionInProgress = true;});
+document.addEventListener("keydown", (e) => { 
+    keys[e.key] = true; 
+    if (!audioEnabled) audioEnabled = true; 
+});
+document.addEventListener("keyup", (e) => { 
+    keys[e.key] = false; 
+});
+highScoreForm.addEventListener("submit", (e) => { 
+    e.preventDefault(); 
+    saveHighScore(playerNameInput.value.toUpperCase().slice(0, 5) || "AAA", score); 
+    highScoreFormContainer.classList.add("hidden"); 
+    gameState = 'gameOver'; 
+    uiActionInProgress = true; 
+});
 gameCanvas.addEventListener('click', (e) => {
-    if (uiActionInProgress) {
-        uiActionInProgress = false;
-        return;
-    }
+    if (uiActionInProgress) { uiActionInProgress = false; return; }
     const mouse = { x: e.clientX - gameCanvas.getBoundingClientRect().left, y: e.clientY - gameCanvas.getBoundingClientRect().top };
     const isInside = (p, b) => p.x > b.x && p.x < b.x + b.width && p.y > b.y && p.y < b.y + b.height;
     if (gameState === 'menu') { 
@@ -811,55 +751,64 @@ gameCanvas.addEventListener('click', (e) => {
             } 
         } localStorage.setItem('gameVolumes', JSON.stringify(volumes)); 
     }
-    else if (gameState === 'gameOver') {
-        if (isInside(mouse, gameOverButtons.tryAgain)) resetGame();
-        if (isInside(mouse, gameOverButtons.ranking)) gameState = 'ranking';
-        if (isInside(mouse, gameOverButtons.mainMenu)) gameState = 'menu';
+    else if (gameState === 'gameOver') { 
+        if (isInside(mouse, gameOverButtons.tryAgain)) resetGame(); 
+        if (isInside(mouse, gameOverButtons.ranking)) gameState = 'ranking'; 
+        if (isInside(mouse, gameOverButtons.mainMenu)) gameState = 'menu'; 
     }
 });
-// Substitua seu event listener 'mousemove' por este:
 gameCanvas.addEventListener('mousemove', (e) => {
     const mouse = { x: e.clientX - gameCanvas.getBoundingClientRect().left, y: e.clientY - gameCanvas.getBoundingClientRect().top };
     const isInside = (p, b) => p.x > b.x && p.x < b.x + b.width && p.y > b.y && p.y < b.y + b.height;
-
-    const activeButtons = getActiveButtons();
     let foundButton = null;
-
-    for (const button of activeButtons) {
-        if (isInside(mouse, button)) {
-            foundButton = button;
-            break;
-        }
+    const getActiveButtons = () => { 
+        if (gameState === 'menu') return Object.values(menuButtons); 
+        if (gameState === 'ranking') return [backButton]; 
+        if (gameState === 'settings') return [backButton, ...Object.values(settingsButtons)]; 
+        if (gameState === 'gameOver') return Object.values(gameOverButtons); return []; 
+    };
+    const activeButtons = getActiveButtons();
+    for (const button of activeButtons) { 
+        if (isInside(mouse, button)) { 
+            foundButton = button; break; 
+        } 
     }
-    
-    hoveredButton = foundButton; // Atualiza a variável global
+    hoveredButton = foundButton;
 });
 
 // --- Game Loop Principal ---
 async function main() {
     await document.fonts.load(`1em ${FONT_FAMILY}`);
+    await preloadAudio();
+    initializePlayer();
+    createAllSprites();
     function gameLoop() {
         drawAndUpdateStars();
         ctx.clearRect(0, 0, gameCanvas.width, gameCanvas.height);
-        // Gerencia o cursor do mouse com base no estado do hoveredButton
-        if (hoveredButton) {
-            gameCanvas.style.cursor = 'pointer';
-        } else {
-            gameCanvas.style.cursor = 'default';
+        if (hoveredButton) { 
+            gameCanvas.style.cursor = 'pointer'; 
+        } else { 
+            gameCanvas.style.cursor = 'default'; 
         }
         switch (gameState) {
-            case 'menu': drawMenu(); break;
-            case 'playing': updateGame(); drawGame(); break;
-            case 'ranking': drawRankingScreen(); break;
-            case 'settings': drawSettingsScreen(); break;
-            case 'gameOver': drawGameOver(); break;
-            case 'enteringName': drawGame(); break;
+            case 'menu': drawMenu(); 
+            break;
+            case 'playing': updateGame(); 
+            drawGame(); 
+            break;
+            case 'ranking': drawRankingScreen(); 
+            break;
+            case 'settings': drawSettingsScreen(); 
+            break;
+            case 'gameOver': drawGameOver(); 
+            break;
+            case 'enteringName': drawGame(); 
+            break;
         }
         requestAnimationFrame(gameLoop);
     }
     createStars(300);
-    initializePlayer();
     gameLoop();
 }
 
-main(); // Inicia o jogo
+main();
