@@ -1,11 +1,10 @@
 body {
   margin: 0;
-  background-color: #000; /* Fundo preto para fora do canvas de estrelas */
-  font-family: 'Orbitron', sans-serif; /* Aplica a nova fonte */
-  overflow: hidden; /* Esconde barras de rolagem */
+  background-color: #000;
+  font-family: 'Orbitron', sans-serif;
+  overflow: hidden;
 }
 
-/* Canvas de fundo para as estrelas */
 #backgroundCanvas {
   position: fixed;
   top: 0;
@@ -15,7 +14,6 @@ body {
   z-index: 0;
 }
 
-/* Container para o jogo e formulário */
 #gameContainer {
   display: flex;
   justify-content: center;
@@ -25,20 +23,18 @@ body {
   z-index: 1;
 }
 
-/* Canvas principal do jogo */
 #gameCanvas {
-  border: 2px solid #39a34a;
-  box-shadow: 0 0 15px #39a34a; /* Adiciona um brilho na borda do jogo */
-  background: transparent; /* Deixa o canvas do jogo transparente */
+  border: 2px solid #00ff7f; /* Verde neon mais vibrante */
+  box-shadow: 0 0 20px #00ff7f, inset 0 0 10px rgba(0, 255, 127, 0.5);
+  background: transparent;
 }
 
-/* Estilos para o formulário de high score */
 #highScoreFormContainer {
   position: absolute;
-  background-color: rgba(10, 4, 13, 0.9);
+  background-color: rgba(10, 4, 13, 0.95);
   color: #f0f6fc;
-  border: 2px solid #39a34a;
-  box-shadow: 0 0 15px #39a34a;
+  border: 2px solid #00ff7f;
+  box-shadow: 0 0 15px #00ff7f;
   padding: 25px;
   text-align: center;
   border-radius: 15px;
@@ -49,14 +45,14 @@ body {
 }
 
 #highScoreFormContainer h2 {
-    color: #39a34a;
-    text-shadow: 0 0 8px #39a34a;
+    color: #00ff7f;
+    text-shadow: 0 0 8px #00ff7f;
 }
 
 #highScoreFormContainer input {
   background-color: #0a040d;
   color: #f0f6fc;
-  border: 1px solid #39a34a;
+  border: 1px solid #00ff7f;
   padding: 10px;
   font-size: 20px;
   text-transform: uppercase;
@@ -64,16 +60,22 @@ body {
   text-align: center;
   font-family: 'Orbitron', sans-serif;
   margin-right: 10px;
+  border-radius: 5px;
 }
 
 #highScoreFormContainer button {
-  background-color: #39a34a;
+  background-color: #00ff7f;
   color: #0a040d;
   border: none;
   border-radius: 5px;
-  padding: 10px 20px;
+  padding: 11px 20px;
   font-size: 18px;
   font-weight: bold;
   cursor: pointer;
   font-family: 'Orbitron', sans-serif;
+  transition: all 0.2s ease;
+}
+
+#highScoreFormContainer button:hover {
+    box-shadow: 0 0 10px #fff;
 }
