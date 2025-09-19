@@ -1,20 +1,31 @@
- body {
+body {
     margin: 0;
     padding: 0;
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    /* NOVO: Fundo gradiente */
-    background: linear-gradient(135deg, #1a1a1a 0%, #000000 100%);
+    background: #000; /* Fundo preto sólido, as partículas farão o resto */
     flex-direction: column;
     position: relative;
     font-family: 'Consolas', monospace, sans-serif;
     color: #fff;
+    overflow: hidden; /* Evita barras de rolagem */
+}
+
+/* NOVO: Canvas de fundo para as partículas */
+#backgroundCanvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0; /* Fica atrás de tudo */
 }
 
 #game-container {
-    position: relative;
+    position: relative; /* Garante que o container fique sobre o fundo */
+    z-index: 1; /* Fica na frente do canvas de fundo */
     width: 800px;
     height: 600px;
     border: 2px solid #fff;
@@ -23,7 +34,6 @@
 
 canvas {
     display: block;
-    /* NOVO: Sombra para o canvas */
     box-shadow: 0 0 20px rgba(0, 255, 255, 0.4);
 }
 
@@ -35,24 +45,24 @@ canvas {
     text-align: center;
     width: 80%;
     max-width: 400px;
+    z-index: 2; /* Garante que os menus fiquem na frente do canvas do jogo */
 }
+
+/* O resto do seu CSS continua igual... */
 
 .hidden-screen {
     display: none;
 }
-
 .screen h1 {
     font-size: 60px;
     margin-bottom: 20px;
-    color: #00ffff; /* Cor ciano */
-    text-shadow: 0 0 10px #00ffff; /* Efeito de brilho */
+    color: #00ffff;
+    text-shadow: 0 0 10px #00ffff;
 }
-
 .screen h2 {
     font-size: 30px;
     margin-bottom: 10px;
 }
-
 .screen button {
     display: block;
     width: 100%;
@@ -66,24 +76,20 @@ canvas {
     transition: background-color 0.3s, box-shadow 0.3s;
     box-shadow: 0 0 5px rgba(0, 255, 255, 0.4);
 }
-
 .screen button:hover {
     background-color: #004444;
     box-shadow: 0 0 15px rgba(0, 255, 255, 0.8);
 }
-
 .setting {
     margin: 20px 0;
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
-
 .setting label {
     font-size: 16px;
     margin-right: 10px;
 }
-
 .setting input {
     width: 60px;
     padding: 5px;
@@ -93,7 +99,6 @@ canvas {
     border: 1px solid #00ffff;
     color: #fff;
 }
-
 .footer-info {
     position: absolute;
     bottom: 10px;
@@ -101,8 +106,8 @@ canvas {
     color: #888;
     font-family: sans-serif;
     font-size: 14px;
+    z-index: 1;
 }
-
 .footer-info a {
     color: #888;
     text-decoration: none;
