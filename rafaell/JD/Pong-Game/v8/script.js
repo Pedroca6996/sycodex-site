@@ -13,6 +13,10 @@ const bgCtx = bgCanvas.getContext('2d');
 // ----------------------
 
 // Elementos da UI
+const colors = {
+    player: '#00ff7f', // Verde neon para os detalhes do cristal
+    // Adicione outras cores aqui se precisar no futuro
+};
 const mainMenu = document.getElementById('main-menu');
 const settingsMenu = document.getElementById('settings-menu');
 const instructionsMenu = document.getElementById('instructions-menu');
@@ -41,11 +45,11 @@ const ball = {
     x: canvas.width / 2,
     y: canvas.height / 2,
     radius: 10,
-    initialSpeedX: 3, // Começa mais devagar
-    initialSpeedY: 3,
-    speedX: 3,
-    speedY: 3,
-    speedIncrease: 0.3, // Aumento um pouco maior para sentir a progressão
+    initialSpeedX: 1.5,
+    initialSpeedY: 1.5,
+    speedX: 1.5,
+    speedY: 1.5,
+    speedIncrease: 0.3, 
     maxSpeed: 15
 };
 
@@ -58,6 +62,12 @@ let scoreTimer = 0;
 let gameState = 'menu';
 let centerCircleRotation = 0;
 
+//Circulo no centro giratório
+const BASE_CIRCLE_ROTATION_SPEED = 0.002; // A velocidade bem lenta do início
+const CIRCLE_ROTATION_INCREASE = 0.001;  // O quanto acelera a cada hit
+const MAX_CIRCLE_ROTATION_SPEED = 0.02;   // O limite máximo de velocidade
+let circleRotationSpeed = BASE_CIRCLE_ROTATION_SPEED; // A velocidade atual
+
 // Carregamento dos sons (NOVOS CAMINHOS LOCAIS)
 const bounceSound = new Audio('../sounds/hit.mp3');
 const scoreSound = new Audio('../sounds/score.mp3');
@@ -69,10 +79,31 @@ const keys = { w: false, s: false, up: false, down: false };
 // Partículas para o fundo
 let particles = [];
 const particleCount = 100;
+let shieldImpacts = [];
 
 // ----------------------
 // Inicialização
 // ----------------------
+function setupGame() {
+    // Helper para criar a forma do cristal (agora dentro do setup)
+    const createCrystalShape = (x, width, height) => {
+        const points = [];
+        const segments = 10;
+        for (let i = 0; i <= segments; i++) {
+            const y = (i / segments) * height;
+            const offsetX = (Math.random() - 0.5) * (width * 0.4);
+            points.push({ x: x + offsetX, y: y });
+        }
+        return points;
+    };
+
+    // Adiciona as formas de cristal aos objetos dos jogadores
+    player1.shapePoints = createCrystalShape(player1.x + player1.width, player1.width, player1.height);
+    player2.shapePoints = createCrystalShape(player2.x, player2.width, player2.height);
+
+    // Também podemos mover a inicialização das partículas para cá
+    initParticles();
+}
 
 function initParticles() {
     particles = [];
@@ -177,24 +208,80 @@ function drawTable() {
     ctx.shadowBlur = 0;
 }
 
-function drawRect(x, y, width, height, color) {
-    ctx.fillStyle = color;
-    ctx.shadowColor = 'rgba(255, 255, 255, 0.8)';
-    ctx.shadowBlur = 15;
-    ctx.fillRect(x, y, width, height);
+function drawPaddle(paddle) {
+    // 1. Desenha o Escudo de Energia
+    ctx.fillStyle = `rgba(0, 255, 127, 0.1)`; // Aura verde sutil
+    ctx.shadowColor = colors.player || '#00ff7f'; // Usa a cor do tema ou um padrão
+    ctx.shadowBlur = 20;
+    ctx.beginPath();
+    // Um elipse um pouco maior que a raquete para ser o escudo
+    ctx.ellipse(paddle.x + paddle.width / 2, paddle.y + paddle.height / 2, paddle.width + 10, paddle.height / 2 + 15, 0, 0, Math.PI * 2);
+    ctx.fill();
     ctx.shadowBlur = 0;
-}
 
-function drawBall(x, y, radius, color) {
-    ctx.fillStyle = color;
-    ctx.shadowColor = 'rgba(0, 255, 255, 0.8)';
+    // 2. Desenha o Cristal "Pedrejado"
+    ctx.fillStyle = paddle.scoreColor;
+    ctx.shadowColor = colors.player || '#00ff7f';
     ctx.shadowBlur = 15;
     ctx.beginPath();
-    ctx.arc(x, y, radius, 0, Math.PI * 2, true);
+    ctx.moveTo(paddle.shapePoints[0].x, paddle.y); // Ponto inicial
+    // Desenha as bordas irregulares
+    for (let i = 1; i < paddle.shapePoints.length; i++) {
+        ctx.lineTo(paddle.shapePoints[i].x, paddle.y + paddle.shapePoints[i].y);
+    }
+    // Fecha o polígono
+    ctx.lineTo(paddle.x + paddle.width/2, paddle.y + paddle.height);
+    ctx.lineTo(paddle.x + paddle.width/2, paddle.y);
+    ctx.closePath();
     ctx.fill();
     ctx.shadowBlur = 0;
 }
 
+function createShieldImpact(x, y, color) {
+    shieldImpacts.push({
+        x: x,
+        y: y,
+        radius: 10,
+        maxRadius: 50,
+        opacity: 1,
+        color: color
+    });
+}
+
+function drawShieldImpacts() {
+    for (let i = shieldImpacts.length - 1; i >= 0; i--) {
+        const impact = shieldImpacts[i];
+        
+        ctx.beginPath();
+        ctx.strokeStyle = `rgba(${impact.color}, ${impact.opacity})`;
+        ctx.lineWidth = 3;
+        ctx.arc(impact.x, impact.y, impact.radius, 0, Math.PI * 2);
+        ctx.stroke();
+
+        impact.radius += 2;
+        impact.opacity -= 0.04;
+
+        if (impact.opacity <= 0) {
+            shieldImpacts.splice(i, 1);
+        }
+    }
+}
+
+function drawBall(ball) {
+    // Gradiente para o efeito de energia verde/laranja (sem a pulsação que causava lag)
+    const gradient = ctx.createRadialGradient(ball.x, ball.y, 0, ball.x, ball.y, ball.radius);
+    gradient.addColorStop(0, '#FFFFFF');
+    gradient.addColorStop(0.5, '#FFA500');
+    gradient.addColorStop(1, 'rgba(0, 255, 127, 0.6)');
+
+    ctx.fillStyle = gradient;
+    ctx.shadowColor = '#FFA500';
+    ctx.shadowBlur = 20;
+    ctx.beginPath();
+    ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2, true);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+}
 function drawScore() {
     ctx.fillStyle = '#00ffff';
     ctx.font = 'bold 40px Consolas, monospace';
@@ -248,10 +335,14 @@ function update() {
 
     ball.x += ball.speedX;
     ball.y += ball.speedY;
-
-    // Colisão com bordas superior/inferior (AGORA TAMBÉM AUMENTA A VELOCIDADE)
+    
+    // Colisão com bordas superior/inferior
     if (ball.y - ball.radius < 0 || ball.y + ball.radius > canvas.height) {
         ball.speedY = -ball.speedY;
+        
+        // ADICIONE ESTA LINHA para o efeito de escudo nas bordas
+        createShieldImpact(ball.x, ball.y, "0, 255, 255"); 
+        
         increaseBallSpeed();
         bounceSound.currentTime = 0;
         bounceSound.play();
@@ -261,21 +352,27 @@ function update() {
     if (collides(ball, paddle)) {
         ball.speedX = -ball.speedX;
         
-        // Efeito de ângulo baseado na posição da colisão
         let collidePoint = (ball.y - (paddle.y + paddle.height / 2));
         collidePoint = collidePoint / (paddle.height / 2);
         let angleRad = (Math.PI / 4) * collidePoint;
         let direction = (ball.x < canvas.width / 2) ? 1 : -1;
         
-        let currentSpeed = Math.sqrt(ball.speedX**2 + ball.speedY**2);
+        let currentSpeed = Math.hypot(ball.speedX, ball.speedY);
         ball.speedX = direction * currentSpeed * Math.cos(angleRad);
         ball.speedY = currentSpeed * Math.sin(angleRad);
+
+        // ATENÇÃO: Verifique se essa função já existe no seu código.
+        // Se não, adicione-a junto com as outras funções auxiliares.
+        if (typeof createShieldImpact !== 'undefined') {
+            createShieldImpact(ball.x, ball.y, "255, 255, 255");
+        }
 
         increaseBallSpeed();
         bounceSound.currentTime = 0;
         bounceSound.play();
     }
     
+    // O resto da função continua igual...
     // Pontuação
     if (ball.x - ball.radius < 0) {
         player2Score++;
@@ -297,9 +394,13 @@ function update() {
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawTable();
-    drawRect(player1.x, player1.y, player1.width, player1.height, player1.scoreColor);
-    drawRect(player2.x, player2.y, player2.width, player2.height, player2.scoreColor);
-    drawBall(ball.x, ball.y, ball.radius, '#fff');
+    
+    // ATUALIZADO: Chamando a nova função para desenhar as naves de cristal
+    drawPaddle(player1);
+    drawPaddle(player2);
+    
+    drawBall(ball);
+    drawShieldImpacts();
     drawScore();
 
     if (gameEnded) {
@@ -330,6 +431,7 @@ function increaseBallSpeed() {
         ball.speedX *= 1.05; // Aumento percentual para uma aceleração mais suave
         ball.speedY *= 1.05;
     }
+    circleRotationSpeed = Math.min(MAX_CIRCLE_ROTATION_SPEED, circleRotationSpeed + CIRCLE_ROTATION_INCREASE);
 }
 
 function checkVictory() {
@@ -348,6 +450,7 @@ function resetGame() {
     player2.y = (canvas.height - paddleHeight) / 2;
     player1.scoreColor = '#fff';
     player2.scoreColor = '#fff';
+    circleRotationSpeed = BASE_CIRCLE_ROTATION_SPEED; // Reseta a velocidade do círculo
     resetBall();
 }
 
@@ -373,15 +476,20 @@ function scoreEffects(player) {
 
 function gameLoop() {
     drawParticles(); // Sempre desenha as partículas no fundo
-    centerCircleRotation += 0.02; // Rotação suave do círculo central
-
+    centerCircleRotation += circleRotationSpeed;
     if (gameState === 'game') {
         update();
         draw();
     }
-    
     requestAnimationFrame(gameLoop);
 }
+
+// Inicia o jogo no estado de menu e esconde o canvas
+hideAllScreens();
+mainMenu.style.display = 'block';
+canvas.style.display = 'none';
+setupGame(); // <-- SUBSTITUA initParticles() e initializePlayer() POR ISTO
+gameLoop();
 
 // Início do jogo
 hideAllScreens();
