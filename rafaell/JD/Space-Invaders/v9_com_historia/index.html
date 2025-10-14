@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geode: Heart of the Planet</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="startScreen">
+        <h1>Geode: Heart of the Planet</h1>
+        <p>
+            Uma raça cibernética conhecida como "Os Mineradores" chegou à Terra. Seu objetivo: congelar o núcleo do planeta para extrair seus recursos, aniquilando toda a vida no processo. A bordo da nave de exploração "Geode", a geofísica Lena Petrova, guiada pela IA J.A.V.I.S., é a única esperança da humanidade para impedir a devastação.
+        </p>
+        <button id="startButton">Iniciar Jogo</button>
+    </div>
+
+    <div id="gameUI" class="hidden">
+        <div>Naves Abatidas: <span id="score">0</span></div>
+        <div>Fase: <span id="phase">1</span></div>
+        <div>Tempo: <span id="timer">0s</span></div>
+        <div>Avarias na Geode: <span id="hits">0</span></div>
+    </div>
+
+    <canvas id="gameCanvas" class="hidden"></canvas>
+
+    <div id="endScreen" class="hidden">
+        <h2 id="endTitle"></h2>
+        <p id="endMessage"></p>
+        <button id="restartButton">Jogar Novamente</button>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
