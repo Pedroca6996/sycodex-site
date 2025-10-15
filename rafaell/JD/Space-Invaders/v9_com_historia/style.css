@@ -24,8 +24,8 @@ canvas {
     box-shadow: 0 0 20px #00f0ff;
 }
 
-/* Estilo das telas de início e fim */
-#startScreen, #endScreen {
+/* Estilo das telas de início, fim e introdução do chefe */
+#startScreen, #endScreen, #bossIntroScreen {
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -64,12 +64,18 @@ button {
     text-transform: uppercase;
     transition: all 0.3s ease;
     box-shadow: 0 0 10px #00f0ff;
+    margin: 10px;
 }
 
 button:hover {
     background-color: #00f0ff;
     color: #08081a;
     box-shadow: 0 0 25px #00f0ff;
+}
+
+.end-buttons {
+    display: flex;
+    justify-content: center;
 }
 
 /* Estilo da Interface do Jogo */
@@ -85,4 +91,5 @@ button:hover {
     border-radius: 5px;
     font-size: 1.1em;
     text-shadow: 0 0 5px #00f0ff;
+    z-index: 10;
 }

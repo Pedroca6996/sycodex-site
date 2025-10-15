@@ -18,9 +18,15 @@
 
     <div id="gameUI" class="hidden">
         <div>Naves Abatidas: <span id="score">0</span></div>
-        <div>Fase: <span id="phase">1</span></div>
+        <div>Round: <span id="phase">1</span></div>
         <div>Tempo: <span id="timer">0s</span></div>
         <div>Avarias na Geode: <span id="hits">0</span></div>
+    </div>
+    
+    <div id="bossIntroScreen" class="hidden">
+        <h2 id="bossIntroTitle"></h2>
+        <p id="bossIntroText"></p>
+        <button id="continueButton">Enfrentar</button>
     </div>
 
     <canvas id="gameCanvas" class="hidden"></canvas>
@@ -28,7 +34,10 @@
     <div id="endScreen" class="hidden">
         <h2 id="endTitle"></h2>
         <p id="endMessage"></p>
-        <button id="restartButton">Jogar Novamente</button>
+        <div class="end-buttons">
+            <button id="restartButton">Jogar Novamente</button>
+            <button id="backToMenuButton">Voltar ao Menu</button>
+        </div>
     </div>
 
     <script src="script.js"></script>
