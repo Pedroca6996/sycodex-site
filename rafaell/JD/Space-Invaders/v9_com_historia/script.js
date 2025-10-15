@@ -71,6 +71,7 @@ window.addEventListener('load', function() {
             ctx.closePath();
             ctx.fill();
 
+            // Efeito de escudo/power-up
             if (this.isHit) {
                 ctx.strokeStyle = this.rapidFireActive ? '#ffdd00' : '#00f0ff';
                 ctx.lineWidth = 3;
@@ -124,7 +125,15 @@ window.addEventListener('load', function() {
         }
     }
 
-    class Bullet { /* ... (sem alterações) ... */ }
+    // CLASSE DOS PROJÉTEIS
+    class Bullet {
+        constructor(x, y, width, height, color, speedY) {
+            this.x = x; this.y = y; this.width = width;
+            this.height = height; this.color = color; this.speedY = speedY;
+        }
+        update() { this.y += this.speedY; }
+        draw() { ctx.fillStyle = this.color; ctx.fillRect(this.x, this.y, this.width, this.height); }
+    }
 
     // CLASSE DOS INIMIGOS
     class Enemy {
@@ -156,9 +165,7 @@ window.addEventListener('load', function() {
             ctx.fill();
         }
 
-        update(speedX) {
-            this.x += speedX;
-        }
+        update(speedX) { this.x += speedX; }
     }
 
     // CLASSE DOS CHEFÕES
@@ -190,15 +197,15 @@ window.addEventListener('load', function() {
                 ctx.fill();
             } else { // Supervisor
                 ctx.fillRect(this.x, this.y, this.width, this.height);
-                ctx.fillStyle = '#ff0000';
+                ctx.fillStyle = '#ff0000'; // Detalhe vermelho
                 ctx.fillRect(this.x + this.width/2 - 15, this.y + this.height/2 - 5, 30, 10);
             }
 
             // Barra de Vida
             ctx.fillStyle = 'red';
-            ctx.fillRect(canvas.width / 4, 20, canvas.width / 2, 20);
+            ctx.fillRect(canvas.width / 4, 10, canvas.width / 2, 20);
             ctx.fillStyle = 'green';
-            ctx.fillRect(canvas.width / 4, 20, (canvas.width / 2) * (this.health / this.maxHealth), 20);
+            ctx.fillRect(canvas.width / 4, 10, (canvas.width / 2) * (this.health / this.maxHealth), 20);
         }
 
         update() {
@@ -221,9 +228,7 @@ window.addEventListener('load', function() {
             }
         }
 
-        takeDamage(amount) {
-            this.health -= amount;
-        }
+        takeDamage(amount) { this.health -= amount; }
     }
 
 
@@ -263,6 +268,7 @@ window.addEventListener('load', function() {
         player = new Player();
         bullets = []; enemyBullets = []; boss = null;
         setupNormalRound(gameState.currentRound);
+        phaseEl.textContent = gameState.currentRound;
 
         startScreen.classList.add('hidden');
         endScreen.classList.add('hidden');
@@ -274,7 +280,18 @@ window.addEventListener('load', function() {
 
     function endGame(isVictory) {
         gameState.running = false;
-        // ... (lógica de tela final igual a anterior)
+        setTimeout(() => {
+            canvas.classList.add('hidden');
+            gameUI.classList.add('hidden');
+            endScreen.classList.remove('hidden');
+            if (isVictory) {
+                endTitleEl.textContent = "Vitória!";
+                endMessageEl.textContent = "Você repeliu os Mineradores! A Terra está salva, mas as cicatrizes da batalha permanecerão.";
+            } else {
+                endTitleEl.textContent = "Fim de Jogo";
+                endMessageEl.textContent = "A 'Geode' foi destruída. A esperança se foi.";
+            }
+        }, 1000);
     }
 
     function onEnemyKilled() {
@@ -316,8 +333,7 @@ window.addEventListener('load', function() {
                     boss.draw();
                 }
             } else {
-                // ... (lógica de movimento inimigo igual a anterior, usando enemySpeedX)
-                 let moveDown = false;
+                let moveDown = false;
                 enemies.forEach(enemy => {
                     if ((enemy.x + enemy.width > canvas.width && enemyDirection > 0) || (enemy.x < 0 && enemyDirection < 0)) {
                         moveDown = true;
@@ -328,10 +344,10 @@ window.addEventListener('load', function() {
                     enemyDirection *= -1;
                     enemies.forEach(e => e.y += 20);
                 }
-                 enemies.forEach(enemy => {
+                enemies.forEach(enemy => {
                     enemy.update(enemyDirection * enemySpeedX);
                     enemy.draw();
-                     // Tiro aleatório aumenta com o round
+                    // Tiro aleatório aumenta com o round
                     if(Math.random() < 0.0005 * gameState.currentRound) {
                         enemyBullets.push(new Bullet(enemy.x + enemy.width/2, enemy.y + enemy.height, 4, 8, '#ff5555', 5));
                     }
@@ -341,7 +357,12 @@ window.addEventListener('load', function() {
             checkCollisions();
             updateUI();
         } else {
-            // ... (Lógica de pausa igual a anterior)
+            ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "#fff";
+            ctx.font = "50px 'Exo 2'";
+            ctx.textAlign = "center";
+            ctx.fillText("PAUSADO", canvas.width / 2, canvas.height / 2);
         }
         requestAnimationFrame(gameLoop);
     }
@@ -377,7 +398,12 @@ window.addEventListener('load', function() {
             }
         });
         
-        // ... (colisões de balas inimigas e inimigos vs jogador igual a anterior)
+        // Projéteis inimigos vs. Jogador
+        enemyBullets.forEach((bullet) => {
+            if (isColliding(bullet, player)) {
+                player.hit();
+            }
+        });
     }
 
     function isColliding(rect1, rect2) {
@@ -388,18 +414,24 @@ window.addEventListener('load', function() {
     }
     
     function updateUI() {
-         // ... (igual a anterior, usando gameState)
+        scoreEl.textContent = gameState.score;
+        hitsEl.textContent = gameState.hits;
+        const elapsedTime = Math.floor((Date.now() - gameState.startTime) / 1000);
+        timerEl.textContent = `${elapsedTime}s`;
     }
 
     // --- EVENT LISTENERS (CONTROLES) ---
     startButton.addEventListener('click', startGame);
     restartButton.addEventListener('click', startGame);
-    // ... (keydown e keyup igual a anterior, usando gameState)
 
-    // Adicionado para recarregar as classes que não mudaram
-    class Bullet { constructor(x, y, width, height, color, speedY) { this.x = x; this.y = y; this.width = width; this.height = height; this.color = color; this.speedY = speedY; } update() { this.y += this.speedY; } draw() { ctx.fillStyle = this.color; ctx.fillRect(this.x, this.y, this.width, this.height); }}
-    function endGame(isVictory) { gameState.running = false; setTimeout(() => { canvas.classList.add('hidden'); gameUI.classList.add('hidden'); endScreen.classList.remove('hidden'); if (isVictory) { endTitleEl.textContent = "Vitória!"; endMessageEl.textContent = "Você repeliu os Mineradores! A Terra está salva, mas as cicatrizes da batalha permanecerão."; } else { endTitleEl.textContent = "Fim de Jogo"; endMessageEl.textContent = "A 'Geode' foi destruída. A esperança se foi."; } }, 1000); }
-    function updateUI() { scoreEl.textContent = gameState.score; hitsEl.textContent = gameState.hits; const elapsedTime = Math.floor((Date.now() - gameState.startTime) / 1000); timerEl.textContent = `${elapsedTime}s`; }
-    window.addEventListener('keydown', (e) => { keys[e.key] = true; if (e.key === 'Enter' && gameState.running) { gameState.paused = !gameState.paused; } });
-    window.addEventListener('keyup', (e) => { keys[e.key] = false; });
+    window.addEventListener('keydown', (e) => {
+        keys[e.key] = true;
+        if (e.key === 'Enter' && gameState.running) {
+            gameState.paused = !gameState.paused;
+        }
+    });
+
+    window.addEventListener('keyup', (e) => {
+        keys[e.key] = false;
+    });
 });
