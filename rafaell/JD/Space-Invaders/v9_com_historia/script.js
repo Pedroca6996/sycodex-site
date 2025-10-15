@@ -313,7 +313,7 @@ window.addEventListener('load', function() {
     }
 
     function onEnemyKilled() {
-        gameState.score += 10;
+        gameState.score += 1; // CORREÇÃO: Pontuação agora é 1 por abate.
         gameState.enemiesKilledForPowerUp++;
         if (gameState.enemiesKilledForPowerUp >= 10) {
             player.activateRapidFire();
@@ -389,7 +389,7 @@ window.addEventListener('load', function() {
                     bullets.splice(bIndex, 1);
                     boss.takeDamage(2);
                     if (boss.health <= 0) {
-                        gameState.score += 500;
+                        gameState.score += 25; // CORREÇÃO: Abate de chefe vale 25.
                         if(boss.bossType === 2){
                              endGame(true);
                         } else {
@@ -443,6 +443,7 @@ window.addEventListener('load', function() {
         gameUI.classList.remove('hidden');
         canvas.classList.remove('hidden');
         setupBossFight(gameState.nextBoss);
+        gameLoop(); // CORREÇÃO: Reinicia o loop de animação.
     });
 
     window.addEventListener('keydown', (e) => {
