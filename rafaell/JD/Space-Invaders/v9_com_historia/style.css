@@ -25,7 +25,7 @@ canvas {
 }
 
 /* Estilo das telas de início, fim e introdução do chefe */
-#startScreen, #endScreen, #bossIntroScreen {
+#startScreen, #endScreen, #bossIntroScreen, #musicPermissionScreen {
     display: flex;
     flex-direction: column;
     justify-content: center;

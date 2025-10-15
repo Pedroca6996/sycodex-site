@@ -11,6 +11,8 @@ window.addEventListener('load', function() {
     const restartButton = document.getElementById('restartButton');
     const backToMenuButton = document.getElementById('backToMenuButton');
     const continueButton = document.getElementById('continueButton');
+    const acceptMusicButton = document.getElementById('acceptMusicButton');
+    const declineMusicButton = document.getElementById('declineMusicButton');
 
     const scoreEl = document.getElementById('score');
     const phaseEl = document.getElementById('phase');
@@ -44,6 +46,16 @@ window.addEventListener('load', function() {
 
     const backgroundMusic = new Audio('Musicona.mp3'); // Coloque o nome do seu arquivo aqui
     backgroundMusic.loop = true; // Faz a música tocar em loop
+    let musicEnabled = false; // NOVO: Variável de controle principal
+
+    function tryToPlayMusic() {
+        // ALTERADO: Agora verifica se a música está habilitada
+        if (musicEnabled && backgroundMusic.paused) {
+            backgroundMusic.play().catch(error => {
+                console.warn("Música aguardando interação do usuário para iniciar.");
+            });
+        }
+    }
 
     // --- CLASSES DO JOGO ---
     class Player {
@@ -438,6 +450,18 @@ window.addEventListener('load', function() {
         const elapsedTime = Math.floor((Date.now() - gameState.startTime) / 1000);
         timerEl.textContent = `${elapsedTime}s`;
     }
+    acceptMusicButton.addEventListener('click', () => {
+        musicEnabled = true;
+        tryToPlayMusic();
+        musicPermissionScreen.classList.add('hidden');
+        startScreen.classList.remove('hidden');
+    });
+
+    declineMusicButton.addEventListener('click', () => {
+        musicEnabled = false;
+        musicPermissionScreen.classList.add('hidden');
+        startScreen.classList.remove('hidden');
+    });
 
     startButton.addEventListener('click', startGame);
     restartButton.addEventListener('click', startGame);
@@ -452,10 +476,19 @@ window.addEventListener('load', function() {
         gameLoop(); // CORREÇÃO: Reinicia o loop de animação.
     });
 
-    window.addEventListener('keydown', (e) => {
+    wwindow.addEventListener('keydown', (e) => {
         keys[e.key] = true;
         if (e.key === 'Enter' && gameState.running && !gameState.showingBossIntro) {
             gameState.paused = !gameState.paused;
+            
+            // ALTERADO: Verifica se a música está habilitada antes de pausar/tocar
+            if (musicEnabled) {
+                if (gameState.paused) {
+                    backgroundMusic.pause();
+                } else {
+                    tryToPlayMusic();
+                }
+            }
         }
     });
 
