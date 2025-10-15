@@ -42,6 +42,9 @@ window.addEventListener('load', function() {
 
     let keys = {};
 
+    const backgroundMusic = new Audio('Musicona.mp3'); // Coloque o nome do seu arquivo aqui
+    backgroundMusic.loop = true; // Faz a música tocar em loop
+
     // --- CLASSES DO JOGO ---
     class Player {
         constructor() {
@@ -292,12 +295,15 @@ window.addEventListener('load', function() {
         bossIntroScreen.classList.add('hidden');
         gameUI.classList.remove('hidden');
         canvas.classList.remove('hidden');
+        backgroundMusic.play();
         
         gameLoop();
     }
 
     function endGame(isVictory) {
         gameState.running = false;
+        backgroundMusic.pause();
+        backgroundMusic.currentTime = 0;
         setTimeout(() => {
             canvas.classList.add('hidden');
             gameUI.classList.add('hidden');
