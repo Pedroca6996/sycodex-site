@@ -20,25 +20,57 @@ window.addEventListener('load', function() {
     canvas.height = 600;
 
     // --- ESTADO DO JOGO ---
-    let gameMode = '1P'; // '1P' para vs IA, '2P' para 2 jogadores
+    let gameMode = '1P';
     let keys = {};
     const WINNING_SCORE = 7;
 
-    // --- CLASSES DO JOGO ---
+    // --- ELEMENTOS DE FUNDO (ESTRELAS) ---
+    let stars = [];
+    const numStars = 100;
 
-    // CLASSE PAI PARA AS PALETAS
-    class Paddle {
-        constructor(x, y, width, height, color, glow) {
-            this.x = x;
-            this.y = y;
-            this.width = width;
-            this.height = height;
-            this.color = color;
-            this.glow = glow;
-            this.speed = 8;
-            this.score = 0;
+    class Star {
+        constructor() {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() * canvas.height;
+            this.size = Math.random() * 2 + 1;
+            this.speed = Math.random() * 2 + 0.5;
         }
 
+        update() {
+            this.y += this.speed;
+            if (this.y > canvas.height) {
+                this.y = 0;
+                this.x = Math.random() * canvas.width;
+            }
+        }
+
+        draw() {
+            ctx.fillStyle = `rgba(255, 255, 255, 0.8)`;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+
+    function initStars() {
+        for (let i = 0; i < numStars; i++) {
+            stars.push(new Star());
+        }
+    }
+
+    function handleStars() {
+        stars.forEach(star => {
+            star.update();
+            star.draw();
+        });
+    }
+
+    // --- CLASSES DO JOGO ---
+    class Paddle {
+        constructor(x, y, width, height, color, glow) {
+            this.x = x; this.y = y; this.width = width; this.height = height;
+            this.color = color; this.glow = glow; this.speed = 8; this.score = 0;
+        }
         draw() {
             ctx.fillStyle = this.color;
             ctx.shadowColor = this.glow;
@@ -48,26 +80,19 @@ window.addEventListener('load', function() {
         }
     }
     
-    // CLASSE DA BOLA
     class Ball {
         constructor(x, y, radius) {
-            this.baseSpeedX = 5;
-            this.baseSpeedY = 5;
+            this.baseSpeedX = 5; this.baseSpeedY = 5;
             this.x = x; this.y = y; this.radius = radius;
-            this.color = '#ffd700'; // Dourado
-            this.glow = '#ffd700';
+            this.color = '#ffd700'; this.glow = '#ffd700';
             this.reset();
         }
-
         reset() {
-            this.x = canvas.width / 2;
-            this.y = canvas.height / 2;
+            this.x = canvas.width / 2; this.y = canvas.height / 2;
             this.speedX = this.baseSpeedX * (Math.random() > 0.5 ? 1 : -1);
             this.speedY = this.baseSpeedY * (Math.random() > 0.5 ? 1 : -1);
-            this.color = '#ffd700';
-            this.glow = '#ffd700';
+            this.color = '#ffd700'; this.glow = '#ffd700';
         }
-
         draw() {
             ctx.beginPath();
             ctx.fillStyle = this.color;
@@ -77,39 +102,17 @@ window.addEventListener('load', function() {
             ctx.fill();
             ctx.shadowBlur = 0;
         }
-
         update(player1, player2) {
-            this.x += this.speedX;
-            this.y += this.speedY;
-
-            // Colisão com paredes superior/inferior
-            if (this.y - this.radius < 0 || this.y + this.radius > canvas.height) {
-                this.speedY *= -1;
+            this.x += this.speedX; this.y += this.speedY;
+            if (this.y - this.radius < 0 || this.y + this.radius > canvas.height) { this.speedY *= -1; }
+            if (this.x - this.radius < player1.x + player1.width && this.y > player1.y && this.y < player1.y + player1.height) {
+                this.speedX *= -1.1; this.color = player1.color; this.glow = player1.glow;
             }
-
-            // Colisão com paletas
-            if (this.x - this.radius < player1.x + player1.width &&
-                this.y > player1.y && this.y < player1.y + player1.height) {
-                this.speedX *= -1.1; // Aumenta velocidade
-                this.color = player1.color;
-                this.glow = player1.glow;
+            if (this.x + this.radius > player2.x && this.y > player2.y && this.y < player2.y + player2.height) {
+                this.speedX *= -1.1; this.color = player2.color; this.glow = player2.glow;
             }
-            if (this.x + this.radius > player2.x &&
-                this.y > player2.y && this.y < player2.y + player2.height) {
-                this.speedX *= -1.1; // Aumenta velocidade
-                this.color = player2.color;
-                this.glow = player2.glow;
-            }
-
-            // Ponto
-            if (this.x - this.radius < 0) {
-                player2.score++;
-                this.reset();
-            }
-            if (this.x + this.radius > canvas.width) {
-                player1.score++;
-                this.reset();
-            }
+            if (this.x - this.radius < 0) { player2.score++; this.reset(); }
+            if (this.x + this.radius > canvas.width) { player1.score++; this.reset(); }
         }
     }
 
@@ -117,7 +120,6 @@ window.addEventListener('load', function() {
     let player1, player2, ball;
 
     // --- FUNÇÕES PRINCIPAIS DO JOGO ---
-
     function startGame() {
         startScreen.classList.add('hidden');
         endScreen.classList.add('hidden');
@@ -125,44 +127,46 @@ window.addEventListener('load', function() {
         canvas.classList.remove('hidden');
 
         player1 = new Paddle(10, canvas.height / 2 - 50, 15, 100, '#ffffff', '#00f0ff');
-        player2 = new Paddle(canvas.width - 25, canvas.height / 2 - 50, 15, 100, '#4b0082', '#8a2be2');
+        // CORREÇÃO: Cor de Kael alterada para um magenta vibrante para melhor visibilidade
+        player2 = new Paddle(canvas.width - 25, canvas.height / 2 - 50, 15, 100, '#c700ff', '#ff00ff');
         ball = new Ball(canvas.width / 2, canvas.height / 2, 10);
         
+        if (stars.length === 0) {
+            initStars();
+        }
         gameLoop();
     }
 
     function gameLoop() {
         // Movimento do Jogador 1 (Elara)
-        if (keys['w'] && player1.y > 0) player1.y -= player1.speed;
-        if (keys['s'] && player1.y < canvas.height - player1.height) player1.y += player1.speed;
+        if ((keys['w'] || keys['W']) && player1.y > 0) player1.y -= player1.speed;
+        if ((keys['s'] || keys['S']) && player1.y < canvas.height - player1.height) player1.y += player1.speed;
 
         // Movimento do Jogador 2 (Kael)
         if (gameMode === '2P') {
+            // CORREÇÃO: Verifica as teclas 'ArrowUp' e 'ArrowDown' corretamente
             if (keys['ArrowUp'] && player2.y > 0) player2.y -= player2.speed;
             if (keys['ArrowDown'] && player2.y < canvas.height - player2.height) player2.y += player2.speed;
         } else { // Lógica da IA
             const targetY = ball.y - player2.height / 2;
-            if (player2.y < targetY && player2.y < canvas.height - player2.height) {
-                player2.y += player2.speed * 0.8; // IA um pouco mais lenta que o jogador
-            }
-            if (player2.y > targetY && player2.y > 0) {
-                player2.y -= player2.speed * 0.8;
-            }
+            if (player2.y < targetY && player2.y < canvas.height - player2.height) player2.y += player2.speed * 0.8;
+            if (player2.y > targetY && player2.y > 0) player2.y -= player2.speed * 0.8;
         }
         
         ball.update(player1, player2);
         
         // Limpa e desenha
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#08081a'; // Fundo do espaço
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        handleStars(); // Desenha o fundo de estrelas dinâmico
+
         player1.draw();
         player2.draw();
         ball.draw();
         
-        // Atualiza placar
         player1ScoreEl.textContent = player1.score;
         player2ScoreEl.textContent = player2.score;
 
-        // Checa vitória
         if (player1.score >= WINNING_SCORE || player2.score >= WINNING_SCORE) {
             endGame();
         } else {
@@ -185,21 +189,11 @@ window.addEventListener('load', function() {
     }
 
     // --- EVENT LISTENERS ---
-    onePlayerButton.addEventListener('click', () => {
-        gameMode = '1P';
-        startGame();
-    });
+    onePlayerButton.addEventListener('click', () => { gameMode = '1P'; startGame(); });
+    twoPlayerButton.addEventListener('click', () => { gameMode = '2P'; startGame(); });
+    restartButton.addEventListener('click', () => { endScreen.classList.add('hidden'); startScreen.classList.remove('hidden'); });
 
-    twoPlayerButton.addEventListener('click', () => {
-        gameMode = '2P';
-        startGame();
-    });
-    
-    restartButton.addEventListener('click', () => {
-        endScreen.classList.add('hidden');
-        startScreen.classList.remove('hidden');
-    });
-
-    window.addEventListener('keydown', (e) => { keys[e.key.toLowerCase()] = true; });
-    window.addEventListener('keyup', (e) => { keys[e.key.toLowerCase()] = false; });
+    // CORREÇÃO: Event listener agora armazena a tecla exata (sem toLowerCase)
+    window.addEventListener('keydown', (e) => { keys[e.key] = true; });
+    window.addEventListener('keyup', (e) => { keys[e.key] = false; });
 });
