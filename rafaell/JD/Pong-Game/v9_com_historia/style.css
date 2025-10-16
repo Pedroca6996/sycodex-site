@@ -1,0 +1,94 @@
+/* Estilização geral e fundo */
+body {
+    margin: 0;
+    background-color: #08081a;
+    color: #fff;
+    font-family: 'Exo2', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* Esconde elementos por padrão */
+.hidden {
+    display: none !important;
+}
+
+/* Estilo do Canvas do Jogo */
+canvas {
+    border: 2px solid #fff;
+    box-shadow: 0 0 20px #fff, 0 0 40px #00f0ff, 0 0 60px #8a2be2;
+}
+
+/* Estilo das telas de início e fim */
+#startScreen, #endScreen {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 20px;
+    background-color: rgba(8, 8, 26, 0.9);
+    max-width: 600px;
+}
+
+h1, h2 {
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 20px;
+    text-shadow: 0 0 10px #fff;
+}
+
+p {
+    line-height: 1.6;
+    max-width: 500px;
+    margin-bottom: 30px;
+}
+
+/* Estilo dos Botões */
+button {
+    background-color: transparent;
+    border: 2px solid #fff;
+    color: #fff;
+    padding: 15px 30px;
+    font-size: 1.2em;
+    font-family: 'Exo 2', sans-serif;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 10px #fff;
+    margin: 10px;
+}
+
+button:hover {
+    background-color: #fff;
+    color: #08081a;
+    box-shadow: 0 0 25px #fff;
+}
+
+.game-mode-selection {
+    display: flex;
+}
+
+/* Estilo da Interface do Jogo (Placar) */
+#gameUI {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 4em;
+    font-weight: 700;
+    text-shadow: 0 0 15px #fff;
+    opacity: 0.6;
+    z-index: 10;
+}
+
+#gameUI div {
+    margin: 0 40px;
+}
