@@ -11,6 +11,18 @@ body {
     overflow: hidden;
 }
 
+/* Estilo das telas de início, fim e permissão de som */
+#startScreen, #endScreen, #soundPermissionScreen {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 20px;
+    background-color: rgba(8, 8, 26, 0.9);
+    max-width: 600px;
+}
+
 /* Esconde elementos por padrão */
 .hidden {
     display: none !important;
