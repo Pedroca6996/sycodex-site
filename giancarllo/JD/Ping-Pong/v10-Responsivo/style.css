@@ -65,3 +65,30 @@ body {
         font-size: 22px;
     }
 }
+/* --- Correções de camadas para permitir cliques e toques --- */
+
+/* O overlay (menus, instruções, configs) deve estar sempre acima do jogo */
+.overlay {
+    z-index: 100; /* antes era 10 */
+    pointer-events: auto; /* permite cliques */
+}
+
+/* O canvas e os controles do jogo ficam abaixo dos overlays */
+#gameCanvas {
+    z-index: 1;
+}
+
+#gameControls, #touchControls {
+    z-index: 20;
+}
+
+/* Quando um overlay estiver visível, o canvas não deve interceptar toques */
+.overlay[style*="display: flex"],
+.overlay[style*="display: block"] {
+    pointer-events: all;
+}
+
+/* Garante que, quando o overlay estiver escondido, ele não bloqueie nada */
+.overlay[style*="display: none"] {
+    pointer-events: none;
+}
