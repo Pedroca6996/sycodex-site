@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Pong Mobile - Giancarllo de Lima Alves</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- 🔹 Responsividade -->
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="../../../../imagens/favicon.ico" type="image/x-icon">
+</head>
+<body>
+    <!-- Tela inicial -->
+    <div id="startScreen" class="overlay">
+        <h1>Pong Game</h1>
+        <button id="playBtn">Jogar</button>
+        <button id="instructionsBtn">Instruções</button>
+        <button id="settingsBtn">Configurações</button>
+    </div>
+
+    <!-- Tela de instruções -->
+    <div id="instructionsScreen" class="overlay" style="display:none;">
+        <h2>Instruções</h2>
+        <p>Jogador 1: W/S | Jogador 2: ↑/↓</p>
+        <p>Em celulares: use os botões de toque!</p>
+        <button id="backFromInstructions">Voltar</button>
+    </div>
+
+    <!-- Tela de configurações -->
+    <div id="settingsScreen" class="overlay" style="display:none;">
+        <h2>Configurações</h2>
+        <label>
+            Velocidade inicial da bola:
+            <input type="number" id="initialSpeed" value="3" min="1" max="10">
+        </label>
+        <br>
+        <label>
+            Pontos para vitória:
+            <input type="number" id="winningScoreInput" value="5" min="1" max="20">
+        </label>
+        <br>
+        <button id="saveSettings">Salvar</button>
+        <button id="backFromSettings">Voltar</button>
+    </div>
+
+    <!-- Canvas do jogo -->
+    <canvas id="gameCanvas" width="1000" height="700" style="display:none;"></canvas>
+
+    <!-- Botões de controle principais -->
+    <div id="gameControls" style="display:none;">
+        <button id="pauseBtn">Pause</button>
+        <button id="menuBtn">Menu</button>
+    </div>
+
+    <!-- 🔹 Novos botões de toque para mobile -->
+    <div id="touchControls" style="display:none;">
+        <div class="touch-column" id="leftControls">
+            <button class="touch-btn" id="p1Up">▲</button>
+            <button class="touch-btn" id="p1Down">▼</button>
+        </div>
+        <div class="touch-column" id="rightControls">
+            <button class="touch-btn" id="p2Up">▲</button>
+            <button class="touch-btn" id="p2Down">▼</button>
+        </div>
+    </div>
+
+    <!-- Rodapé -->
+    <div id="footer">
+        Giancarllo de Lima Alves - Versão 10- <a </a>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

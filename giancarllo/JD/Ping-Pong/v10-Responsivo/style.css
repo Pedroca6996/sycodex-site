@@ -1,0 +1,67 @@
+/* Mantido o estilo original */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+    color: white;
+    overflow: hidden;
+    position: relative;
+}
+
+#gameCanvas {
+    display: block;
+    margin: 0 auto;
+    border: 2px solid white;
+    background-color: rgba(0,0,0,0.8);
+    position: relative;
+    z-index: 1;
+    max-width: 100%; /* 🔹 Responsividade */
+    height: auto;
+}
+
+/* Controles de toque */
+#touchControls {
+    position: fixed;
+    bottom: 10px;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    padding: 0 20px;
+    z-index: 20;
+}
+
+.touch-column {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.touch-btn {
+    width: 60px;
+    height: 60px;
+    font-size: 28px;
+    background-color: rgba(0,0,0,0.5);
+    border: 2px solid white;
+    border-radius: 50%;
+    color: white;
+    cursor: pointer;
+    user-select: none;
+}
+
+.touch-btn:active {
+    background-color: rgba(255,255,0,0.5);
+}
+
+/* 🔹 Ajustes para orientação e telas pequenas */
+@media (orientation: portrait) {
+    #gameCanvas {
+        width: 95vw;
+        height: auto;
+    }
+    .touch-btn {
+        width: 50px;
+        height: 50px;
+        font-size: 22px;
+    }
+}
