@@ -17,7 +17,7 @@ canvas {
   display: block;
   margin: 0 auto;
   background: #000;
-  border: 2px solid #0f0;
+  border: 2px solid rgb(0, 0, 0);
   /* O tamanho visual será ajustado via JS (mantendo o aspecto) */
   max-width: 100vw;
   max-height: 80vh;
@@ -35,8 +35,8 @@ canvas {
 /* Botões grandes e acessíveis ao toque */
 .controls button {
   background: #111;
-  color: #0f0;
-  border: 2px solid #0f0;
+  color: rgb(250, 0, 0);
+  border: 2px solid rgb(255, 255, 255);
   border-radius: 10px;
   font-size: 2em;
   padding: 15px 25px;

@@ -54,7 +54,7 @@ let cpuScore = 0;
 const POINTS_TO_WIN = 11; // se quiser uma condição de vitória visual (mas o jogo pode continuar)
 
 PLAYER_SCORE_EL.textContent = `Você: ${playerScore}`;
-CPU_SCORE_EL.textContent = `CPU: ${cpuScore}`;
+CPU_SCORE_EL.textContent = `The Machine: ${cpuScore}`;
 
 /* Entities */
 const paddleWidth = 140;
@@ -162,7 +162,7 @@ function resetBall(servingToPlayer=true) {
 function scorePoint(toPlayer) {
   if (toPlayer) playerScore++; else cpuScore++;
   PLAYER_SCORE_EL.textContent = `Você: ${playerScore}`;
-  CPU_SCORE_EL.textContent = `CPU: ${cpuScore}`;
+  CPU_SCORE_EL.textContent = `The Machine: ${cpuScore}`;
 
   // increase difficulty gradually
   waveCount++;
@@ -402,7 +402,7 @@ function resetMatch() {
   playerScore = 0;
   cpuScore = 0;
   PLAYER_SCORE_EL.textContent = `Você: ${playerScore}`;
-  CPU_SCORE_EL.textContent = `CPU: ${cpuScore}`;
+  CPU_SCORE_EL.textContent = `The Machine: ${cpuScore}`;
   playerPaddle.x = (GAME_W - playerPaddle.w)/2;
   cpuPaddle.x = (GAME_W - cpuPaddle.w)/2;
   waveCount = 0;
