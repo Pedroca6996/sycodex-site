@@ -771,10 +771,55 @@ document.addEventListener("keyup", (e) => { keys[e.key] = false; });
 highScoreForm.addEventListener("submit", (e) => { /* ... */ });
 
 // Clique do Mouse (mantido para menus no PC/debug)
-gameCanvas.addEventListener('click', (e) => { /* ... (seu código de clique existente aqui) */ });
+gameCanvas.addEventListener('click', (e) => {
+    if (uiActionInProgress) { uiActionInProgress = false; return; }
+    const mouse = { x: e.clientX - gameCanvas.getBoundingClientRect().left, y: e.clientY - gameCanvas.getBoundingClientRect().top };
+    const isInside = (p, b) => p.x > b.x && p.x < b.x + b.width && p.y > b.y && p.y < b.y + b.height;
+    if (gameState === 'menu') { 
+        if (isInside(mouse, menuButtons.play)) resetGame(); 
+        if (isInside(mouse, menuButtons.ranking)) gameState = 'ranking'; 
+        if (isInside(mouse, menuButtons.settings)) gameState = 'settings'; 
+    }
+    else if (gameState === 'ranking') { 
+        if (isInside(mouse, backButton)) gameState = 'menu'; 
+    }
+    else if (gameState === 'settings') { 
+        if (isInside(mouse, backButton)) gameState = 'menu'; 
+        for (const key in settingsButtons) { 
+            if (isInside(mouse, settingsButtons[key])) { 
+                const [action, volumeType] = key.split('_'); 
+                if (action === 'minus') volumes[volumeType] = Math.max(0, volumes[volumeType] - 0.1); 
+                if (action === 'plus') volumes[volumeType] = Math.min(1, volumes[volumeType] + 0.1); 
+                volumes[volumeType] = parseFloat(volumes[volumeType].toFixed(1)); 
+            } 
+        } localStorage.setItem('gameVolumes', JSON.stringify(volumes)); 
+    }
+    else if (gameState === 'gameOver') { 
+        if (isInside(mouse, gameOverButtons.tryAgain)) resetGame(); 
+        if (isInside(mouse, gameOverButtons.ranking)) gameState = 'ranking'; 
+        if (isInside(mouse, gameOverButtons.mainMenu)) gameState = 'menu'; 
+    }
+});
 
 // Mouse Move (mantido para hover no PC/debug)
-gameCanvas.addEventListener('mousemove', (e) => { /* ... (seu código de mousemove existente aqui) */ });
+gameCanvas.addEventListener('mousemove', (e) => {
+    const mouse = { x: e.clientX - gameCanvas.getBoundingClientRect().left, y: e.clientY - gameCanvas.getBoundingClientRect().top };
+    const isInside = (p, b) => p.x > b.x && p.x < b.x + b.width && p.y > b.y && p.y < b.y + b.height;
+    let foundButton = null;
+    const getActiveButtons = () => { 
+        if (gameState === 'menu') return Object.values(menuButtons); 
+        if (gameState === 'ranking') return [backButton]; 
+        if (gameState === 'settings') return [backButton, ...Object.values(settingsButtons)]; 
+        if (gameState === 'gameOver') return Object.values(gameOverButtons); return []; 
+    };
+    const activeButtons = getActiveButtons();
+    for (const button of activeButtons) { 
+        if (isInside(mouse, button)) { 
+            foundButton = button; break; 
+        } 
+    }
+    hoveredButton = foundButton;
+});
 
 // --- NOVOS: Listeners de Toque para Controle ---
 let touchStartTime = 0; // Para diferenciar tap de hold
@@ -863,7 +908,39 @@ window.addEventListener('resize', () => {
 
 
 // --- Game Loop Principal --- (sem alterações)
-// ... (seu código do gameLoop aqui)
+async function main() {
+    await document.fonts.load(`1em ${FONT_FAMILY}`);
+    await preloadAudio();
+    initializePlayer();
+    createAllSprites();
+    function gameLoop() {
+        drawAndUpdateStars();
+        ctx.clearRect(0, 0, gameCanvas.width, gameCanvas.height);
+        if (hoveredButton) { 
+            gameCanvas.style.cursor = 'pointer'; 
+        } else { 
+            gameCanvas.style.cursor = 'default'; 
+        }
+        switch (gameState) {
+            case 'menu': drawMenu(); 
+            break;
+            case 'playing': updateGame(); 
+            drawGame(); 
+            break;
+            case 'ranking': drawRankingScreen(); 
+            break;
+            case 'settings': drawSettingsScreen(); 
+            break;
+            case 'gameOver': drawGameOver(); 
+            break;
+            case 'enteringName': drawGame(); 
+            break;
+        }
+        requestAnimationFrame(gameLoop);
+    }
+    createStars(300);
+    gameLoop();
+}
 
 // --- Início do Jogo --- (sem alterações)
-// ... (chamada para main())
+main();
