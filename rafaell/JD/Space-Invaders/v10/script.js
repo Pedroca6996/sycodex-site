@@ -31,6 +31,12 @@ const colors = {
     glow: '#00ff7f', 
     powerup: '#a371f7'
 };
+// --- NOVAS: Constantes para Botões Virtuais ---
+const virtualControls = {
+    left:  { x: 50,  y: gameCanvas.height - 80, width: 80, height: 60, symbol: '<', pressed: false },
+    right: { x: gameCanvas.width - 130, y: gameCanvas.height - 80, width: 80, height: 60, symbol: '>', pressed: false },
+    fire:  { x: gameCanvas.width / 2 - 40, y: gameCanvas.height - 90, width: 80, height: 70, symbol: 'O', pressed: false }
+};
 
 // --- Sprites Pré-renderizados ---
 const sprites = {};
@@ -55,6 +61,40 @@ function drawAndUpdateStars() {
         bgCtx.arc(star.x, star.y, star.radius, 0, Math.PI * 2); 
         bgCtx.fill(); 
     }); 
+}
+// --- NOVA: Função para Desenhar Controles Mobile ---
+function drawMobileControls() {
+    // Só desenha se estiver jogando
+    if (gameState !== 'playing') return;
+
+    Object.values(virtualControls).forEach(button => {
+        // Define a aparência base
+        ctx.strokeStyle = colors.glow;
+        ctx.fillStyle = 'rgba(0, 255, 127, 0.1)'; // Fundo semi-transparente
+        ctx.lineWidth = 2;
+        ctx.shadowColor = colors.glow;
+        ctx.shadowBlur = 10;
+
+        // Muda a aparência se o botão estiver pressionado
+        if (button.pressed) {
+            ctx.fillStyle = 'rgba(0, 255, 127, 0.4)'; // Fica mais opaco
+            ctx.shadowBlur = 20;
+        }
+
+        // Desenha o botão
+        drawRoundedRect(button.x, button.y, button.width, button.height, 10);
+        ctx.stroke();
+        ctx.fill();
+
+        // Desenha o símbolo do botão
+        setNeonStyle(ctx, colors.glow, 10);
+        ctx.font = `bold ${button.symbol === 'O' ? 30 : 40}px ${FONT_FAMILY}`;
+        ctx.textAlign = 'center';
+        ctx.fillText(button.symbol, button.x + button.width / 2, button.y + button.height / 2 + (button.symbol === 'O' ? 10 : 15)); // Ajuste Y para centralizar símbolo
+        resetShadow(ctx);
+        ctx.textAlign = 'start';
+    });
+    resetShadow(ctx); // Garante que a sombra não vaze
 }
 // --- Áudio ---
 const sounds = { 
@@ -174,28 +214,23 @@ function handlePlayerMovement() {
     if (touchLeft && player.x > 0) player.x -= player.speed;
     if (touchRight && player.x + player.width < gameCanvas.width) player.x += player.speed;
 }
-// Substitua sua função handleShooting
+// Substitua sua função handleShooting por esta:
 function handleShooting() {
     const now = Date.now();
-    let shotFired = false; // Flag para evitar tiro duplo (teclado + toque)
+    let shotFired = false;
 
     // Teclado (mantido)
     if (keys[" "] && now - lastShotTime > shotInterval) {
         shootBullet();
         lastShotTime = now;
-        shotFired = true; // Marca que atirou
+        shotFired = true;
     }
 
-    // Toque (Tap) (NOVO)
-    // Verifica !shotFired para não atirar duas vezes se a barra de espaço for pressionada ao mesmo tempo
-    if (!shotFired && touchTap && now - lastShotTime > shotInterval) {
+    // Toque (Botão de Tiro Pressionado) (NOVO)
+    // Atira se o botão estiver pressionado E o intervalo for respeitado
+    if (!shotFired && virtualControls.fire.pressed && now - lastShotTime > shotInterval) {
         shootBullet();
         lastShotTime = now;
-        touchTap = false; // Reseta o tap após atirar
-    }
-     // Reseta o tap mesmo se não atirou (para evitar tiros fantasmas)
-    else if(touchTap) {
-         touchTap = false;
     }
 }
 function shootBullet() { 
@@ -430,16 +465,17 @@ function createAllSprites() {
     sprites.enemy = createEnemySprite(false);
     sprites.enemySpecial = createEnemySprite(true);
 }
-function drawGame() { 
-    ctx.fillStyle = colors.background; 
-    ctx.fillRect(0, 0, gameCanvas.width, gameCanvas.height); 
-    drawPlayer(); 
-    bullets.forEach(drawPlayerBullet); 
-    enemies.forEach(drawEnemy); 
-    enemyBullets.forEach(drawEnemyBullet); 
-    powerUps.forEach(drawPowerUp); 
-    drawHUD(); 
-    drawPowerUpHUD(); 
+function drawGame() {
+    ctx.fillStyle = colors.background;
+    ctx.fillRect(0, 0, gameCanvas.width, gameCanvas.height);
+    drawPlayer();
+    bullets.forEach(drawPlayerBullet);
+    enemies.forEach(drawEnemy);
+    enemyBullets.forEach(drawEnemyBullet);
+    powerUps.forEach(drawPowerUp);
+    drawHUD();
+    drawPowerUpHUD();
+    drawMobileControls();
 }
 function drawPlayer() { 
     if (player.isHit && Math.floor((Date.now() - player.hitTimer) / 100) % 2 === 0) return; 
@@ -824,50 +860,69 @@ gameCanvas.addEventListener('mousemove', (e) => {
 });
 // --- NOVOS: Listeners de Toque para Controle ---
 
+// Substitua SEUS listeners 'touchstart', 'touchmove', 'touchend' por estes:
+
 gameCanvas.addEventListener('touchstart', (e) => {
-    // Sempre previne o comportamento padrão no canvas
     e.preventDefault();
-    if (!audioEnabled) audioEnabled = true; // Tenta habilitar áudio no primeiro toque
+    if (!audioEnabled) audioEnabled = true;
 
-    // Ignora toques se não estiver jogando (menu, game over, etc.)
-    if (gameState !== 'playing') {
-        return;
-    }
+    // Toques nos menus são tratados no touchend
 
-    touchStartTime = Date.now(); // Marca o início do toque
+    if (gameState === 'playing') {
+        const touches = e.touches;
+        // Reinicia o estado 'pressed' de todos os botões
+        Object.values(virtualControls).forEach(btn => btn.pressed = false);
+        touchLeft = false; // Reseta flags de movimento baseadas em zona
+        touchRight = false;
 
-    for (let i = 0; i < e.touches.length; i++) {
-        const pos = getTouchPos(gameCanvas, e, i);
-        const gamePos = mapToGameCoords(pos);
-        if (!gamePos) continue;
+        for (let i = 0; i < touches.length; i++) {
+            const pos = getTouchPos(gameCanvas, e, i);
+            const gamePos = mapToGameCoords(pos);
+            if (!gamePos) continue;
 
-        // Verifica em qual metade da tela o toque começou
-        if (gamePos.x < gameCanvas.width / 2) {
-            touchLeft = true;
-            touchRight = false; // Garante que apenas um lado esteja ativo
-        } else {
-            touchRight = true;
-            touchLeft = false; // Garante que apenas um lado esteja ativo
+            // Verifica colisão com cada botão virtual
+            if (isInside(gamePos, virtualControls.left)) {
+                virtualControls.left.pressed = true;
+                touchLeft = true; // Mantemos para a lógica de movimento
+            }
+            if (isInside(gamePos, virtualControls.right)) {
+                virtualControls.right.pressed = true;
+                touchRight = true; // Mantemos para a lógica de movimento
+            }
+            if (isInside(gamePos, virtualControls.fire)) {
+                virtualControls.fire.pressed = true;
+                // Não usamos mais 'touchTap', o tiro é contínuo enquanto segura
+            }
         }
     }
-}, { passive: false }); // passive: false é necessário para preventDefault
+}, { passive: false });
 
 gameCanvas.addEventListener('touchmove', (e) => {
     e.preventDefault();
     if (gameState !== 'playing') return;
 
-    if (e.touches.length > 0) {
-        const pos = getTouchPos(gameCanvas, e, 0); // Considera apenas o primeiro dedo
-        const gamePos = mapToGameCoords(pos);
-        if (!gamePos) return;
+    const touches = e.touches;
+    // Assume que os botões não estão pressionados até verificar
+    Object.values(virtualControls).forEach(btn => btn.pressed = false);
+    touchLeft = false;
+    touchRight = false;
 
-        // Atualiza a direção com base na posição atual
-        if (gamePos.x < gameCanvas.width / 2) {
+    for (let i = 0; i < touches.length; i++) {
+        const pos = getTouchPos(gameCanvas, e, i);
+        const gamePos = mapToGameCoords(pos);
+        if (!gamePos) continue;
+
+        // Reavalia quais botões estão sendo tocados
+        if (isInside(gamePos, virtualControls.left)) {
+            virtualControls.left.pressed = true;
             touchLeft = true;
-            touchRight = false;
-        } else {
+        }
+        if (isInside(gamePos, virtualControls.right)) {
+            virtualControls.right.pressed = true;
             touchRight = true;
-            touchLeft = false;
+        }
+        if (isInside(gamePos, virtualControls.fire)) {
+            virtualControls.fire.pressed = true;
         }
     }
 }, { passive: false });
@@ -875,73 +930,62 @@ gameCanvas.addEventListener('touchmove', (e) => {
 gameCanvas.addEventListener('touchend', (e) => {
     e.preventDefault();
 
-    const mouse = { // Reutiliza a lógica de coordenadas do 'click' para touchend
+    const mouse = { // Usa changedTouches para pegar a posição final
         x: e.changedTouches[0].clientX - gameCanvas.getBoundingClientRect().left,
         y: e.changedTouches[0].clientY - gameCanvas.getBoundingClientRect().top
     };
     const gamePos = mapToGameCoords(mouse);
-    if (!gamePos) return;
+    if (!gamePos) { // Se não tem gamePos, ao menos reseta os botões de jogo
+        if (gameState === 'playing') {
+             Object.values(virtualControls).forEach(btn => btn.pressed = false);
+             touchLeft = false;
+             touchRight = false;
+        }
+       return;
+    }
 
+    // Lógica de clique/toque nos menus (permanece a mesma)
     const isInside = (p, b) => p.x > b.x && p.x < b.x + b.width && p.y > b.y && p.y < b.y + b.height;
+    if (gameState === 'menu') { if (isInside(gamePos, menuButtons.play)) resetGame(); if (isInside(gamePos, menuButtons.ranking)) gameState = 'ranking'; if (isInside(gamePos, menuButtons.settings)) gameState = 'settings'; return; }
+    if (gameState === 'ranking') { if (isInside(gamePos, backButton)) gameState = 'menu'; return; }
+    if (gameState === 'settings') { if (isInside(gamePos, backButton)) gameState = 'menu'; for (const key in settingsButtons) { if (isInside(gamePos, settingsButtons[key])) { const [action, volumeType] = key.split('_'); if (action === 'minus') volumes[volumeType] = Math.max(0, volumes[volumeType] - 0.1); if (action === 'plus') volumes[volumeType] = Math.min(1, volumes[volumeType] + 0.1); volumes[volumeType] = parseFloat(volumes[volumeType].toFixed(1)); localStorage.setItem('gameVolumes', JSON.stringify(volumes)); } } return; }
+    if (gameState === 'gameOver') { if (isInside(gamePos, gameOverButtons.tryAgain)) resetGame(); if (isInside(gamePos, gameOverButtons.ranking)) gameState = 'ranking'; if (isInside(gamePos, gameOverButtons.mainMenu)) gameState = 'menu'; return; }
 
-    // --- LÓGICA DE TOQUE NOS MENUS ---
-    if (gameState === 'menu') {
-        if (isInside(gamePos, menuButtons.play)) resetGame();
-        if (isInside(gamePos, menuButtons.ranking)) gameState = 'ranking';
-        if (isInside(gamePos, menuButtons.settings)) gameState = 'settings';
-        // Limpa flags de toque ao sair do menu via toque
-        touchLeft = false; touchRight = false; touchTap = false;
-        return;
-    }
-    if (gameState === 'ranking') {
-        if (isInside(gamePos, backButton)) gameState = 'menu';
-        touchLeft = false; touchRight = false; touchTap = false;
-        return;
-    }
-    if (gameState === 'settings') {
-        if (isInside(gamePos, backButton)) gameState = 'menu';
-        for (const key in settingsButtons) { // Lógica dos botões +/-
-            if (isInside(gamePos, settingsButtons[key])) {
-                const [action, volumeType] = key.split('_');
-                if (action === 'minus') volumes[volumeType] = Math.max(0, volumes[volumeType] - 0.1);
-                if (action === 'plus') volumes[volumeType] = Math.min(1, volumes[volumeType] + 0.1);
-                volumes[volumeType] = parseFloat(volumes[volumeType].toFixed(1));
-                localStorage.setItem('gameVolumes', JSON.stringify(volumes));
-            }
-        }
-        touchLeft = false; touchRight = false; touchTap = false;
-        return;
-    }
-     if (gameState === 'gameOver') {
-        if (isInside(gamePos, gameOverButtons.tryAgain)) resetGame();
-        if (isInside(gamePos, gameOverButtons.ranking)) gameState = 'ranking';
-        if (isInside(gamePos, gameOverButtons.mainMenu)) gameState = 'menu';
-        touchLeft = false; touchRight = false; touchTap = false;
-        return;
-     }
-    // --- FIM DA LÓGICA DE TOQUE NOS MENUS ---
 
-    // --- LÓGICA DE TOQUE DURANTE O JOGO ('playing') ---
-    if (gameState === 'playing') {
-        const touchDuration = Date.now() - touchStartTime;
-        // Verifica se foi um TAP (curto e sem mover muito - opcionalmente adicionar verificação de distância)
-        if (touchDuration < 200) {
-            touchTap = true;
-        }
-        // Para de mover
+    // Lógica para o estado 'playing': desativa os botões virtuais
+    // Verifica quais botões *deixaram* de ser pressionados
+    // Isso é complexo de rastrear dedo a dedo, então simplificamos:
+    // Se *algum* dedo saiu, reavaliamos todos os toques restantes.
+    // Ou, mais simples: desativa todos os botões se não houver mais dedos.
+     if (e.touches.length === 0) { // Se não há mais dedos na tela
+        Object.values(virtualControls).forEach(btn => btn.pressed = false);
         touchLeft = false;
         touchRight = false;
-    }
-    // --- FIM DA LÓGICA DE TOQUE DURANTE O JOGO ---
+     } else {
+        // Reavalia quais botões continuam pressionados pelos dedos restantes
+        // (Similar à lógica do touchmove)
+        Object.values(virtualControls).forEach(btn => btn.pressed = false);
+        touchLeft = false;
+        touchRight = false;
+        for (let i = 0; i < e.touches.length; i++) {
+             const pos = getTouchPos(gameCanvas, e, i); // Usa e.touches aqui
+             const gamePosRemaining = mapToGameCoords(pos);
+             if (!gamePosRemaining) continue;
+
+             if (isInside(gamePosRemaining, virtualControls.left)) { virtualControls.left.pressed = true; touchLeft = true; }
+             if (isInside(gamePosRemaining, virtualControls.right)) { virtualControls.right.pressed = true; touchRight = true; }
+             if (isInside(gamePosRemaining, virtualControls.fire)) { virtualControls.fire.pressed = true; }
+        }
+     }
 
 }, false);
 
-
+// touchcancel pode usar a mesma lógica simplificada do touchend para resetar
 gameCanvas.addEventListener('touchcancel', (e) => {
     e.preventDefault();
-    // Trata como touchend para parar o movimento
-    touchLeft = false;
-    touchRight = false;
+     Object.values(virtualControls).forEach(btn => btn.pressed = false);
+     touchLeft = false;
+     touchRight = false;
 }, false);
 
 // Listener de resize (mantido)
