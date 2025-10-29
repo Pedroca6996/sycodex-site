@@ -1,52 +1,149 @@
-/* Estilos originais mantidos */
+/* Estilo geral */
 body {
     margin: 0;
+    padding: 0;
     font-family: Arial, sans-serif;
     background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
     color: white;
     overflow: hidden;
+    position: relative;
 }
 
-/* 🔹 Canvas ajustável */
+/* Canvas do jogo */
 #gameCanvas {
     display: block;
     margin: 0 auto;
     border: 2px solid white;
-    background-color: rgba(0,0,0,0.8);
-    width: 95vw;  /* 🔸 ocupa 95% da tela horizontalmente */
-    height: 75vh; /* 🔸 altura proporcional à tela */
+    background-color: rgba(0, 0, 0, 0.85);
+    width: 95vw;  /* ocupa 95% da tela */
+    height: 70vh; /* altura proporcional */
+    max-width: 1000px;
+    max-height: 700px;
 }
 
-/* 🔹 Controles de toque */
+/* Telas de overlay (menus) */
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    z-index: 10;
+}
+
+.overlay h1 { font-size: 8vw; margin-bottom: 6vh; }
+.overlay h2 { font-size: 6vw; margin-bottom: 4vh; }
+.overlay p  { font-size: 4vw; margin-bottom: 2vh; }
+
+.overlay button {
+    font-size: 4vw;
+    padding: 3vw 6vw;
+    margin: 2vw;
+    background-color: #222;
+    color: white;
+    border: 2px solid white;
+    border-radius: 10px;
+    transition: all 0.2s ease;
+}
+
+.overlay button:hover {
+    background-color: #555;
+    border-color: yellow;
+}
+
+/* Campo de input responsivo */
+.overlay input[type="number"] {
+    width: 15vw;
+    font-size: 4vw;
+    margin-left: 2vw;
+    padding: 1vw;
+    border-radius: 5px;
+    border: 1px solid #fff;
+    background-color: #222;
+    color: white;
+}
+
+/* Botões superiores (pause/menu) */
+#gameControls {
+    position: fixed;
+    top: 2vh;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 5;
+}
+
+#gameControls button {
+    font-size: 4vw;
+    padding: 2vw 4vw;
+    margin: 0 1vw;
+    border-radius: 10px;
+    background-color: #222;
+    border: 2px solid white;
+    color: white;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+#gameControls button:hover {
+    background-color: #444;
+    border-color: yellow;
+}
+
+/* Controles de toque */
 #touchControls {
     position: fixed;
     bottom: 5vh;
+    left: 0;
     width: 100%;
     display: flex;
-    justify-content: space-between;
-    z-index: 20;
+    justify-content: space-around;
+    z-index: 15;
 }
 
 .touch-area {
-    width: 20vw;
+    width: 25vw;
     height: 15vh;
-    background-color: rgba(255,255,255,0.1);
+    background-color: rgba(255, 255, 255, 0.1);
     color: yellow;
-    font-size: 3em;
+    font-size: 8vw;
     display: flex;
     justify-content: center;
     align-items: center;
     border-radius: 15px;
     user-select: none;
     touch-action: none;
-    margin: 0 2vw;
 }
 
 .touch-area:active {
-    background-color: rgba(255,255,255,0.3);
+    background-color: rgba(255, 255, 255, 0.3);
 }
 
-/* 🔹 Responsividade */
-@media (orientation: portrait) {
-    #gameCanvas { height: 60vh; }
+/* Rodapé */
+#footer {
+    position: fixed;
+    bottom: 1vh;
+    right: 2vw;
+    font-size: 3.5vw;
+    z-index: 20;
+}
+
+#footer a {
+    color: yellow;
+    text-decoration: none;
+}
+#footer a:hover { text-decoration: underline; }
+
+/* Ajuste para tablets e telas grandes */
+@media (min-width: 800px) {
+    .overlay h1 { font-size: 60px; }
+    .overlay h2 { font-size: 40px; }
+    .overlay p  { font-size: 20px; }
+    .overlay button { font-size: 20px; }
+    #footer { font-size: 16px; }
 }

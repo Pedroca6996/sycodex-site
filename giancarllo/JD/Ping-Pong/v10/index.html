@@ -2,16 +2,17 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Giancarllo de Lima Alves - Pong Versão 8 (Mobile)</title>
+    <title>Giancarllo de Lima Alves - Pong Versão 9 Mobile (1 Jogador)</title>
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="../../../../imagens/favicon.ico" type="image/x-icon">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- ↑ ADIÇÃO: garante que o layout escale corretamente em telas de celular -->
+
+    <!-- 🔹 Adicionado: torna a página responsiva no celular -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 </head>
 <body>
     <!-- Tela inicial -->
     <div id="startScreen" class="overlay">
-        <h1>Pong Game</h1>
+        <h1>Pong Mobile</h1>
         <button id="playBtn">Jogar</button>
         <button id="instructionsBtn">Instruções</button>
         <button id="settingsBtn">Configurações</button>
@@ -20,9 +21,9 @@
     <!-- Tela de instruções -->
     <div id="instructionsScreen" class="overlay" style="display:none;">
         <h2>Instruções</h2>
-        <p>Jogador 1: W/S | Jogador 2: ↑/↓</p>
-        <p>Toque nos botões na tela para jogar no celular.</p>
-        <!-- ↑ ADIÇÃO: orienta sobre controles por toque -->
+        <p>Controle sua raquete com os botões na tela.</p>
+        <p>O computador controla o lado direito.</p>
+        <p>Marque pontos e vença!</p>
         <button id="backFromInstructions">Voltar</button>
     </div>
 
@@ -52,18 +53,16 @@
         <button id="menuBtn">Menu</button>
     </div>
 
-    <!-- 🔹 ADIÇÃO: Controles por toque (para mobile) -->
+    <!-- 🔹 Controles por toque para celular -->
     <div id="touchControls" style="display:none;">
         <div class="touch-area" id="leftUp">▲</div>
         <div class="touch-area" id="leftDown">▼</div>
-        <div class="touch-area" id="rightUp">▲</div>
-        <div class="touch-area" id="rightDown">▼</div>
     </div>
-    <!-- ↑ Cada área controla os paddles com o dedo -->
 
     <!-- Rodapé -->
     <div id="footer">
-        Giancarllo de Lima Alves - Versão 8 (Mobile) - <a href="https://mantis.exemplo.com/view.php?id=0001411">#0001411</a>
+        Giancarllo de Lima Alves - Versão 9 (Mobile 1 Jogador) -
+        <a href="https://mantis.exemplo.com/view.php?id=0001411">#0001411</a>
     </div>
 
     <script src="script.js"></script>
