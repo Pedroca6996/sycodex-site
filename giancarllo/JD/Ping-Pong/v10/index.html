@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Giancarllo de Lima Alves - Pong Versão 8 (Mobile)</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="../../../../imagens/favicon.ico" type="image/x-icon">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- ↑ ADIÇÃO: garante que o layout escale corretamente em telas de celular -->
+</head>
+<body>
+    <!-- Tela inicial -->
+    <div id="startScreen" class="overlay">
+        <h1>Pong Game</h1>
+        <button id="playBtn">Jogar</button>
+        <button id="instructionsBtn">Instruções</button>
+        <button id="settingsBtn">Configurações</button>
+    </div>
+
+    <!-- Tela de instruções -->
+    <div id="instructionsScreen" class="overlay" style="display:none;">
+        <h2>Instruções</h2>
+        <p>Jogador 1: W/S | Jogador 2: ↑/↓</p>
+        <p>Toque nos botões na tela para jogar no celular.</p>
+        <!-- ↑ ADIÇÃO: orienta sobre controles por toque -->
+        <button id="backFromInstructions">Voltar</button>
+    </div>
+
+    <!-- Tela de configurações -->
+    <div id="settingsScreen" class="overlay" style="display:none;">
+        <h2>Configurações</h2>
+        <label>
+            Velocidade inicial da bola:
+            <input type="number" id="initialSpeed" value="3" min="1" max="10">
+        </label>
+        <br>
+        <label>
+            Pontos para vitória:
+            <input type="number" id="winningScoreInput" value="5" min="1" max="20">
+        </label>
+        <br>
+        <button id="saveSettings">Salvar</button>
+        <button id="backFromSettings">Voltar</button>
+    </div>
+
+    <!-- Canvas do jogo -->
+    <canvas id="gameCanvas" width="1000" height="700" style="display:none;"></canvas>
+
+    <!-- Botões de controle do jogo -->
+    <div id="gameControls" style="display:none;">
+        <button id="pauseBtn">Pause</button>
+        <button id="menuBtn">Menu</button>
+    </div>
+
+    <!-- 🔹 ADIÇÃO: Controles por toque (para mobile) -->
+    <div id="touchControls" style="display:none;">
+        <div class="touch-area" id="leftUp">▲</div>
+        <div class="touch-area" id="leftDown">▼</div>
+        <div class="touch-area" id="rightUp">▲</div>
+        <div class="touch-area" id="rightDown">▼</div>
+    </div>
+    <!-- ↑ Cada área controla os paddles com o dedo -->
+
+    <!-- Rodapé -->
+    <div id="footer">
+        Giancarllo de Lima Alves - Versão 8 (Mobile) - <a href="https://mantis.exemplo.com/view.php?id=0001411">#0001411</a>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

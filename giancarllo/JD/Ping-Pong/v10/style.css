@@ -1,0 +1,52 @@
+/* Estilos originais mantidos */
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+    color: white;
+    overflow: hidden;
+}
+
+/* 🔹 Canvas ajustável */
+#gameCanvas {
+    display: block;
+    margin: 0 auto;
+    border: 2px solid white;
+    background-color: rgba(0,0,0,0.8);
+    width: 95vw;  /* 🔸 ocupa 95% da tela horizontalmente */
+    height: 75vh; /* 🔸 altura proporcional à tela */
+}
+
+/* 🔹 Controles de toque */
+#touchControls {
+    position: fixed;
+    bottom: 5vh;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    z-index: 20;
+}
+
+.touch-area {
+    width: 20vw;
+    height: 15vh;
+    background-color: rgba(255,255,255,0.1);
+    color: yellow;
+    font-size: 3em;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 15px;
+    user-select: none;
+    touch-action: none;
+    margin: 0 2vw;
+}
+
+.touch-area:active {
+    background-color: rgba(255,255,255,0.3);
+}
+
+/* 🔹 Responsividade */
+@media (orientation: portrait) {
+    #gameCanvas { height: 60vh; }
+}
