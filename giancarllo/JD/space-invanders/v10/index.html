@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Space Invaders - Versão Touchscreen</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="../../../../imagens/favicon.ico" type="image/x-icon">
+</head>
+<body>
+
+  <!-- Menu inicial -->
+  <div id="menuScreen" class="overlay">
+    <h1>Space Invaders</h1>
+    <button id="playBtn">Jogar</button>
+    <button id="instructionsBtn">Instruções</button>
+  </div>
+
+  <!-- Tela de instruções -->
+  <div id="instructionsScreen" class="overlay" style="display:none;">
+    <h2>Como jogar</h2>
+    <p>Use as setas do teclado ou os botões touchscreen:</p>
+    <p>⬅️ Mover esquerda | ➡️ Mover direita | 🟢 Atirar</p>
+    <button id="backFromInstructions">Voltar</button>
+  </div>
+
+  <!-- Container do jogo -->
+  <div id="gameContainer" style="display:flex; flex-direction:column; align-items:center;">
+    <canvas id="gameCanvas" width="800" height="600" style="display:none;"></canvas>
+
+    <!-- Controles touchscreen -->
+    <div id="touchControls" style="display:none; margin-top: 10px;">
+      <button id="leftBtn">⬅️</button>
+      <button id="shootBtn">🟢</button>
+      <button id="rightBtn">➡️</button>
+    </div>
+  </div>
+
+  <!-- Footer fixo -->
+  <div id="footer">
+    Feito por: Giancarllo 
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
