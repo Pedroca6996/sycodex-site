@@ -825,44 +825,21 @@ gameCanvas.addEventListener('mousemove', (e) => {
 let touchStartTime = 0; // Para diferenciar tap de hold
 
 gameCanvas.addEventListener('touchstart', (e) => {
+    e.preventDefault(); // Sempre previne
+
+    // Se não estiver jogando, ignora o resto
     if (gameState !== 'playing') {
-        e.preventDefault();
-    } else {
         return;
     }
 
-    touchStartTime = Date.now(); // Marca o início do toque
+    // Lógica SÓ para o estado 'playing'
+    touchStartTime = Date.now();
 
     for (let i = 0; i < e.touches.length; i++) {
         const pos = getTouchPos(gameCanvas, e, i);
         const gamePos = mapToGameCoords(pos);
-        if (!gamePos) continue; // Pula se as coordenadas forem inválidas
+        if (!gamePos) continue;
 
-        // Verifica em qual metade da tela o toque começou
-        if (gamePos.x < gameCanvas.width / 2) {
-            touchLeft = true;
-            touchRight = false; // Garante que apenas um lado esteja ativo
-        } else {
-            touchRight = true;
-            touchLeft = false; // Garante que apenas um lado esteja ativo
-        }
-    }
-}, false);
-
-gameCanvas.addEventListener('touchmove', (e) => {
-    if (gameState !== 'playing') {
-        e.preventDefault();
-    } else {
-        return;
-    }
-    
-    // Se houver algum dedo se movendo, verifica a posição do primeiro dedo
-    if (e.touches.length > 0) {
-        const pos = getTouchPos(gameCanvas, e, 0); // Considera apenas o primeiro dedo para movimento contínuo
-        const gamePos = mapToGameCoords(pos);
-        if (!gamePos) return;
-
-        // Atualiza a direção com base na posição atual do dedo
         if (gamePos.x < gameCanvas.width / 2) {
             touchLeft = true;
             touchRight = false;
@@ -873,36 +850,99 @@ gameCanvas.addEventListener('touchmove', (e) => {
     }
 }, false);
 
+gameCanvas.addEventListener('touchmove', (e) => {
+    e.preventDefault(); // Sempre previne
+
+    // Se não estiver jogando, ignora o resto
+    if (gameState !== 'playing') {
+        return;
+    }
+
+    // Lógica SÓ para o estado 'playing'
+    if (e.touches.length > 0) {
+        const pos = getTouchPos(gameCanvas, e, 0);
+        const gamePos = mapToGameCoords(pos);
+        if (!gamePos) return;
+
+        if (gamePos.x < gameCanvas.width / 2) {
+            touchLeft = true;
+            touchRight = false;
+        } else {
+            touchRight = true;
+            touchLeft = false;
+        }
+    }
+}, false);
+
+// Substitua SEU listener 'touchend' INTEIRO por este:
 gameCanvas.addEventListener('touchend', (e) => {
-    // Reset por toque na tela de Game Over (NÃO precisa de preventDefault aqui)
-    if (gameEnded) { 
-         if (e.changedTouches.length === 1) resetGame();
-         return; 
-    }
+    e.preventDefault(); // Sempre previne no canvas
 
-    // Só previne e processa se estiver jogando
+    const mouse = { // Reutilizando a lógica de coordenadas do 'click'
+        x: e.changedTouches[0].clientX - gameCanvas.getBoundingClientRect().left,
+        y: e.changedTouches[0].clientY - gameCanvas.getBoundingClientRect().top
+    };
+    const gamePos = mapToGameCoords(mouse); // Mapeia para coordenadas do jogo
+    
+    // Se não conseguiu mapear as coordenadas, sai
+    if (!gamePos) return; 
+
+    const isInside = (p, b) => p.x > b.x && p.x < b.x + b.width && p.y > b.y && p.y < b.y + b.height;
+
+    // --- LÓGICA DE TOQUE NOS MENUS ---
+    if (gameState === 'menu') {
+        if (isInside(gamePos, menuButtons.play)) resetGame();
+        if (isInside(gamePos, menuButtons.ranking)) gameState = 'ranking';
+        if (isInside(gamePos, menuButtons.settings)) gameState = 'settings';
+        return; // Sai após processar o menu
+    }
+    if (gameState === 'ranking') {
+        if (isInside(gamePos, backButton)) gameState = 'menu';
+        return; // Sai após processar o menu
+    }
+    if (gameState === 'settings') {
+        if (isInside(gamePos, backButton)) gameState = 'menu';
+        // Lógica de clique nos botões +/- (precisa ser refeita no drawSettingsScreen para ter posições fixas)
+        for (const key in settingsButtons) {
+            if (isInside(gamePos, settingsButtons[key])) {
+                const [action, volumeType] = key.split('_');
+                if (action === 'minus') volumes[volumeType] = Math.max(0, volumes[volumeType] - 0.1);
+                if (action === 'plus') volumes[volumeType] = Math.min(1, volumes[volumeType] + 0.1);
+                volumes[volumeType] = parseFloat(volumes[volumeType].toFixed(1));
+                localStorage.setItem('gameVolumes', JSON.stringify(volumes)); // Salva
+                // Não precisa de break aqui, pois os botões não se sobrepõem
+            }
+        }
+        return; // Sai após processar o menu
+    }
+     if (gameState === 'gameOver') {
+        if (isInside(gamePos, gameOverButtons.tryAgain)) resetGame();
+        if (isInside(gamePos, gameOverButtons.ranking)) gameState = 'ranking';
+        if (isInside(gamePos, gameOverButtons.mainMenu)) gameState = 'menu';
+        return; // Sai após processar o menu
+    }
+    // --- FIM DA LÓGICA DE TOQUE NOS MENUS ---
+
+    // --- LÓGICA DE TOQUE DURANTE O JOGO ('playing') ---
+    // Só executa se não estava em um menu e saiu acima
     if (gameState === 'playing') {
-        e.preventDefault(); 
-    } else {
-        return; 
-    }
+        // Verifica se foi um toque rápido (tap) para atirar
+        const touchDuration = Date.now() - touchStartTime;
+        if (touchDuration < 200) { // Menos de 200ms = Tap
+            touchTap = true;
+        }
 
-    // O resto da lógica SÓ executa se gameState for 'playing'
-    const touchDuration = Date.now() - touchStartTime;
-    if (touchDuration < 200) { 
-        touchTap = true;
+        // Para de mover quando o dedo sai da tela
+        touchLeft = false;
+        touchRight = false;
     }
+    // --- FIM DA LÓGICA DE TOQUE DURANTE O JOGO ---
 
-    touchLeft = false;
-    touchRight = false;
 }, false);
 
 gameCanvas.addEventListener('touchcancel', (e) => {
-    if (gameState !== 'playing') {
-        e.preventDefault();
-    } else {
-        return;
-    }
+    e.preventDefault();
+    if (gameState !== 'playing') return;
     // Trata como touchend para parar o movimento
     touchLeft = false;
     touchRight = false;
