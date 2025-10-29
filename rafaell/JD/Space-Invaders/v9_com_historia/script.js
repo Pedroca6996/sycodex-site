@@ -46,7 +46,7 @@ window.addEventListener('load', function() {
     let keys = {};
 
     // --- CONFIGURAÇÃO DE ÁUDIO ---
-    const backgroundMusic = new Audio('Musicona.mp3'); 
+    const backgroundMusic = new Audio('./sounds/Musicona.mp3'); 
     backgroundMusic.loop = true;
     let musicEnabled = false;
 

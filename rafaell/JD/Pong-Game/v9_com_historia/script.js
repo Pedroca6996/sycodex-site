@@ -29,15 +29,15 @@ window.addEventListener('load', function() {
 
     // --- CONFIGURAÇÃO DE ÁUDIO ---
     let soundEnabled = false;
-    const backgroundMusic = new Audio('background.mp3'); // <-- COLOQUE O NOME DA SUA MÚSICA AQUI
+    const backgroundMusic = new Audio('./sounds/background.mp3'); // <-- COLOQUE O NOME DA SUA MÚSICA AQUI
     backgroundMusic.loop = true;
     backgroundMusic.volume = 0.5;
 
-    const player1HitSound = new Audio('player1_hit.mp3');
-    const player2HitSound = new Audio('player2_hit.mp3');
-    const wallHitSound = new Audio('wall_hit.mp3');
-    const player1ScoreSound = new Audio('player1_score.mp3');
-    const player2ScoreSound = new Audio('player2_score.mp3');
+    const player1HitSound = new Audio('./sounds/player1_hit.mp3');
+    const player2HitSound = new Audio('./sounds/player2_hit.mp3');
+    const wallHitSound = new Audio('./sounds/wall_hit.mp3');
+    const player1ScoreSound = new Audio('./sounds/player1_score.mp3');
+    const player2ScoreSound = new Audio('./sounds/player2_score.mp3');
 
     function playSound(sound) {
         if (soundEnabled) {
