@@ -1,0 +1,116 @@
+body {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: #000;
+    flex-direction: column;
+    position: relative;
+    font-family: 'Consolas', monospace, sans-serif;
+    color: #fff;
+    overflow: hidden; /* Importante para mobile */
+    /* NOVO: Evita seleção de texto no toque */
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+
+/* Canvas de fundo (sem alterações) */
+#backgroundCanvas {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0;
+}
+
+#game-container {
+    position: relative;
+    z-index: 1;
+    /* MODIFICADO: Usa unidades relativas para se ajustar à tela */
+    width: 95vw; /* Ocupa 95% da largura da tela */
+    height: 71.25vw; /* Mantém a proporção 4:3 (95 * 0.75) */
+    max-height: 95vh; /* Limita a altura a 95% da tela */
+    max-width: calc(95vh * (800 / 600)); /* Limita a largura com base na altura máxima, mantendo 4:3 */
+    border: 2px solid #fff;
+    background-color: #000;
+    /* NOVO: Garante que o canvas fique contido */
+    overflow: hidden;
+    display: flex; /* Centraliza o canvas internamente */
+    justify-content: center;
+    align-items: center;
+}
+
+#gameCanvas { /* Renomeado para ID */
+    display: block;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.4);
+    /* MODIFICADO: O canvas ocupará 100% do container */
+    width: 100%;
+    height: 100%;
+}
+
+.screen {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    width: 80%;
+    max-width: 400px;
+    z-index: 2;
+    background: rgba(0, 0, 0, 0.8); /* Fundo para melhor legibilidade */
+    padding: 20px;
+    border-radius: 10px;
+    border: 1px solid #00ffff;
+}
+
+.hidden-screen {
+    display: none;
+}
+
+/* Ajustes menores nos botões para toque */
+.screen button {
+    display: block;
+    width: 100%;
+    padding: 18px; /* Mais área de toque */
+    margin-top: 15px;
+    font-size: 1.2em; /* Tamanho relativo */
+    color: #00ffff;
+    background: #003333;
+    border: 2px solid #00ffff;
+    cursor: pointer;
+    transition: background-color 0.3s, box-shadow 0.3s;
+    box-shadow: 0 0 5px rgba(0, 255, 255, 0.4);
+    border-radius: 5px; /* Cantos arredondados */
+}
+
+/* O resto do CSS para botões, inputs, etc., pode permanecer similar */
+.screen button:hover, .screen button:active { /* :active para feedback de toque */
+    background-color: #005555;
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.8);
+}
+
+.setting {
+    margin: 20px 0;
+    display: flex;
+    flex-direction: column; /* Empilha no mobile */
+    align-items: center;
+}
+.setting label {
+    font-size: 1em;
+    margin-bottom: 10px; /* Espaçamento */
+}
+.setting input {
+    width: 80px; /* Maior para toque */
+    padding: 10px;
+    font-size: 1.1em;
+    text-align: center;
+    background: #1a1a1a;
+    border: 1px solid #00ffff;
+    color: #fff;
+    border-radius: 5px;
+}
+.footer-info {
+    position: absolute; bottom: 5px; right: 5px; /* Ajuste menor */
+    color: #888; font-family: sans-serif; font-size: 10px; z-index: 1; /* Tamanho menor */
+}
+.footer-info a { color: #888; text-decoration: none; font-weight: bold; }

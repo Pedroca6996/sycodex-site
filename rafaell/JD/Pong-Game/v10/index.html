@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pong Mobile - Rafaell CB - Versão 9 Mobile</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="../../../../imagens/favicon.ico" type="image/x-icon">
+</head>
+<body>
+    <canvas id="backgroundCanvas"></canvas>
+
+    <div id="game-container">
+        <canvas id="gameCanvas"></canvas>
+
+        <div id="main-menu" class="screen">
+            <h1>PONG</h1>
+            <button id="play-button">Jogar</button>
+            <button id="instructions-button">Instruções</button>
+            <button id="settings-button">Configurações</button>
+        </div>
+
+        <div id="settings-menu" class="screen hidden-screen">
+            <h2>Configurações</h2>
+            <div class="setting">
+                <label for="initial-speed">Velocidade Inicial da Bola:</label>
+                <input type="number" id="initial-speed" value="2" min="1" max="20"> </div>
+            <div class="setting">
+                <label for="winning-score">Pontos para Vencer:</label>
+                <input type="number" id="winning-score" value="5" min="1" max="20">
+            </div>
+            <button id="back-button">Voltar</button>
+        </div>
+
+        <div id="instructions-menu" class="screen hidden-screen">
+            <h2>Instruções</h2>
+            <p>
+                Mova o dedo na **metade esquerda** da tela para controlar a barra da esquerda.<br>
+                Mova o dedo na **metade direita** da tela para controlar a barra da direita.<br><br>
+                Se a bola sair pelos lados, o adversário marca um ponto.<br>
+                O primeiro a atingir a pontuação de vitória vence o jogo!
+            </p>
+            <button id="instructions-back-button">Voltar</button>
+        </div>
+    </div>
+
+    <div class="footer-info">
+        <span id="player-name">Rafaell Chrisanto Bonosque</span> |
+        <span id="version">Versão 9 Mobile</span> |
+        <a id="mantis-link" href="https://si.walexandre.com/si2024/view.php?id=1466" target="_blank">1466</a>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
