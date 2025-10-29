@@ -202,10 +202,6 @@ function mapToGameCoords(pos) {
 // Quando um dedo toca a tela
 canvas.addEventListener('touchstart', (e) => {
     e.preventDefault(); // Evita comportamento padrão do navegador (como zoom)
-    if (gameEnded) {
-        resetGame(); // Reinicia o jogo com um toque na tela de Game Over
-        return;     // Impede que o toque mova os paddles
-    }
     for (let i = 0; i < e.touches.length; i++) {
         const touch = e.touches[i];
         const pos = getTouchPos(canvas, e, i);
@@ -221,6 +217,19 @@ canvas.addEventListener('touchstart', (e) => {
         paddle.y = gamePos.y - paddle.height / 2;
         // Garante que o paddle não saia da tela
         paddle.y = Math.max(0, Math.min(canvas.height - paddle.height, paddle.y));
+    }
+}, false);
+canvas.addEventListener('touchend', (e) => {
+    // Verifica se o jogo realmente terminou
+    if (gameEnded) {
+        e.preventDefault(); // Previne qualquer comportamento padrão residual
+        
+        // Verifica se foi um toque "rápido" (não um arraste longo)
+        // Isso é opcional, mas evita resets acidentais se o dedo escorregar
+        if (e.changedTouches.length === 1) { // Garante que foi apenas um dedo
+             // Poderíamos adicionar uma verificação de tempo/distância aqui se necessário
+             resetGame();
+        }
     }
 }, false);
 
