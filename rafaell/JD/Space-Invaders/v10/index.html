@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Space Invaders Mobile - Neon</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="style.css" />
+    </head>
+<body>
+    <canvas id="backgroundCanvas"></canvas>
+
+    <div id="gameContainer">
+        <canvas id="gameCanvas" width="800" height="600"></canvas> <div id="highScoreFormContainer" class="hidden">
+            <h2>Nova Pontuação Alta!</h2>
+            <p>Digite seu nome (5 caracteres):</p>
+            <form id="highScoreForm">
+                <input type="text" id="playerName" maxlength="5" autofocus autocomplete="off">
+                <button type="submit">Salvar</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

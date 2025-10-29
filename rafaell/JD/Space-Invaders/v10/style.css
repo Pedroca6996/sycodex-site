@@ -1,0 +1,117 @@
+body {
+    margin: 0;
+    padding: 0;
+    background-color: #000;
+    font-family: 'Orbitron', sans-serif;
+    overflow: hidden;
+    display: flex; /* Necessário para centralizar o gameContainer */
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    color: #f0f6fc;
+    /* Evita seleção de texto e zoom no toque */
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -webkit-tap-highlight-color: transparent; /* Remove highlight azul no toque */
+}
+
+#backgroundCanvas {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0;
+}
+
+#gameContainer {
+    position: relative;
+    z-index: 1;
+    /* MODIFICADO: Responsividade com proporção 4:3 */
+    width: 95vw;
+    height: 71.25vw; /* Mantém 4:3 (largura * 0.75) */
+    max-height: 95vh;
+    max-width: calc(95vh * (800 / 600)); /* Limita largura com base na altura */
+    border: 2px solid #00ff7f;
+    box-shadow: 0 0 20px #00ff7f, inset 0 0 10px rgba(0, 255, 127, 0.5);
+    background: transparent;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#gameCanvas {
+    display: block;
+    /* MODIFICADO: Canvas ocupa 100% do container */
+    width: 100%;
+    height: 100%;
+    background: transparent; /* Garante transparência sobre o bgCanvas */
+}
+
+/* Formulário de High Score ajustado para mobile */
+#highScoreFormContainer {
+    position: absolute;
+    z-index: 2; /* Fica sobre o gameCanvas */
+    background-color: rgba(10, 4, 13, 0.95);
+    border: 2px solid #00ff7f;
+    box-shadow: 0 0 15px #00ff7f;
+    padding: 15px; /* Menor padding */
+    text-align: center;
+    border-radius: 15px;
+    width: 80%; /* Largura relativa */
+    max-width: 350px; /* Limite máximo */
+    /* Centralização (já feita pelo position absolute no container flex) */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+#highScoreFormContainer.hidden {
+    display: none;
+}
+
+#highScoreFormContainer h2 {
+    color: #00ff7f;
+    text-shadow: 0 0 8px #00ff7f;
+    font-size: 1.3em; /* Tamanho relativo */
+    margin-bottom: 10px;
+}
+#highScoreFormContainer p {
+    font-size: 0.9em;
+    margin-bottom: 15px;
+}
+
+#highScoreForm {
+    display: flex; /* Alinha input e botão */
+    justify-content: center;
+    align-items: center;
+}
+
+#highScoreFormContainer input {
+    background-color: #0a040d;
+    color: #f0f6fc;
+    border: 1px solid #00ff7f;
+    padding: 12px; /* Mais área de toque */
+    font-size: 1.1em;
+    text-transform: uppercase;
+    width: 100px; /* Largura ajustada */
+    text-align: center;
+    font-family: 'Orbitron', sans-serif;
+    margin-right: 10px;
+    border-radius: 5px;
+}
+
+#highScoreFormContainer button {
+    background-color: #00ff7f;
+    color: #0a040d;
+    border: none;
+    border-radius: 5px;
+    padding: 12px 18px; /* Mais área de toque */
+    font-size: 1em;
+    font-weight: bold;
+    cursor: pointer;
+    font-family: 'Orbitron', sans-serif;
+    transition: all 0.2s ease;
+}
+
+#highScoreFormContainer button:hover, #highScoreFormContainer button:active {
+    box-shadow: 0 0 10px #fff;
+}
