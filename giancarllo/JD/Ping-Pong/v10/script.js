@@ -192,3 +192,23 @@ pauseBtn.addEventListener("click", () => {
     pauseBtn.textContent = isPaused ? "Continuar" : "Pause";
     if (!isPaused && !gameLoopId) gameLoop();
 });
+// === Toque ou tecla para reiniciar quando o jogo termina ===
+
+// Reinicia o jogo ao tocar na tela ou pressionar Enter
+canvas.addEventListener("touchstart", () => {
+    if (gameOver) {
+        score1 = 0;
+        score2 = 0;
+        gameOver = false;
+        resetBall();
+    }
+});
+
+document.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && gameOver) {
+        score1 = 0;
+        score2 = 0;
+        gameOver = false;
+        resetBall();
+    }
+});
