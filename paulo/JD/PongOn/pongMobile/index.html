@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
+  <title>Pong Mobile</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" href="../../../../imagens/favicon.ico" type="image/x-icon">
+</head>
+<body>
+  <div class="ui-top">
+    <h1 class="title">PONG — NEXUS ARENA</h1>
+    <div class="controls-row">
+      <button id="startBtn" class="btn">Iniciar</button>
+      <button id="pauseBtn" class="btn">Pausar</button>
+      <button id="muteBtn" class="btn">🔊</button>
+    </div>
+  </div>
+
+  <div class="game-wrap">
+    <canvas id="gameCanvas"></canvas>
+
+    <div class="hud">
+      <div class="score" id="playerScore">Você: 0</div>
+      <div class="score" id="cpuScore">CPU: 0</div>
+    </div>
+
+    <!-- dicas/touch: toque e arraste para mover -->
+    <div class="touch-hint">Toque/arraste para mover o paddle</div>
+  </div>
+
+  <!-- Música de fundo (coloque em assets/bg-music.mp3) -->
+  <audio id="bgMusic" src="assets/Linkin_Park_-_Figure.9_(mp3.pm).mp3" loop></audio>
+  <!-- (Opcional) efeito de batida -->
+  <!-- <audio id="hitSfx" src="assets/hit.wav"></audio> -->
+
+  <script src="script.js"></script>
+</body>
+</html>

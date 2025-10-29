@@ -1,0 +1,55 @@
+body {
+  margin: 0;
+  background-color: black;
+  color: white;
+  text-align: center;
+  overflow: hidden;
+  font-family: 'Press Start 2P', monospace;
+}
+
+.title {
+  margin-top: 10px;
+  font-size: 1.2em;
+}
+
+/* Canvas do jogo */
+canvas {
+  display: block;
+  margin: 0 auto;
+  background: #000;
+  border: 2px solid #0f0;
+  /* O tamanho visual será ajustado via JS (mantendo o aspecto) */
+  max-width: 100vw;
+  max-height: 80vh;
+}
+
+/* Controles fixos na parte inferior */
+.controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 10px;
+  gap: 20px;
+}
+
+/* Botões grandes e acessíveis ao toque */
+.controls button {
+  background: #111;
+  color: #0f0;
+  border: 2px solid #0f0;
+  border-radius: 10px;
+  font-size: 2em;
+  padding: 15px 25px;
+  touch-action: manipulation;
+}
+
+/* Responsividade para telas menores */
+@media (max-width: 600px) {
+  .title {
+    font-size: 1em;
+  }
+  .controls button {
+    font-size: 1.5em;
+    padding: 10px 20px;
+  }
+}
