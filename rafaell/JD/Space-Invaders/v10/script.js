@@ -1,8 +1,8 @@
 // =================================================================================
-// Versão 9 Mobile - Space Invaders
+// Versão 8.9.1 - A VERSÃO QUE FINALMENTE FUNCIONA
 // =================================================================================
 
-// --- Elementos do Canvas e HTML --- (sem alterações)
+// --- Elementos do Canvas e HTML ---
 const gameCanvas = document.getElementById("gameCanvas");
 const ctx = gameCanvas.getContext("2d");
 const bgCanvas = document.getElementById("backgroundCanvas");
@@ -14,13 +14,12 @@ const playerNameInput = document.getElementById("playerName");
 bgCanvas.width = window.innerWidth;
 bgCanvas.height = window.innerHeight;
 
-
-// --- Estado do Jogo --- (sem alterações)
+// --- Estado do Jogo ---
 let gameState = 'menu';
 let audioEnabled = false;
 const FONT_FAMILY = '"Orbitron", sans-serif';
 
-// --- Configurações Visuais --- (sem alterações)
+// --- Configurações Visuais ---
 const colors = { 
     background: 'rgba(10, 4, 13, 0.85)', 
     player: '#00ff7f', 
@@ -33,10 +32,10 @@ const colors = {
     powerup: '#a371f7'
 };
 
-// --- Sprites Pré-renderizados --- (sem alterações)
+// --- Sprites Pré-renderizados ---
 const sprites = {};
 
-// --- Fundo Estrelado --- (sem alterações)
+// --- Fundo Estrelado ---
 let stars = [];
 function createStars(count) { 
     for (let i = 0; i < count; i++) { 
@@ -57,8 +56,7 @@ function drawAndUpdateStars() {
         bgCtx.fill(); 
     }); 
 }
-
-// --- Áudio --- (sem alterações, incluindo preloadAudio)
+// --- Áudio ---
 const sounds = { 
     shoot: new Audio("../sounds/shoot.mp3"), 
     explosion: new Audio("../sounds/explosion.mp3"), 
@@ -94,7 +92,7 @@ function playSound(type) {
     sound.play().catch(e => {}); 
 }
 
-// --- Entidades e Variáveis do Jogo --- (sem alterações)
+// --- Entidades e Variáveis do Jogo ---
 let player;
 let bullets = [], enemyBullets = [], enemies = [], powerUps = [];
 let score = 0, lives = 2, level = 1, enemyDirection = 1, enemySpeed = 1.5, lastShotTime = 0;
@@ -103,17 +101,17 @@ let bulletType = "normal";
 let powerUpTimers = {};
 const POWER_UP_DURATION = 5000;
 const keys = {};
+// --- NOVAS: Variáveis de Controle por Toque ---
+let touchLeft = false;  // Indica se a metade esquerda está sendo tocada
+let touchRight = false; // Indica se a metade direita está sendo tocada
+let touchTap = false;   // Indica se ocorreu um toque rápido (tap)
+let touchStartTime = 0; // Para diferenciar tap de hold
 const MAX_POWERUPS_ON_SCREEN = 4;
 let uiActionInProgress = false;
 let nextLifeScore = 1500;
 let hoveredButton = null;
 
-// --- NOVAS: Variáveis de Controle por Toque ---
-let touchLeft = false;  // Indica se a metade esquerda está sendo tocada
-let touchRight = false; // Indica se a metade direita está sendo tocada
-let touchTap = false;   // Indica se ocorreu um toque rápido (tap)
-
-// --- Funções de Inicialização e Reset --- (sem alterações)
+// --- Funções de Inicialização e Reset ---
 function initializePlayer() { 
     player = { 
         x: gameCanvas.width / 2 - 25, y: gameCanvas.height - 70, width: 50, height: 25, baseWidth: 50, speed: 5, doubleShot: false, isHit: false, hitTimer: 0 
@@ -153,48 +151,53 @@ function createEnemies() {
 }
 
 // --- Lógica de Update (Jogo) ---
-function updateGame() {
-    handlePlayerMovement(); // Agora considera o toque
-    handleShooting();      // Agora considera o toque
-    updateBullets();
-    updateEnemies();
-    handleEnemyShooting();
-    updateEnemyBullets();
-    spawnPowerUp();
-    updatePowerUps();
-    checkCollisions();
-    updatePowerUpTimers();
-    if (player.isHit && Date.now() - player.hitTimer > 2000) player.isHit = false;
+function updateGame() { 
+    handlePlayerMovement(); 
+    handleShooting(); 
+    updateBullets(); 
+    updateEnemies(); 
+    handleEnemyShooting(); 
+    updateEnemyBullets(); 
+    spawnPowerUp(); 
+    updatePowerUps(); 
+    checkCollisions(); 
+    updatePowerUpTimers(); 
+    if (player.isHit && Date.now() - player.hitTimer > 2000) player.isHit = false; 
 }
-
-// MODIFICADO: handlePlayerMovement agora usa touchLeft e touchRight
+// Substitua sua função handlePlayerMovement
 function handlePlayerMovement() {
-    // Teclado (mantido para PC/debug)
+    // Teclado (mantido)
     if (keys["ArrowLeft"] && player.x > 0) player.x -= player.speed;
     if (keys["ArrowRight"] && player.x + player.width < gameCanvas.width) player.x += player.speed;
 
-    // Toque
+    // Toque (NOVO)
     if (touchLeft && player.x > 0) player.x -= player.speed;
     if (touchRight && player.x + player.width < gameCanvas.width) player.x += player.speed;
 }
-
-// MODIFICADO: handleShooting agora usa touchTap
+// Substitua sua função handleShooting
 function handleShooting() {
     const now = Date.now();
-    // Teclado (mantido para PC/debug)
+    let shotFired = false; // Flag para evitar tiro duplo (teclado + toque)
+
+    // Teclado (mantido)
     if (keys[" "] && now - lastShotTime > shotInterval) {
         shootBullet();
         lastShotTime = now;
+        shotFired = true; // Marca que atirou
     }
 
-    // Toque (Tap)
-    if (touchTap && now - lastShotTime > shotInterval) {
+    // Toque (Tap) (NOVO)
+    // Verifica !shotFired para não atirar duas vezes se a barra de espaço for pressionada ao mesmo tempo
+    if (!shotFired && touchTap && now - lastShotTime > shotInterval) {
         shootBullet();
         lastShotTime = now;
         touchTap = false; // Reseta o tap após atirar
     }
+     // Reseta o tap mesmo se não atirou (para evitar tiros fantasmas)
+    else if(touchTap) {
+         touchTap = false;
+    }
 }
-
 function shootBullet() { 
     playSound('shoot'); 
     const base = { y: player.y, width: 5, height: 15, type: bulletType, speed: bulletType === "piercing" ? 9 : 7, angle: 0 }; 
@@ -247,7 +250,6 @@ function updateEnemyBullets() {
         if (enemyBullets[i].y > gameCanvas.height) enemyBullets.splice(i, 1); 
     } 
 }
-
 // Spawnar Power Ups
 function spawnPowerUp() {
     if (powerUps.length >= MAX_POWERUPS_ON_SCREEN) {
@@ -369,7 +371,7 @@ function endGame() {
         gameState = 'gameOver';
     }
 }
-// --- Funções de Desenho --- (sem alterações)
+// --- Funções de Desenho e Sprites ---
 function setNeonStyle(targetCtx, color, blur = 10) { 
     targetCtx.fillStyle = color; 
     targetCtx.shadowColor = color; 
@@ -596,7 +598,7 @@ function drawPowerUpHUD() {
     }); 
 }
 
-// --- Funções de UI (Menus, Telas) --- (sem alterações)
+// --- Funções de UI (Menus, Telas) ---
 const menuButtons = { 
     play: { 
         x: 300, y: 300, width: 200, height: 50, text: 'JOGAR' 
@@ -727,8 +729,7 @@ function drawRoundedRect(x, y, w, h, r) {
     ctx.closePath(); 
 }
 
-
-// --- Lógica de High Score --- (sem alterações)
+// --- Lógica de High Score ---
 function getHighScores() { 
     return JSON.parse(localStorage.getItem("highScores")) || []; 
 }
@@ -745,32 +746,35 @@ function saveHighScore(name, newScore) {
 // --- NOVAS: Funções Auxiliares de Toque ---
 function getTouchPos(canvasDom, touchEvent, index = 0) {
     var rect = canvasDom.getBoundingClientRect();
-    const touch = touchEvent.touches[index];
-    // Garante que temos um toque válido antes de tentar ler clientX/Y
-    if (!touch) return null; 
+    const touch = touchEvent.touches[index] || touchEvent.changedTouches[index]; // Usa changedTouches no touchend
+    if (!touch) return null;
     return { x: touch.clientX - rect.left, y: touch.clientY - rect.top };
 }
 
 function mapToGameCoords(pos) {
-    if (!pos) return null; // Retorna nulo se a posição for inválida
+    if (!pos) return null;
     const rect = gameCanvas.getBoundingClientRect();
-    // Previne divisão por zero se o canvas não estiver visível
-    if (rect.width === 0 || rect.height === 0) return null; 
+    if (rect.width === 0 || rect.height === 0) return null;
     const scaleX = gameCanvas.width / rect.width;
     const scaleY = gameCanvas.height / rect.height;
     return { x: pos.x * scaleX, y: pos.y * scaleY };
 }
 
 // --- Event Listeners ---
-
-// Teclado (sem alterações)
-document.addEventListener("keydown", (e) => { keys[e.key] = true; if (!audioEnabled) audioEnabled = true; });
-document.addEventListener("keyup", (e) => { keys[e.key] = false; });
-
-// Formulário High Score (sem alterações)
-highScoreForm.addEventListener("submit", (e) => { /* ... */ });
-
-// Clique do Mouse (mantido para menus no PC/debug)
+document.addEventListener("keydown", (e) => { 
+    keys[e.key] = true; 
+    if (!audioEnabled) audioEnabled = true; 
+});
+document.addEventListener("keyup", (e) => { 
+    keys[e.key] = false; 
+});
+highScoreForm.addEventListener("submit", (e) => { 
+    e.preventDefault(); 
+    saveHighScore(playerNameInput.value.toUpperCase().slice(0, 5) || "AAA", score); 
+    highScoreFormContainer.classList.add("hidden"); 
+    gameState = 'gameOver'; 
+    uiActionInProgress = true; 
+});
 gameCanvas.addEventListener('click', (e) => {
     if (uiActionInProgress) { uiActionInProgress = false; return; }
     const mouse = { x: e.clientX - gameCanvas.getBoundingClientRect().left, y: e.clientY - gameCanvas.getBoundingClientRect().top };
@@ -800,8 +804,6 @@ gameCanvas.addEventListener('click', (e) => {
         if (isInside(mouse, gameOverButtons.mainMenu)) gameState = 'menu'; 
     }
 });
-
-// Mouse Move (mantido para hover no PC/debug)
 gameCanvas.addEventListener('mousemove', (e) => {
     const mouse = { x: e.clientX - gameCanvas.getBoundingClientRect().left, y: e.clientY - gameCanvas.getBoundingClientRect().top };
     const isInside = (p, b) => p.x > b.x && p.x < b.x + b.width && p.y > b.y && p.y < b.y + b.height;
@@ -820,50 +822,46 @@ gameCanvas.addEventListener('mousemove', (e) => {
     }
     hoveredButton = foundButton;
 });
-
 // --- NOVOS: Listeners de Toque para Controle ---
-let touchStartTime = 0; // Para diferenciar tap de hold
 
 gameCanvas.addEventListener('touchstart', (e) => {
-    e.preventDefault(); // Sempre previne
+    // Sempre previne o comportamento padrão no canvas
+    e.preventDefault();
+    if (!audioEnabled) audioEnabled = true; // Tenta habilitar áudio no primeiro toque
 
-    // Se não estiver jogando, ignora o resto
+    // Ignora toques se não estiver jogando (menu, game over, etc.)
     if (gameState !== 'playing') {
         return;
     }
 
-    // Lógica SÓ para o estado 'playing'
-    touchStartTime = Date.now();
+    touchStartTime = Date.now(); // Marca o início do toque
 
     for (let i = 0; i < e.touches.length; i++) {
         const pos = getTouchPos(gameCanvas, e, i);
         const gamePos = mapToGameCoords(pos);
         if (!gamePos) continue;
 
+        // Verifica em qual metade da tela o toque começou
         if (gamePos.x < gameCanvas.width / 2) {
             touchLeft = true;
-            touchRight = false;
+            touchRight = false; // Garante que apenas um lado esteja ativo
         } else {
             touchRight = true;
-            touchLeft = false;
+            touchLeft = false; // Garante que apenas um lado esteja ativo
         }
     }
-}, false);
+}, { passive: false }); // passive: false é necessário para preventDefault
 
 gameCanvas.addEventListener('touchmove', (e) => {
-    e.preventDefault(); // Sempre previne
+    e.preventDefault();
+    if (gameState !== 'playing') return;
 
-    // Se não estiver jogando, ignora o resto
-    if (gameState !== 'playing') {
-        return;
-    }
-
-    // Lógica SÓ para o estado 'playing'
     if (e.touches.length > 0) {
-        const pos = getTouchPos(gameCanvas, e, 0);
+        const pos = getTouchPos(gameCanvas, e, 0); // Considera apenas o primeiro dedo
         const gamePos = mapToGameCoords(pos);
         if (!gamePos) return;
 
+        // Atualiza a direção com base na posição atual
         if (gamePos.x < gameCanvas.width / 2) {
             touchLeft = true;
             touchRight = false;
@@ -872,20 +870,17 @@ gameCanvas.addEventListener('touchmove', (e) => {
             touchLeft = false;
         }
     }
-}, false);
+}, { passive: false });
 
-// Substitua SEU listener 'touchend' INTEIRO por este:
 gameCanvas.addEventListener('touchend', (e) => {
-    e.preventDefault(); // Sempre previne no canvas
+    e.preventDefault();
 
-    const mouse = { // Reutilizando a lógica de coordenadas do 'click'
+    const mouse = { // Reutiliza a lógica de coordenadas do 'click' para touchend
         x: e.changedTouches[0].clientX - gameCanvas.getBoundingClientRect().left,
         y: e.changedTouches[0].clientY - gameCanvas.getBoundingClientRect().top
     };
-    const gamePos = mapToGameCoords(mouse); // Mapeia para coordenadas do jogo
-    
-    // Se não conseguiu mapear as coordenadas, sai
-    if (!gamePos) return; 
+    const gamePos = mapToGameCoords(mouse);
+    if (!gamePos) return;
 
     const isInside = (p, b) => p.x > b.x && p.x < b.x + b.width && p.y > b.y && p.y < b.y + b.height;
 
@@ -894,45 +889,46 @@ gameCanvas.addEventListener('touchend', (e) => {
         if (isInside(gamePos, menuButtons.play)) resetGame();
         if (isInside(gamePos, menuButtons.ranking)) gameState = 'ranking';
         if (isInside(gamePos, menuButtons.settings)) gameState = 'settings';
-        return; // Sai após processar o menu
+        // Limpa flags de toque ao sair do menu via toque
+        touchLeft = false; touchRight = false; touchTap = false;
+        return;
     }
     if (gameState === 'ranking') {
         if (isInside(gamePos, backButton)) gameState = 'menu';
-        return; // Sai após processar o menu
+        touchLeft = false; touchRight = false; touchTap = false;
+        return;
     }
     if (gameState === 'settings') {
         if (isInside(gamePos, backButton)) gameState = 'menu';
-        // Lógica de clique nos botões +/- (precisa ser refeita no drawSettingsScreen para ter posições fixas)
-        for (const key in settingsButtons) {
+        for (const key in settingsButtons) { // Lógica dos botões +/-
             if (isInside(gamePos, settingsButtons[key])) {
                 const [action, volumeType] = key.split('_');
                 if (action === 'minus') volumes[volumeType] = Math.max(0, volumes[volumeType] - 0.1);
                 if (action === 'plus') volumes[volumeType] = Math.min(1, volumes[volumeType] + 0.1);
                 volumes[volumeType] = parseFloat(volumes[volumeType].toFixed(1));
-                localStorage.setItem('gameVolumes', JSON.stringify(volumes)); // Salva
-                // Não precisa de break aqui, pois os botões não se sobrepõem
+                localStorage.setItem('gameVolumes', JSON.stringify(volumes));
             }
         }
-        return; // Sai após processar o menu
+        touchLeft = false; touchRight = false; touchTap = false;
+        return;
     }
      if (gameState === 'gameOver') {
         if (isInside(gamePos, gameOverButtons.tryAgain)) resetGame();
         if (isInside(gamePos, gameOverButtons.ranking)) gameState = 'ranking';
         if (isInside(gamePos, gameOverButtons.mainMenu)) gameState = 'menu';
-        return; // Sai após processar o menu
-    }
+        touchLeft = false; touchRight = false; touchTap = false;
+        return;
+     }
     // --- FIM DA LÓGICA DE TOQUE NOS MENUS ---
 
     // --- LÓGICA DE TOQUE DURANTE O JOGO ('playing') ---
-    // Só executa se não estava em um menu e saiu acima
     if (gameState === 'playing') {
-        // Verifica se foi um toque rápido (tap) para atirar
         const touchDuration = Date.now() - touchStartTime;
-        if (touchDuration < 200) { // Menos de 200ms = Tap
+        // Verifica se foi um TAP (curto e sem mover muito - opcionalmente adicionar verificação de distância)
+        if (touchDuration < 200) {
             touchTap = true;
         }
-
-        // Para de mover quando o dedo sai da tela
+        // Para de mover
         touchLeft = false;
         touchRight = false;
     }
@@ -940,23 +936,24 @@ gameCanvas.addEventListener('touchend', (e) => {
 
 }, false);
 
+
 gameCanvas.addEventListener('touchcancel', (e) => {
     e.preventDefault();
-    if (gameState !== 'playing') return;
     // Trata como touchend para parar o movimento
     touchLeft = false;
     touchRight = false;
 }, false);
 
-// NOVO: Listener para redimensionar o canvas de fundo
+// Listener de resize (mantido)
 window.addEventListener('resize', () => {
     bgCanvas.width = window.innerWidth;
     bgCanvas.height = window.innerHeight;
-    initParticles(); // Recria partículas na nova dimensão
+    stars = []; // Limpa o array antigo
+    createStars(300); // Recria as estrelas para a nova dimensão
 });
 
 
-// --- Game Loop Principal --- (sem alterações)
+// --- Game Loop Principal ---
 async function main() {
     await document.fonts.load(`1em ${FONT_FAMILY}`);
     await preloadAudio();
@@ -991,5 +988,4 @@ async function main() {
     gameLoop();
 }
 
-// --- Início do Jogo --- (sem alterações)
 main();
