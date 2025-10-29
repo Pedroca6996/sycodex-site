@@ -825,9 +825,11 @@ gameCanvas.addEventListener('mousemove', (e) => {
 let touchStartTime = 0; // Para diferenciar tap de hold
 
 gameCanvas.addEventListener('touchstart', (e) => {
-    e.preventDefault();
-    // Só processa toques durante o jogo
-    if (gameState !== 'playing') return;
+    if (gameState !== 'playing') {
+        e.preventDefault();
+    } else {
+        return;
+    }
 
     touchStartTime = Date.now(); // Marca o início do toque
 
@@ -848,9 +850,12 @@ gameCanvas.addEventListener('touchstart', (e) => {
 }, false);
 
 gameCanvas.addEventListener('touchmove', (e) => {
-    e.preventDefault();
-    if (gameState !== 'playing') return;
-
+    if (gameState !== 'playing') {
+        e.preventDefault();
+    } else {
+        return;
+    }
+    
     // Se houver algum dedo se movendo, verifica a posição do primeiro dedo
     if (e.touches.length > 0) {
         const pos = getTouchPos(gameCanvas, e, 0); // Considera apenas o primeiro dedo para movimento contínuo
@@ -869,31 +874,35 @@ gameCanvas.addEventListener('touchmove', (e) => {
 }, false);
 
 gameCanvas.addEventListener('touchend', (e) => {
-    e.preventDefault();
-
-    // Reset por toque na tela de Game Over (como no Pong)
-    if (gameEnded) { // Assumindo que você tem uma variável 'gameEnded' ou similar
+    // Reset por toque na tela de Game Over (NÃO precisa de preventDefault aqui)
+    if (gameEnded) { 
          if (e.changedTouches.length === 1) resetGame();
-         return; // Não faz mais nada se estava na tela de game over
+         return; 
     }
 
-    if (gameState !== 'playing') return;
+    // Só previne e processa se estiver jogando
+    if (gameState === 'playing') {
+        e.preventDefault(); 
+    } else {
+        return; 
+    }
 
-    // Verifica se foi um toque rápido (tap) para atirar
+    // O resto da lógica SÓ executa se gameState for 'playing'
     const touchDuration = Date.now() - touchStartTime;
-    if (touchDuration < 200) { // Menos de 200ms = Tap
+    if (touchDuration < 200) { 
         touchTap = true;
     }
 
-    // Para de mover quando o dedo sai da tela
     touchLeft = false;
     touchRight = false;
-
-    // Limpa os identificadores de toque se necessário (para lógicas mais complexas)
-    // Se o controle simples de zona funcionar, isso pode não ser necessário.
 }, false);
 
 gameCanvas.addEventListener('touchcancel', (e) => {
+    if (gameState !== 'playing') {
+        e.preventDefault();
+    } else {
+        return;
+    }
     // Trata como touchend para parar o movimento
     touchLeft = false;
     touchRight = false;
