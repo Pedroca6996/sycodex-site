@@ -80,7 +80,7 @@ const keys = { w: false, s: false, up: false, down: false };
 
 // Partículas para o fundo (sem alterações)
 let particles = [];
-const particleCount = 100;
+const particleCount = 30;
 let shieldImpacts = [];
 
 // NOVO: Rastreamento dos toques ativos
@@ -202,6 +202,10 @@ function mapToGameCoords(pos) {
 // Quando um dedo toca a tela
 canvas.addEventListener('touchstart', (e) => {
     e.preventDefault(); // Evita comportamento padrão do navegador (como zoom)
+    if (gameEnded) {
+        resetGame(); // Reinicia o jogo com um toque na tela de Game Over
+        return;     // Impede que o toque mova os paddles
+    }
     for (let i = 0; i < e.touches.length; i++) {
         const touch = e.touches[i];
         const pos = getTouchPos(canvas, e, i);
@@ -276,7 +280,7 @@ function drawTable() {
     // Define a cor e o brilho para os elementos da mesa
     ctx.strokeStyle = '#00ffff';
     ctx.shadowColor = 'rgba(0, 255, 255, 0.8)';
-    ctx.shadowBlur = 10;
+    ctx.shadowBlur = 5;
     ctx.lineWidth = 4;
     
     // --- Linha Central Pontilhada (continua a mesma) ---
@@ -311,7 +315,7 @@ function drawPaddle(paddle) {
     // 1. Desenha o Escudo de Energia
     ctx.fillStyle = `rgba(0, 255, 127, 0.1)`; // Aura verde sutil
     ctx.shadowColor = colors.player || '#00ff7f'; // Usa a cor do tema ou um padrão
-    ctx.shadowBlur = 20;
+    ctx.shadowBlur = 10;
     ctx.beginPath();
     // Um elipse um pouco maior que a raquete para ser o escudo
     ctx.ellipse(paddle.x + paddle.width / 2, paddle.y + paddle.height / 2, paddle.width + 10, paddle.height / 2 + 15, 0, 0, Math.PI * 2);
@@ -321,7 +325,7 @@ function drawPaddle(paddle) {
     // 2. Desenha o Cristal "Pedrejado"
     ctx.fillStyle = paddle.scoreColor;
     ctx.shadowColor = colors.player || '#00ff7f';
-    ctx.shadowBlur = 15;
+    ctx.shadowBlur = 10;
     ctx.beginPath();
     ctx.moveTo(paddle.shapePoints[0].x, paddle.y); // Ponto inicial
     // Desenha as bordas irregulares
@@ -375,7 +379,7 @@ function drawBall(ball) {
 
     ctx.fillStyle = gradient;
     ctx.shadowColor = '#FFA500';
-    ctx.shadowBlur = 20;
+    ctx.shadowBlur = 10;
     ctx.beginPath();
     ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2, true);
     ctx.fill();
@@ -385,7 +389,7 @@ function drawScore() {
     ctx.fillStyle = '#00ffff';
     ctx.font = 'bold 40px Consolas, monospace';
     ctx.shadowColor = 'rgba(0, 255, 255, 0.8)';
-    ctx.shadowBlur = 10;
+    ctx.shadowBlur = 5;
     ctx.fillText(player1Score, canvas.width / 4, 60);
     ctx.fillText(player2Score, canvas.width * 3 / 4, 60);
     ctx.shadowBlur = 0;
@@ -398,7 +402,7 @@ function drawVictoryScreen() {
     ctx.font = '50px Consolas, monospace';
     ctx.textAlign = 'center';
     ctx.shadowColor = 'rgba(255, 255, 255, 0.8)';
-    ctx.shadowBlur = 10;
+    ctx.shadowBlur = 5;
     let winner = player1Score >= winningScore ? 'JOGADOR 1' : 'JOGADOR 2';
     ctx.fillText(`VITÓRIA DO ${winner}!`, canvas.width / 2, canvas.height / 2);
     ctx.font = '20px Consolas, monospace';
@@ -422,7 +426,7 @@ function drawParticles() {
 // MODIFICADO: draw() agora usa fillRect semi-transparente para o rastro
 function draw() {
     // Efeito de rastro (motion blur)
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     drawTable();
