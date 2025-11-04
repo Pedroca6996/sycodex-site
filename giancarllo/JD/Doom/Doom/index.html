@@ -1,35 +1,50 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DOOM Web</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mini Doom 3D</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <!-- MENU PRINCIPAL -->
   <div id="menu">
-    <h1>Mini DOOM Web</h1>
-    <button id="playBtn">🎮 Jogar</button>
-    <button id="instructionsBtn">📜 Instruções</button>
-    <button id="settingsBtn">⚙️ Configurações</button>
+    <h1>Mini DOOM 3D</h1>
+    <button id="playBtn">Jogar</button>
+    <button id="instructionsBtn">Instruções</button>
+    <button id="settingsBtn">Configurações</button>
   </div>
 
-  <div id="instructions" class="popup">
-    <h2>📜 Instruções</h2>
-    <p>Use <b>WASD</b> para mover-se pelo mapa.</p>
-    <p>Os inimigos se aproximam de você — evite encostar neles!</p>
-    <button class="closeBtn">Fechar</button>
+  <!-- INSTRUÇÕES -->
+  <div id="instructions" class="overlay hidden">
+    <h2>Instruções</h2>
+    <p>
+      <strong>Controles:</strong><br>
+      W, A, S, D → mover<br>
+      Mouse → olhar<br>
+      Clique esquerdo → atirar<br>
+      <strong>Backspace → pausar o jogo</strong>
+    </p>
+    <button class="backBtn">Voltar</button>
   </div>
 
-  <div id="settings" class="popup">
-    <h2>⚙️ Configurações</h2>
-    <label for="sensitivity">Sensibilidade de movimento:</label>
-    <input type="range" id="sensitivity" min="0.5" max="3" step="0.1" value="1">
-    <span id="sensValue">1</span>
-    <button class="closeBtn">Fechar</button>
+  <!-- CONFIGURAÇÕES -->
+  <div id="settings" class="overlay hidden">
+    <h2>Configurações</h2>
+    <label for="sensitivity">Sensibilidade do mouse:</label>
+    <input id="sensitivity" type="range" min="0.1" max="2" step="0.1" value="1">
+    <button class="backBtn">Voltar</button>
   </div>
 
-  <canvas id="gameCanvas"></canvas>
+  <!-- MENU DE PAUSA -->
+  <div id="pauseMenu" class="overlay hidden">
+    <h2>Jogo Pausado</h2>
+    <button id="resumeBtn">Retornar ao Jogo</button>
+    <button id="backToMenuBtn">Voltar ao Menu</button>
+  </div>
+
+  <!-- CANVAS DO JOGO -->
+  <canvas id="gameCanvas" class="hidden"></canvas>
 
   <script src="script.js"></script>
 </body>

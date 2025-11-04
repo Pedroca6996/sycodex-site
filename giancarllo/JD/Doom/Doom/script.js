@@ -1,140 +1,187 @@
-// ===== MENU E CONFIGURAÇÕES =====
-const playBtn = document.getElementById("playBtn");
-const instructionsBtn = document.getElementById("instructionsBtn");
-const settingsBtn = document.getElementById("settingsBtn");
-const popups = document.querySelectorAll(".popup");
-const closeBtns = document.querySelectorAll(".closeBtn");
-const sensitivityInput = document.getElementById("sensitivity");
-const sensValue = document.getElementById("sensValue");
 const menu = document.getElementById("menu");
-const canvas = document.getElementById("gameCanvas");
-const ctx = canvas.getContext("2d");
+const gameCanvas = document.getElementById("gameCanvas");
+const ctx = gameCanvas.getContext("2d");
+
+const instructions = document.getElementById("instructions");
+const settings = document.getElementById("settings");
+const pauseMenu = document.getElementById("pauseMenu");
+const sensitivitySlider = document.getElementById("sensitivity");
 
 let sensitivity = 1;
-let gameRunning = false;
+let isPaused = false;
+let playing = false;
 
-sensitivityInput.oninput = () => {
-  sensitivity = parseFloat(sensitivityInput.value);
-  sensValue.textContent = sensitivity.toFixed(1);
-};
+const map = [
+  [1,1,1,1,1,1,1,1,1,1],
+  [1,0,0,0,0,0,0,0,0,1],
+  [1,0,0,1,0,0,1,0,0,1],
+  [1,0,0,1,0,0,1,0,0,1],
+  [1,0,0,0,0,0,0,0,0,1],
+  [1,0,1,0,0,0,0,1,0,1],
+  [1,0,0,0,0,1,0,0,0,1],
+  [1,0,0,0,0,0,0,0,0,1],
+  [1,0,0,0,1,0,0,0,0,1],
+  [1,1,1,1,1,1,1,1,1,1]
+];
 
-function openPopup(id) {
-  document.getElementById(id).style.display = "block";
-}
-function closePopups() {
-  popups.forEach(p => p.style.display = "none");
-}
-
-instructionsBtn.onclick = () => openPopup("instructions");
-settingsBtn.onclick = () => openPopup("settings");
-closeBtns.forEach(b => b.onclick = closePopups);
-
-playBtn.onclick = () => {
-  menu.style.display = "none";
-  canvas.style.display = "block";
-  startGame();
-};
-
-// ===== JOGO =====
-let player = { x: 400, y: 300, r: 15, speed: 3 };
-let enemies = [];
-const keys = {};
-
-window.addEventListener("keydown", e => keys[e.key.toLowerCase()] = true);
-window.addEventListener("keyup", e => keys[e.key.toLowerCase()] = false);
-window.addEventListener("resize", resizeCanvas);
+let player = { x: 2.5, y: 2.5, angle: 0, speed: 0.05 };
+let enemies = [{x:7.5, y:7.5, alive:true}];
+let keys = {};
 
 function resizeCanvas() {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
+  gameCanvas.width = window.innerWidth;
+  gameCanvas.height = window.innerHeight;
 }
+window.addEventListener("resize", resizeCanvas);
 resizeCanvas();
 
-function startGame() {
-  enemies = [];
-  player.x = canvas.width / 2;
-  player.y = canvas.height / 2;
-  gameRunning = true;
-  spawnEnemies();
-  loop();
+function dist(ax, ay, bx, by) {
+  return Math.hypot(ax - bx, ay - by);
 }
 
-function spawnEnemies() {
-  setInterval(() => {
-    if (!gameRunning) return;
-    let side = Math.floor(Math.random() * 4);
-    let x, y;
-    if (side === 0) { x = 0; y = Math.random() * canvas.height; }
-    if (side === 1) { x = canvas.width; y = Math.random() * canvas.height; }
-    if (side === 2) { x = Math.random() * canvas.width; y = 0; }
-    if (side === 3) { x = Math.random() * canvas.width; y = canvas.height; }
+// RAYCASTER
+function render() {
+  if (!playing || isPaused) return;
 
-    enemies.push({ x, y, r: 12, speed: 1 + Math.random() });
-  }, 1200);
-}
+  const w = gameCanvas.width;
+  const h = gameCanvas.height;
+  const fov = Math.PI / 3;
+  const numRays = w;
+  const step = fov / numRays;
 
-function update() {
-  if (keys["w"]) player.y -= player.speed * sensitivity;
-  if (keys["s"]) player.y += player.speed * sensitivity;
-  if (keys["a"]) player.x -= player.speed * sensitivity;
-  if (keys["d"]) player.x += player.speed * sensitivity;
+  ctx.clearRect(0, 0, w, h);
 
-  // Manter dentro da tela
-  player.x = Math.max(player.r, Math.min(canvas.width - player.r, player.x));
-  player.y = Math.max(player.r, Math.min(canvas.height - player.r, player.y));
+  for (let i = 0; i < numRays; i++) {
+    const rayAngle = player.angle - fov / 2 + i * step;
+    let distToWall = 0;
+    let hit = false;
 
-  // Movimento dos inimigos
+    while (!hit && distToWall < 20) {
+      distToWall += 0.05;
+      const testX = Math.floor(player.x + Math.cos(rayAngle) * distToWall);
+      const testY = Math.floor(player.y + Math.sin(rayAngle) * distToWall);
+      if (map[testY]?.[testX] > 0) hit = true;
+    }
+
+    const lineHeight = h / distToWall;
+    const color = 100 + Math.min(155, 255 / distToWall);
+    ctx.fillStyle = `rgb(${color},${color},${color})`;
+    ctx.fillRect(i, h/2 - lineHeight/2, 1, lineHeight);
+  }
+
+  // Enemies
   enemies.forEach(e => {
-    let dx = player.x - e.x;
-    let dy = player.y - e.y;
-    let dist = Math.hypot(dx, dy);
-    e.x += (dx / dist) * e.speed;
-    e.y += (dy / dist) * e.speed;
+    if (!e.alive) return;
+    const dx = e.x - player.x;
+    const dy = e.y - player.y;
+    const angleToEnemy = Math.atan2(dy, dx);
+    const distToEnemy = dist(player.x, player.y, e.x, e.y);
+    const diff = ((angleToEnemy - player.angle + Math.PI * 3) % (2*Math.PI)) - Math.PI;
 
-    // colisão
-    if (dist < e.r + player.r) {
-      gameOver();
+    if (Math.abs(diff) < fov / 2 && distToEnemy > 0.5) {
+      const size = Math.min(200, 300 / distToEnemy);
+      const x = w/2 + (diff * (w / fov)) - size/2;
+      const y = h/2 - size/2;
+      ctx.fillStyle = "red";
+      ctx.fillRect(x, y, size, size);
+    }
+
+    if (distToEnemy < 0.3) e.alive = false; // enemy reached player
+    else {
+      const speed = 0.02;
+      e.x += Math.cos(angleToEnemy) * speed;
+      e.y += Math.sin(angleToEnemy) * speed;
     }
   });
+
+  requestAnimationFrame(render);
 }
 
-function draw() {
-  ctx.fillStyle = "#000";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+// Controls
+document.addEventListener("keydown", e => {
+  keys[e.key] = true;
+  if (e.key === "Backspace" && playing) {
+    e.preventDefault();
+    togglePause();
+  }
+});
+document.addEventListener("keyup", e => keys[e.key] = false);
 
-  // player
-  ctx.fillStyle = "#e03c31";
-  ctx.beginPath();
-  ctx.arc(player.x, player.y, player.r, 0, Math.PI * 2);
-  ctx.fill();
+document.addEventListener("mousemove", e => {
+  if (!playing || isPaused) return;
+  player.angle += (e.movementX / 200) * sensitivity;
+});
 
-  // inimigos
-  ctx.fillStyle = "#0f0";
-  enemies.forEach(e => {
-    ctx.beginPath();
-    ctx.arc(e.x, e.y, e.r, 0, Math.PI * 2);
-    ctx.fill();
+function update() {
+  if (!playing || isPaused) return;
+  let moveX = 0, moveY = 0;
+  if (keys["w"]) { moveX += Math.cos(player.angle); moveY += Math.sin(player.angle); }
+  if (keys["s"]) { moveX -= Math.cos(player.angle); moveY -= Math.sin(player.angle); }
+  if (keys["a"]) { moveX += Math.sin(player.angle); moveY -= Math.cos(player.angle); }
+  if (keys["d"]) { moveX -= Math.sin(player.angle); moveY += Math.cos(player.angle); }
+
+  const nextX = player.x + moveX * player.speed;
+  const nextY = player.y + moveY * player.speed;
+  if (map[Math.floor(player.y)]?.[Math.floor(nextX)] === 0) player.x = nextX;
+  if (map[Math.floor(nextY)]?.[Math.floor(player.x)] === 0) player.y = nextY;
+
+  requestAnimationFrame(update);
+}
+
+// Shooting
+document.addEventListener("click", e => {
+  if (!playing || isPaused) return;
+  enemies.forEach(enemy => {
+    const d = dist(player.x, player.y, enemy.x, enemy.y);
+    const angleToEnemy = Math.atan2(enemy.y - player.y, enemy.x - player.x);
+    const diff = ((angleToEnemy - player.angle + Math.PI * 3) % (2*Math.PI)) - Math.PI;
+    if (Math.abs(diff) < 0.1 && d < 10) enemy.alive = false;
   });
+});
+
+function togglePause() {
+  isPaused = !isPaused;
+  pauseMenu.classList.toggle("hidden", !isPaused);
 }
 
-function loop() {
-  if (!gameRunning) return;
-  update();
-  draw();
-  requestAnimationFrame(loop);
-}
+// Menu logic
+document.getElementById("playBtn").onclick = () => {
+  menu.classList.add("hidden");
+  gameCanvas.classList.remove("hidden");
+  playing = true;
+  document.body.requestPointerLock();
+  requestAnimationFrame(render);
+  requestAnimationFrame(update);
+};
 
-function gameOver() {
-  gameRunning = false;
-  ctx.fillStyle = "rgba(0,0,0,0.7)";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = "#e03c31";
-  ctx.font = "bold 40px Arial";
-  ctx.textAlign = "center";
-  ctx.fillText("GAME OVER", canvas.width / 2, canvas.height / 2);
-  setTimeout(() => {
-    enemies = [];
-    menu.style.display = "flex";
-    canvas.style.display = "none";
-  }, 2000);
-}
+document.querySelectorAll(".backBtn").forEach(btn => {
+  btn.onclick = () => {
+    instructions.classList.add("hidden");
+    settings.classList.add("hidden");
+    menu.classList.remove("hidden");
+  };
+});
+
+document.getElementById("instructionsBtn").onclick = () => {
+  menu.classList.add("hidden");
+  instructions.classList.remove("hidden");
+};
+document.getElementById("settingsBtn").onclick = () => {
+  menu.classList.add("hidden");
+  settings.classList.remove("hidden");
+};
+
+document.getElementById("resumeBtn").onclick = () => {
+  togglePause();
+  document.body.requestPointerLock();
+};
+document.getElementById("backToMenuBtn").onclick = () => {
+  pauseMenu.classList.add("hidden");
+  playing = false;
+  isPaused = false;
+  menu.classList.remove("hidden");
+  gameCanvas.classList.add("hidden");
+  enemies = [{x:7.5, y:7.5, alive:true}];
+};
+
+sensitivitySlider.oninput = e => sensitivity = parseFloat(e.target.value);
