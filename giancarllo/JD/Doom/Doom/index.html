@@ -2,31 +2,34 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mini DOOM Web</title>
-  <link rel="stylesheet" href="style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DOOM Web</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div id="menu">
-    <h1>MINI DOOM</h1>
-    <button id="playBtn">▶ Jogar</button>
-    <button id="configBtn">⚙ Configurações</button>
-    <div id="instructions">
-      <h2>Controles</h2>
-      <p>W / S → mover para frente/trás</p>
-      <p>A / D → mover lateralmente</p>
-      <p>← / → → girar câmera</p>
-      <p>Espaço → atirar</p>
-    </div>
+    <h1>Mini DOOM Web</h1>
+    <button id="playBtn">🎮 Jogar</button>
+    <button id="instructionsBtn">📜 Instruções</button>
+    <button id="settingsBtn">⚙️ Configurações</button>
   </div>
 
-  <div id="config" class="hidden">
-    <h2>Configurações</h2>
-    <label><input type="checkbox" id="soundToggle" disabled> Som desativado</label>
-    <button id="backBtn">⬅ Voltar</button>
+  <div id="instructions" class="popup">
+    <h2>📜 Instruções</h2>
+    <p>Use <b>WASD</b> para mover-se pelo mapa.</p>
+    <p>Os inimigos se aproximam de você — evite encostar neles!</p>
+    <button class="closeBtn">Fechar</button>
   </div>
 
-  <canvas id="game" class="hidden"></canvas>
+  <div id="settings" class="popup">
+    <h2>⚙️ Configurações</h2>
+    <label for="sensitivity">Sensibilidade de movimento:</label>
+    <input type="range" id="sensitivity" min="0.5" max="3" step="0.1" value="1">
+    <span id="sensValue">1</span>
+    <button class="closeBtn">Fechar</button>
+  </div>
+
+  <canvas id="gameCanvas"></canvas>
 
   <script src="script.js"></script>
 </body>
