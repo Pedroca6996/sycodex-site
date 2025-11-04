@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mini DOOM Web</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="menu">
+    <h1>MINI DOOM</h1>
+    <button id="playBtn">▶ Jogar</button>
+    <button id="configBtn">⚙ Configurações</button>
+    <div id="instructions">
+      <h2>Controles</h2>
+      <p>W / S → mover para frente/trás</p>
+      <p>A / D → mover lateralmente</p>
+      <p>← / → → girar câmera</p>
+      <p>Espaço → atirar</p>
+    </div>
+  </div>
+
+  <div id="config" class="hidden">
+    <h2>Configurações</h2>
+    <label><input type="checkbox" id="soundToggle" disabled> Som desativado</label>
+    <button id="backBtn">⬅ Voltar</button>
+  </div>
+
+  <canvas id="game" class="hidden"></canvas>
+
+  <script src="script.js"></script>
+</body>
+</html>
