@@ -8,46 +8,50 @@
     <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div id="soundPermissionScreen">
-        <h2>Sons no Jogo</h2>
-        <p>Você aceita que o jogo reproduza música e efeitos sonoros?</p>
-        <div class="game-mode-selection">
-            <button id="acceptSoundButton">Sim</button>
-            <button id="declineSoundButton">Não</button>
+
+    <div id="game-container">
+
+        <div id="soundPermissionScreen">
+            <h2>Sons no Jogo</h2>
+            <p>Você aceita que o jogo reproduza música e efeitos sonoros?</p>
+            <div class="game-mode-selection">
+                <button id="acceptSoundButton">Sim</button>
+                <button id="declineSoundButton">Não</button>
+            </div>
         </div>
-    </div>
-
-    <div id="startScreen" class="hidden">
-        <h1>Pong: O Equilíbrio Cósmico</h1>
-        <p>
-            No silêncio do cosmos, duas forças opostas mantêm a realidade em uma dança eterna. Elara, a Guardiã da Luz, protege o "Núcleo de Equilíbrio", a última centelha da criação. Do outro lado, Kael, o Eco da Sombra, busca absorver essa energia, acreditando que o vazio é a paz absoluta. A batalha pelo destino do universo começa agora.
-        </p>
-        <div class="game-mode-selection">
-            <button id="onePlayerButton">1 Jogador (vs. IA)</button>
-            <button id="twoPlayerButton">2 Jogadores</button>
+    
+        <div id="startScreen" class="hidden">
+            <h1>Pong: O Equilíbrio Cósmico</h1>
+            <p>
+                No silêncio do cosmos, duas forças opostas mantêm a realidade em uma dança eterna. Elara, a Guardiã da Luz, protege o "Núcleo de Equilíbrio", a última centelha da criação. Do outro lado, Kael, o Eco da Sombra, busca absorver essa energia, acreditando que o vazio é a paz absoluta. A batalha pelo destino do universo começa agora.
+            </p>
+            <div class="game-mode-selection">
+                <button id="onePlayerButton">1 Jogador (vs. IA)</button>
+                <button id="twoPlayerButton">2 Jogadores</button>
+            </div>
         </div>
+    
+        <div id="pauseMenu" class="modal hidden">
+            <h2>Jogo Pausado</h2>
+            <button id="resumeButton">Continuar</button>
+            <button id="quitButton">Voltar ao Menu</button>
+        </div>
+    
+        <div id="gameUI" class="hidden">
+            <span id="player1Score">0</span>
+            <button id="pauseButton">||</button> 
+            <span id="player2Score">0</span>
+        </div>
+    
+        <canvas id="gameCanvas" class="hidden"></canvas>
+    
+        <div id="endScreen" class="hidden">
+            <h2 id="endTitle"></h2>
+            <p id="endMessage"></p>
+            <button id="restartButton">Voltar ao Menu</button>
+        </div>
+
     </div>
-
-    <div id="pauseMenu" class="modal hidden">
-        <h2>Jogo Pausado</h2>
-        <button id="resumeButton">Continuar</button>
-        <button id="quitButton">Voltar ao Menu</button>
-    </div>
-
-    <div id="gameUI" class="hidden">
-        <span id="player1Score">0</span>
-        <button id="pauseButton">||</button> 
-        <span id="player2Score">0</span>
-    </div>
-
-    <canvas id="gameCanvas" class="hidden"></canvas>
-
-    <div id="endScreen" class="hidden">
-        <h2 id="endTitle"></h2>
-        <p id="endMessage"></p>
-        <button id="restartButton">Voltar ao Menu</button>
-    </div>
-
     <script src="script.js"></script>
 </body>
 </html>

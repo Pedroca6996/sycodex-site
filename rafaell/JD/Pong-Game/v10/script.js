@@ -100,7 +100,7 @@ window.addEventListener('load', function() {
     class Paddle {
         constructor(x, y, width, height, color, glow) { 
             this.x = x; this.y = y; this.width = width; this.height = height; this.color = color; this.glow = glow; 
-            this.baseSpeed = 1.6; // Era 8
+            this.baseSpeed = 4; // Era 8
             this.speed = this.baseSpeed; 
             this.score = 0; 
         }
@@ -112,8 +112,8 @@ window.addEventListener('load', function() {
     
     class Ball {
         constructor(x, y, radius) {
-            this.baseSpeedX = 1; // Era 5
-            this.baseSpeedY = 1; // Era 5
+            this.baseSpeedX = 2.5; // Era 5
+            this.baseSpeedY = 2.5; // Era 5
             this.x = x; this.y = y; this.radius = radius;
             this.color = '#ffd700'; this.glow = '#ffd700'; this.reset();
         }
