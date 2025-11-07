@@ -28,15 +28,16 @@
         </div>
     </div>
 
-    <div id="pause-menu" class="modal" style="display: none;">
+    <div id="pauseMenu" class="modal">
         <h2>Jogo Pausado</h2>
         <button id="resume-button">Continuar</button>
         <button id="quit-button">Voltar ao Menu</button>
     </div>
 
     <div id="gameUI" class="hidden">
-        <div id="player1Score">0</div>
-        <div id="player2Score">0</div>
+        <span id="player1Score">0</span>
+        <button id="pauseButton">||</button> 
+        <span id="player2Score">0</span>
     </div>
 
     <canvas id="gameCanvas" class="hidden"></canvas>

@@ -8,6 +8,12 @@ window.addEventListener('load', function() {
     const gameUI = document.getElementById('gameUI');
     const soundPermissionScreen = document.getElementById('soundPermissionScreen');
     
+    // NOVO: Elementos de Pausa
+    const pauseButton = document.getElementById('pauseButton');
+    const pauseMenu = document.getElementById('pauseMenu');
+    const resumeButton = document.getElementById('resumeButton');
+    const quitButton = document.getElementById('quitButton');
+    
     const onePlayerButton = document.getElementById('onePlayerButton');
     const twoPlayerButton = document.getElementById('twoPlayerButton');
     const restartButton = document.getElementById('restartButton');
@@ -27,6 +33,10 @@ window.addEventListener('load', function() {
     let gameMode = '1P';
     let keys = {};
     const WINNING_SCORE = 7;
+    
+    // NOVO: Estado de Pausa
+    let isPaused = false;
+    let animationFrameId; // Para armazenar o ID do loop e poder pará-lo
 
     // --- CONFIGURAÇÃO DE ÁUDIO ---
     let soundEnabled = false;
@@ -47,14 +57,15 @@ window.addEventListener('load', function() {
         }
     }
     function tryToPlayMusic() {
-        if (soundEnabled && backgroundMusic.paused) {
+        // MODIFICADO: Só toca se não estiver pausado
+        if (soundEnabled && backgroundMusic.paused && !isPaused) {
             backgroundMusic.play().catch(e => console.warn("Navegador bloqueou a música."));
         }
     }
     function stopMusic() {
         if (soundEnabled) {
             backgroundMusic.pause();
-            backgroundMusic.currentTime = 0;
+            // Não reseta o tempo, para poder continuar de onde parou
         }
     }
 
@@ -89,13 +100,11 @@ window.addEventListener('load', function() {
     class Paddle {
         constructor(x, y, width, height, color, glow) { 
             this.x = x; this.y = y; this.width = width; this.height = height; this.color = color; this.glow = glow; 
-            // MODIFICADO: Velocidade base 5x menor
             this.baseSpeed = 1.6; // Era 8
             this.speed = this.baseSpeed; 
             this.score = 0; 
         }
         draw() { ctx.fillStyle = this.color; ctx.shadowColor = this.glow; ctx.shadowBlur = 15; ctx.fillRect(this.x, this.y, this.width, this.height); ctx.shadowBlur = 0; }
-        // NOVO: Função para resetar a velocidade
         resetSpeed() {
             this.speed = this.baseSpeed;
         }
@@ -103,10 +112,8 @@ window.addEventListener('load', function() {
     
     class Ball {
         constructor(x, y, radius) {
-            // MODIFICADO: Velocidade base 5x menor
             this.baseSpeedX = 1; // Era 5
             this.baseSpeedY = 1; // Era 5
-            
             this.x = x; this.y = y; this.radius = radius;
             this.color = '#ffd700'; this.glow = '#ffd700'; this.reset();
         }
@@ -115,8 +122,6 @@ window.addEventListener('load', function() {
             this.speedX = this.baseSpeedX * (Math.random() > 0.5 ? 1 : -1);
             this.speedY = this.baseSpeedY * (Math.random() > 0.5 ? 1 : -1);
             this.color = '#ffd700'; this.glow = '#ffd700';
-            
-            // NOVO: Reseta a velocidade dos paddles também
             if(player1) player1.resetSpeed();
             if(player2) player2.resetSpeed();
         }
@@ -126,25 +131,17 @@ window.addEventListener('load', function() {
         }
         update(player1, player2) {
             this.x += this.speedX; this.y += this.speedY;
-            
             if (this.y - this.radius < 0 || this.y + this.radius > canvas.height) { this.speedY *= -1; playSound(wallHitSound); }
-            
-            // Colisão com Player 1
             if (this.x - this.radius < player1.x + player1.width && this.y > player1.y && this.y < player1.y + player1.height) {
-                // MODIFICADO: Aumenta velocidade da bola E do paddle
                 this.speedX *= -1.1; 
-                player1.speed *= 1.05; // Aumenta a velocidade do paddle em 5%
+                player1.speed *= 1.05; 
                 this.color = player1.color; this.glow = player1.glow; playSound(player1HitSound);
             }
-            
-            // Colisão com Player 2
             if (this.x + this.radius > player2.x && this.y > player2.y && this.y < player2.y + player2.height) {
-                // MODIFICADO: Aumenta velocidade da bola E do paddle
                 this.speedX *= -1.1; 
-                player2.speed *= 1.05; // Aumenta a velocidade do paddle em 5%
+                player2.speed *= 1.05; 
                 this.color = player2.color; this.glow = player2.glow; playSound(player2HitSound);
             }
-            
             if (this.x - this.radius < 0) { player2.score++; playSound(player2ScoreSound); this.reset(); }
             if (this.x + this.radius > canvas.width) { player1.score++; playSound(player1ScoreSound); this.reset(); }
         }
@@ -153,24 +150,50 @@ window.addEventListener('load', function() {
     // --- VARIÁVEIS DO JOGO ---
     let player1, player2, ball;
 
+    // --- NOVO: FUNÇÃO DE PAUSA ---
+    function togglePause() {
+        isPaused = !isPaused; // Inverte o estado
+        
+        if (isPaused) {
+            // PAUSA O JOGO
+            pauseMenu.classList.remove('hidden'); // Mostra o menu de pausa
+            stopMusic(); // Para a música
+            // Para o loop de animação
+            cancelAnimationFrame(animationFrameId);
+        } else {
+            // RETOMA O JOGO
+            pauseMenu.classList.add('hidden'); // Esconde o menu de pausa
+            tryToPlayMusic(); // Tenta retomar a música
+            gameLoop(); // Reinicia o loop de animação
+        }
+    }
+
     // --- FUNÇÕES PRINCIPAIS DO JOGO ---
     function startGame() {
         startScreen.classList.add('hidden'); endScreen.classList.add('hidden');
         gameUI.classList.remove('hidden'); canvas.classList.remove('hidden');
         
+        // MODIFICADO: Garante que o jogo comece despausado
+        isPaused = false; 
+        pauseMenu.classList.add('hidden'); // Garante que o menu de pausa esteja escondido
+
         player1 = new Paddle(10, canvas.height / 2 - 50, 15, 100, '#ffffff', '#00f0ff');
         player2 = new Paddle(canvas.width - 25, canvas.height / 2 - 50, 15, 100, '#c700ff', '#ff00ff');
         ball = new Ball(canvas.width / 2, canvas.height / 2, 10);
         
         if (stars.length === 0) { initStars(); }
         
-        // Garante que a música toque (se já foi permitida)
         tryToPlayMusic();
         
         gameLoop();
     }
 
     function gameLoop() {
+        // MODIFICADO: Se estiver pausado, interrompe a execução do loop
+        if (isPaused) {
+            return;
+        }
+
         // --- LÓGICA DE CONTROLE (TECLADO) ---
         if ((keys['w'] || keys['W']) && player1.y > 0) player1.y -= player1.speed;
         if ((keys['s'] || keys['S']) && player1.y < canvas.height - player1.height) player1.y += player1.speed;
@@ -179,38 +202,36 @@ window.addEventListener('load', function() {
             if (keys['ArrowUp'] && player2.y > 0) player2.y -= player2.speed;
             if (keys['ArrowDown'] && player2.y < canvas.height - player2.height) player2.y += player2.speed;
         } else {
-            // Lógica da IA (Modo 1P)
             const targetY = ball.y - player2.height / 2;
-            const aiSpeed = player2.speed * 0.8; // IA se move a 80% da sua velocidade atual
+            const aiSpeed = player2.speed * 0.8;
             if (player2.y < targetY && player2.y < canvas.height - player2.height) player2.y += aiSpeed;
             if (player2.y > targetY && player2.y > 0) player2.y -= aiSpeed;
         }
 
-        // --- ATUALIZAÇÃO DO JOGO ---
         ball.update(player1, player2);
         
-        // --- DESENHO ---
         ctx.fillStyle = '#08081a'; ctx.fillRect(0, 0, canvas.width, canvas.height);
         handleStars(); 
         player1.draw(); 
         player2.draw(); 
         ball.draw();
         
-        // --- ATUALIZAÇÃO DA UI ---
         player1ScoreEl.textContent = player1.score; 
         player2ScoreEl.textContent = player2.score;
         
-        // --- VERIFICA FIM DE JOGO ---
         if (player1.score >= WINNING_SCORE || player2.score >= WINNING_SCORE) { 
             endGame(); 
         } else { 
-            requestAnimationFrame(gameLoop); 
+            // MODIFICADO: Armazena o ID do frame para podermos cancelar
+            animationFrameId = requestAnimationFrame(gameLoop); 
         }
     }
 
     function endGame() {
         gameUI.classList.add('hidden'); canvas.classList.add('hidden'); endScreen.classList.remove('hidden');
         stopMusic();
+        // Zera o tempo da música para o reinício
+        if (soundEnabled) backgroundMusic.currentTime = 0;
         
         if (player1.score >= WINNING_SCORE) {
             endTitleEl.textContent = "A Luz Prevaleceu";
@@ -224,7 +245,6 @@ window.addEventListener('load', function() {
     // --- EVENT LISTENERS (BOTÕES HTML) ---
     acceptSoundButton.addEventListener('click', () => {
         soundEnabled = true; 
-        // MODIFICADO: Toca a música IMEDIATAMENTE ao clicar "Sim"
         tryToPlayMusic(); 
         soundPermissionScreen.classList.add('hidden'); startScreen.classList.remove('hidden');
     });
@@ -236,20 +256,40 @@ window.addEventListener('load', function() {
     twoPlayerButton.addEventListener('click', () => { gameMode = '2P'; startGame(); });
     restartButton.addEventListener('click', () => {
         endScreen.classList.add('hidden'); startScreen.classList.remove('hidden');
-        // Tenta tocar a música novamente ao voltar para o menu
         tryToPlayMusic();
     });
 
+    // --- NOVOS: LISTENERS DE PAUSA ---
+    pauseButton.addEventListener('click', togglePause);
+    resumeButton.addEventListener('click', togglePause); // Reutiliza a função
+    quitButton.addEventListener('click', () => {
+        // Volta ao menu principal
+        isPaused = false;
+        pauseMenu.classList.add('hidden');
+        gameUI.classList.add('hidden');
+        canvas.classList.add('hidden');
+        startScreen.classList.remove('hidden');
+        stopMusic();
+        if (soundEnabled) backgroundMusic.currentTime = 0; // Reseta a música
+    });
+
+
     // --- EVENT LISTENERS (TECLADO) ---
-    window.addEventListener('keydown', (e) => { keys[e.key] = true; });
+    window.addEventListener('keydown', (e) => { 
+        keys[e.key] = true; 
+        
+        // NOVO: Atalho de pausa (só funciona se o jogo estiver em andamento)
+        if ((e.key === 'p' || e.key === 'P' || e.key === 'Escape') && !gameUI.classList.contains('hidden')) {
+            e.preventDefault(); // Previne comportamento padrão (como 'Esc' sair de tela cheia)
+            togglePause();
+        }
+    });
     window.addEventListener('keyup', (e) => { keys[e.key] = false; });
 
     // --- LISTENERS DE TOQUE (MOBILE) ---
-
     function handleTouchMove(touch) {
         const gamePos = mapTouchCoords(touch);
         const touchInfo = activeTouches[touch.identifier];
-        
         if (touchInfo) {
             const paddle = touchInfo.paddle;
             paddle.y = gamePos.y - paddle.height / 2;
@@ -260,24 +300,19 @@ window.addEventListener('load', function() {
 
     canvas.addEventListener('touchstart', (e) => {
         e.preventDefault(); 
-        tryToPlayMusic(); // Garante que a música toque no primeiro toque (caso tenha parado)
-        
+        // MODIFICADO: Não faz nada se estiver pausado
+        if (isPaused) return;
+
+        tryToPlayMusic();
         for (const touch of e.changedTouches) {
             const gamePos = mapTouchCoords(touch);
             let paddleToControl = null;
-            
             if (gameMode === '2P') {
-                if (gamePos.x < canvas.width / 2) {
-                    paddleToControl = player1;
-                } else {
-                    paddleToControl = player2;
-                }
+                if (gamePos.x < canvas.width / 2) paddleToControl = player1;
+                else paddleToControl = player2;
             } else {
-                if (gamePos.x < canvas.width / 2) {
-                    paddleToControl = player1;
-                }
+                if (gamePos.x < canvas.width / 2) paddleToControl = player1;
             }
-
             if (paddleToControl) {
                 activeTouches[touch.identifier] = { paddle: paddleToControl };
                 handleTouchMove(touch); 
@@ -287,6 +322,8 @@ window.addEventListener('load', function() {
 
     canvas.addEventListener('touchmove', (e) => {
         e.preventDefault();
+        // MODIFICADO: Não faz nada se estiver pausado
+        if (isPaused) return;
         for (const touch of e.changedTouches) {
             handleTouchMove(touch); 
         }
@@ -294,6 +331,7 @@ window.addEventListener('load', function() {
 
     canvas.addEventListener('touchend', (e) => {
         e.preventDefault();
+        // MODIFICADO: Só precisa limpar os toques
         for (const touch of e.changedTouches) {
             delete activeTouches[touch.identifier];
         }

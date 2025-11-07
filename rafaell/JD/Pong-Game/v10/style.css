@@ -111,6 +111,44 @@ button {
     border-radius: 5px;
 }
 
+/* Estilo para o botão de pausa no meio do score */
+#pauseButton {
+    background: transparent;
+    border: 2px solid #fff;
+    color: #fff;
+    width: 40px; /* Tamanho pequeno */
+    height: 40px;
+    border-radius: 50%; /* Redondo */
+    font-size: 16px;
+    font-weight: bold;
+    line-height: 1.2;
+    cursor: pointer;
+    padding: 0; /* Remove padding padrão */
+    margin: 0 25px; /* Espaçamento entre os scores */
+    vertical-align: middle; /* Alinha com o texto do score */
+    
+    /* Garante que ele apareça sobre o canvas (se a UI for sobreposta) */
+    position: relative;
+    z-index: 10;
+}
+
+#pauseButton:active {
+    background: #333; /* Feedback de toque */
+}
+
+/* Estilo para o Menu de Pausa (usa o .modal que você já deve ter) */
+#pauseMenu {
+    /* As classes .modal e .hidden já devem cuidar da maior parte */
+    z-index: 20; /* Garante que fique sobre tudo */
+}
+
+/* Garante que botões do menu de pausa fiquem em bloco */
+#pauseMenu button {
+    display: block;
+    width: 100%;
+    margin: 10px 0;
+}
+
 button:hover {
     background-color: #fff;
     color: #08081a;
