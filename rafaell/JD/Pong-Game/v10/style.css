@@ -1,116 +1,146 @@
+/* Estilização geral e fundo */
 body {
     margin: 0;
     padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background-color: #08081a;
+    color: #fff;
+    font-family: 'Exo2', sans-serif;
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 100vh;
-    background: #000;
-    flex-direction: column;
-    position: relative;
-    font-family: 'Consolas', monospace, sans-serif;
-    color: #fff;
-    overflow: hidden; /* Importante para mobile */
-    /* NOVO: Evita seleção de texto no toque */
+    height: 100vh;
     user-select: none;
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
 }
 
-/* Canvas de fundo (sem alterações) */
-#backgroundCanvas {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0;
-}
-
-#game-container {
-    position: relative;
-    z-index: 1;
-    /* MODIFICADO: Usa unidades relativas para se ajustar à tela */
-    width: 95vw; /* Ocupa 95% da largura da tela */
-    height: 71.25vw; /* Mantém a proporção 4:3 (95 * 0.75) */
-    max-height: 95vh; /* Limita a altura a 95% da tela */
-    max-width: calc(95vh * (800 / 600)); /* Limita a largura com base na altura máxima, mantendo 4:3 */
-    border: 2px solid #fff;
-    background-color: #000;
-    /* NOVO: Garante que o canvas fique contido */
-    overflow: hidden;
-    display: flex; /* Centraliza o canvas internamente */
+/* Estilo das telas de início, fim e permissão de som */
+#startScreen, #endScreen, #soundPermissionScreen {
+    display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
+    text-align: center;
+    padding: 20px;
+    background-color: rgba(8, 8, 26, 0.9);
+    max-width: 600px;
 }
 
-#gameCanvas { /* Renomeado para ID */
+/* Esconde elementos por padrão */
+.hidden {
+    display: none !important;
+}
+
+/* Estilo do Canvas do Jogo */
+canvas {
     display: block;
-    box-shadow: 0 0 20px rgba(0, 255, 255, 0.4);
-    /* MODIFICADO: O canvas ocupará 100% do container */
-    width: 100%;
-    height: 100%;
+    background-color: #000;
+    
+    /* NOVO: Faz o canvas se ajustar à tela */
+    width: 98vw; /* Ocupa 98% da largura da tela */
+    height: 98vh; /* Ocupa 98% da altura da tela */
+    
+    /* NOVO: Mantém a proporção (aspect-ratio) e limita o tamanho */
+    object-fit: contain; /* Garante que o canvas caiba na tela sem distorcer */
+    max-width: 100vw;   /* Garante que não ultrapasse a largura */
+    max-height: 100vh;  /* Garante que não ultrapasse a altura */
 }
 
-.screen {
+.modal, #menu, #pause-menu {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    text-align: center;
-    width: 80%;
-    max-width: 400px;
-    z-index: 2;
-    background: rgba(0, 0, 0, 0.8); /* Fundo para melhor legibilidade */
+    background-color: rgba(0, 0, 0, 0.85);
     padding: 20px;
     border-radius: 10px;
-    border: 1px solid #00ffff;
+    border: 2px solid #fff; /* Mantenha sua borda original */
+    z-index: 10;
+    text-align: center;
+    
+    /* NOVO: Garante que o menu caiba na tela */
+    width: 90%;
+    max-width: 450px; /* Limite máximo para tablets */
 }
 
-.hidden-screen {
-    display: none;
+/* Estilo das telas de início e fim */
+#startScreen, #endScreen {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 20px;
+    background-color: rgba(8, 8, 26, 0.9);
+    max-width: 600px;
 }
 
-/* Ajustes menores nos botões para toque */
-.screen button {
+#game-container {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+}
+
+h1, h2, h3, p {
+    font-size: 1.1rem; /* Ajusta o tamanho da fonte base */
+    line-height: 1.4;
+}
+h1 { font-size: 1.8rem; }
+h2 { font-size: 1.5rem; }
+
+/* Estilo dos Botões */
+button {
     display: block;
     width: 100%;
-    padding: 18px; /* Mais área de toque */
-    margin-top: 15px;
-    font-size: 1.2em; /* Tamanho relativo */
-    color: #00ffff;
-    background: #003333;
-    border: 2px solid #00ffff;
+    padding: 15px; /* Mais área de toque */
+    margin: 10px 0;
+    font-size: 1.2rem; /* Tamanho de fonte legível */
     cursor: pointer;
-    transition: background-color 0.3s, box-shadow 0.3s;
-    box-shadow: 0 0 5px rgba(0, 255, 255, 0.4);
-    border-radius: 5px; /* Cantos arredondados */
-}
-
-/* O resto do CSS para botões, inputs, etc., pode permanecer similar */
-.screen button:hover, .screen button:active { /* :active para feedback de toque */
-    background-color: #005555;
-    box-shadow: 0 0 15px rgba(0, 255, 255, 0.8);
-}
-
-.setting {
-    margin: 20px 0;
-    display: flex;
-    flex-direction: column; /* Empilha no mobile */
-    align-items: center;
-}
-.setting label {
-    font-size: 1em;
-    margin-bottom: 10px; /* Espaçamento */
-}
-.setting input {
-    width: 80px; /* Maior para toque */
-    padding: 10px;
-    font-size: 1.1em;
-    text-align: center;
-    background: #1a1a1a;
-    border: 1px solid #00ffff;
+    
+    /* Mantenha seu estilo original de cores e bordas */
+    background: transparent;
     color: #fff;
+    border: 2px solid #fff;
     border-radius: 5px;
 }
-.footer-info {
-    position: absolute; bottom: 5px; right: 5px; /* Ajuste menor */
-    color: #888; font-family: sans-serif; font-size: 10px; z-index: 1; /* Tamanho menor */
+
+button:hover {
+    background-color: #fff;
+    color: #08081a;
+    box-shadow: 0 0 25px #fff;
 }
-.footer-info a { color: #888; text-decoration: none; font-weight: bold; }
+
+button:active {
+    background-color: #333; /* Cor de feedback ao tocar */
+}
+
+.game-mode-selection {
+    display: flex;
+}
+
+/* Estilo da Interface do Jogo (Placar) */
+#gameUI {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 4em;
+    font-weight: 700;
+    text-shadow: 0 0 15px #fff;
+    opacity: 0.6;
+    z-index: 10;
+}
+
+#gameUI div {
+    margin: 0 40px;
+}

@@ -1,617 +1,316 @@
-// ======================================================================
-// PONG - Versão 9 Mobile
-// ======================================================================
+// Espera a página carregar para garantir que todos os elementos HTML existam
+window.addEventListener('load', function() {
+    // --- ELEMENTOS DO DOM ---
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const startScreen = document.getElementById('startScreen');
+    const endScreen = document.getElementById('endScreen');
+    const gameUI = document.getElementById('gameUI');
+    const soundPermissionScreen = document.getElementById('soundPermissionScreen');
+    
+    const onePlayerButton = document.getElementById('onePlayerButton');
+    const twoPlayerButton = document.getElementById('twoPlayerButton');
+    const restartButton = document.getElementById('restartButton');
+    const acceptSoundButton = document.getElementById('acceptSoundButton');
+    const declineSoundButton = document.getElementById('declineSoundButton');
+    
+    const player1ScoreEl = document.getElementById('player1Score');
+    const player2ScoreEl = document.getElementById('player2Score');
+    const endTitleEl = document.getElementById('endTitle');
+    const endMessageEl = document.getElementById('endMessage');
 
-// Obtém os contextos dos canvases (sem alterações)
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
-const bgCanvas = document.getElementById('backgroundCanvas');
-const bgCtx = bgCanvas.getContext('2d');
+    // --- CONFIGURAÇÕES DO JOGO ---
+    canvas.width = 800;
+    canvas.height = 600;
 
-// ----------------------
-// Variáveis e Configurações
-// ----------------------
+    // --- ESTADO DO JOGO ---
+    let gameMode = '1P';
+    let keys = {};
+    const WINNING_SCORE = 7;
 
-// Elementos da UI (sem alterações)
-const colors = {
-    player: '#00ff7f', // Verde neon para os detalhes do cristal
-    // Adicione outras cores aqui se precisar no futuro
-};
-const mainMenu = document.getElementById('main-menu');
-const settingsMenu = document.getElementById('settings-menu');
-const instructionsMenu = document.getElementById('instructions-menu');
-const playButton = document.getElementById('play-button');
-const settingsButton = document.getElementById('settings-button');
-const instructionsButton = document.getElementById('instructions-button');
-const backButton = document.getElementById('back-button');
-const instructionsBackButton = document.getElementById('instructions-back-button');
-const initialSpeedInput = document.getElementById('initial-speed');
-const winningScoreInput = document.getElementById('winning-score');
+    // --- CONFIGURAÇÃO DE ÁUDIO ---
+    let soundEnabled = false;
+    const backgroundMusic = new Audio('./sounds/background.mp3'); 
+    backgroundMusic.loop = true;
+    backgroundMusic.volume = 0.5;
 
+    const player1HitSound = new Audio('./sounds/player1_hit.mp3');
+    const player2HitSound = new Audio('./sounds/player2_hit.mp3');
+    const wallHitSound = new Audio('./sounds/wall_hit.mp3');
+    const player1ScoreSound = new Audio('./sounds/player1_score.mp3');
+    const player2ScoreSound = new Audio('./sounds/player2_score.mp3');
 
-// Configurações globais dos canvases (sem alterações)
-canvas.width = 800;
-canvas.height = 600;
-bgCanvas.width = window.innerWidth;
-bgCanvas.height = window.innerHeight;
-
-// Configurações das barras (sem alterações)
-const paddleWidth = 10;
-const paddleHeight = 100;
-const player1 = { x: 10, y: (canvas.height - paddleHeight) / 2, width: paddleWidth, height: paddleHeight, speed: 6, scoreColor: '#fff' };
-const player2 = { x: canvas.width - paddleWidth - 10, y: (canvas.height - paddleHeight) / 2, width: paddleWidth, height: paddleHeight, speed: 6, scoreColor: '#fff' };
-
-
-// Configurações da bola (sem alterações)
-const ball = {
-    x: canvas.width / 2,
-    y: canvas.height / 2,
-    radius: 10,
-    initialSpeedX: 1.5,
-    initialSpeedY: 1.5,
-    speedX: 1.5,
-    speedY: 1.5,
-    speedIncrease: 0.3, 
-    maxSpeed: 15
-};
-
-// Variáveis de estado do jogo (sem alterações)
-let player1Score = 0;
-let player2Score = 0;
-let winningScore = 5;
-let gameEnded = false;
-let scoreTimer = 0;
-let gameState = 'menu';
-let centerCircleRotation = 0;
-
-//Circulo no centro giratório
-const BASE_CIRCLE_ROTATION_SPEED = 0.002; // A velocidade bem lenta do início
-const CIRCLE_ROTATION_INCREASE = 0.001;  // O quanto acelera a cada hit
-const MAX_CIRCLE_ROTATION_SPEED = 0.02;   // O limite máximo de velocidade
-let circleRotationSpeed = BASE_CIRCLE_ROTATION_SPEED; // A velocidade atual
-
-// Carregamento dos sons (sem alterações)
-const bounceSound = new Audio('../sounds/hit.mp3');
-const scoreSound = new Audio('../sounds/score.mp3');
-const winSound = new Audio('../sounds/win.mp3');
-
-// Rastreamento das teclas (sem alterações)
-const keys = { w: false, s: false, up: false, down: false };
-
-// Partículas para o fundo (sem alterações)
-let particles = [];
-const particleCount = 30;
-let shieldImpacts = [];
-
-// NOVO: Rastreamento dos toques ativos
-const activeTouches = {}; // Guarda informações sobre os dedos na tela
-
-// ----------------------
-// Inicialização (sem alterações)
-// ----------------------
-function setupGame() {
-    // Helper para criar a forma do cristal (agora dentro do setup)
-    const createCrystalShape = (x, width, height) => {
-        const points = [];
-        const segments = 10;
-        for (let i = 0; i <= segments; i++) {
-            const y = (i / segments) * height;
-            const offsetX = (Math.random() - 0.5) * (width * 0.4);
-            points.push({ x: x + offsetX, y: y });
-        }
-        return points;
-    };
-
-    // Adiciona as formas de cristal aos objetos dos jogadores
-    player1.shapePoints = createCrystalShape(player1.x + player1.width, player1.width, player1.height);
-    player2.shapePoints = createCrystalShape(player2.x, player2.width, player2.height);
-
-    // Também podemos mover a inicialização das partículas para cá
-    initParticles();
-}
-
-function initParticles() {
-    particles = [];
-    for (let i = 0; i < particleCount; i++) {
-        particles.push({
-            x: Math.random() * bgCanvas.width,
-            y: Math.random() * bgCanvas.height,
-            size: Math.random() * 2 + 1,
-            speed: Math.random() * 0.5 + 0.1,
-            opacity: Math.random() * 0.5 + 0.2
-        });
-    }
-}
-
-
-// ----------------------
-// Listeners de Eventos
-// ----------------------
-
-// --- Listeners de Teclado (mantidos para debug/PC) ---
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'w') keys.w = true;
-    if (e.key === 's') keys.s = true;
-    if (e.key === 'ArrowUp') keys.up = true;
-    if (e.key === 'ArrowDown') keys.down = true;
-    if (gameEnded && e.key === 'Enter') resetGame();
-});
-document.addEventListener('keyup', (e) => {
-    if (e.key === 'w') keys.w = false;
-    if (e.key === 's') keys.s = false;
-    if (e.key === 'ArrowUp') keys.up = false;
-    if (e.key === 'ArrowDown') keys.down = false;
-});
-
-// --- Listeners dos Botões HTML (sem alterações) ---
-playButton.addEventListener('click', () => {
-    hideAllScreens();
-    gameState = 'game';
-    canvas.style.display = 'block';
-    resetGame();
-});
-
-settingsButton.addEventListener('click', () => {
-    hideAllScreens();
-    settingsMenu.style.display = 'block';
-    initialSpeedInput.value = ball.initialSpeedX;
-    winningScoreInput.value = winningScore;
-});
-
-instructionsButton.addEventListener('click', () => {
-    hideAllScreens();
-    instructionsMenu.style.display = 'block';
-});
-
-backButton.addEventListener('click', () => {
-    ball.initialSpeedX = Number(initialSpeedInput.value);
-    ball.initialSpeedY = Number(initialSpeedInput.value);
-    winningScore = Number(winningScoreInput.value);
-    hideAllScreens();
-    mainMenu.style.display = 'block';
-});
-
-instructionsBackButton.addEventListener('click', () => {
-    hideAllScreens();
-    mainMenu.style.display = 'block';
-});
-
-// --- NOVOS: Listeners de Toque ---
-
-// Função auxiliar para obter coordenadas relativas ao canvas
-function getTouchPos(canvasDom, touchEvent, index = 0) {
-    var rect = canvasDom.getBoundingClientRect();
-    const touch = touchEvent.touches[index];
-    return {
-        x: touch.clientX - rect.left,
-        y: touch.clientY - rect.top
-    };
-}
-
-// Função auxiliar para mapear coordenadas da tela para coordenadas do jogo (800x600)
-function mapToGameCoords(pos) {
-    const rect = canvas.getBoundingClientRect();
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
-    return {
-        x: pos.x * scaleX,
-        y: pos.y * scaleY
-    };
-}
-
-// Quando um dedo toca a tela
-canvas.addEventListener('touchstart', (e) => {
-    e.preventDefault(); // Evita comportamento padrão do navegador (como zoom)
-    for (let i = 0; i < e.touches.length; i++) {
-        const touch = e.touches[i];
-        const pos = getTouchPos(canvas, e, i);
-        const gamePos = mapToGameCoords(pos);
-
-        // Identifica qual paddle controlar com base na metade da tela
-        const paddle = (gamePos.x < canvas.width / 2) ? player1 : player2;
-        
-        // Guarda o ID do toque e o paddle associado
-        activeTouches[touch.identifier] = { paddle: paddle, initialY: gamePos.y, currentY: gamePos.y };
-        
-        // Define a posição inicial do paddle diretamente
-        paddle.y = gamePos.y - paddle.height / 2;
-        // Garante que o paddle não saia da tela
-        paddle.y = Math.max(0, Math.min(canvas.height - paddle.height, paddle.y));
-    }
-}, false);
-canvas.addEventListener('touchend', (e) => {
-    // Verifica se o jogo realmente terminou
-    if (gameEnded) {
-        e.preventDefault(); // Previne qualquer comportamento padrão residual
-        
-        // Verifica se foi um toque "rápido" (não um arraste longo)
-        // Isso é opcional, mas evita resets acidentais se o dedo escorregar
-        if (e.changedTouches.length === 1) { // Garante que foi apenas um dedo
-             // Poderíamos adicionar uma verificação de tempo/distância aqui se necessário
-             resetGame();
+    function playSound(sound) {
+        if (soundEnabled) {
+            sound.currentTime = 0;
+            sound.play();
         }
     }
-}, false);
+    function tryToPlayMusic() {
+        if (soundEnabled && backgroundMusic.paused) {
+            backgroundMusic.play().catch(e => console.warn("Navegador bloqueou a música."));
+        }
+    }
+    function stopMusic() {
+        if (soundEnabled) {
+            backgroundMusic.pause();
+            backgroundMusic.currentTime = 0;
+        }
+    }
 
-// Quando um dedo se move na tela
-canvas.addEventListener('touchmove', (e) => {
-    e.preventDefault();
-    for (let i = 0; i < e.touches.length; i++) {
-        const touch = e.touches[i];
-        const touchInfo = activeTouches[touch.identifier];
+    // --- VARIÁVEIS DE TOQUE ---
+    const activeTouches = {}; 
+    let canvasRect = canvas.getBoundingClientRect(); 
+    let scaleX = canvas.width / canvasRect.width;   
+    let scaleY = canvas.height / canvasRect.height; 
 
-        if (touchInfo) {
-            const pos = getTouchPos(canvas, e, i);
-            const gamePos = mapToGameCoords(pos);
+    // --- HELPER DE TOQUE ---
+    function mapTouchCoords(touch) {
+        const clientX = touch.clientX - canvasRect.left;
+        const clientY = touch.clientY - canvasRect.top;
+        return {
+            x: clientX * scaleX,
+            y: clientY * scaleY
+        };
+    }
+
+    // --- ELEMENTOS DE FUNDO (ESTRELAS) ---
+    let stars = [];
+    const numStars = 100;
+    class Star {
+        constructor() { this.x = Math.random() * canvas.width; this.y = Math.random() * canvas.height; this.size = Math.random() * 2 + 1; this.speed = Math.random() * 2 + 0.5; }
+        update() { this.y += this.speed; if (this.y > canvas.height) { this.y = 0; this.x = Math.random() * canvas.width; } }
+        draw() { ctx.fillStyle = `rgba(255, 255, 255, 0.8)`; ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill(); }
+    }
+    function initStars() { stars = []; for (let i = 0; i < numStars; i++) { stars.push(new Star()); } }
+    function handleStars() { stars.forEach(star => { star.update(); star.draw(); }); }
+
+    // --- CLASSES DO JOGO ---
+    class Paddle {
+        constructor(x, y, width, height, color, glow) { 
+            this.x = x; this.y = y; this.width = width; this.height = height; this.color = color; this.glow = glow; 
+            // MODIFICADO: Velocidade base 5x menor
+            this.baseSpeed = 1.6; // Era 8
+            this.speed = this.baseSpeed; 
+            this.score = 0; 
+        }
+        draw() { ctx.fillStyle = this.color; ctx.shadowColor = this.glow; ctx.shadowBlur = 15; ctx.fillRect(this.x, this.y, this.width, this.height); ctx.shadowBlur = 0; }
+        // NOVO: Função para resetar a velocidade
+        resetSpeed() {
+            this.speed = this.baseSpeed;
+        }
+    }
+    
+    class Ball {
+        constructor(x, y, radius) {
+            // MODIFICADO: Velocidade base 5x menor
+            this.baseSpeedX = 1; // Era 5
+            this.baseSpeedY = 1; // Era 5
             
-            // Move o paddle associado para a nova posição Y do dedo
-            touchInfo.paddle.y = gamePos.y - touchInfo.paddle.height / 2;
-            // Garante que o paddle não saia da tela
-            touchInfo.paddle.y = Math.max(0, Math.min(canvas.height - touchInfo.paddle.height, touchInfo.paddle.y));
-
-            touchInfo.currentY = gamePos.y; // Atualiza a posição atual
+            this.x = x; this.y = y; this.radius = radius;
+            this.color = '#ffd700'; this.glow = '#ffd700'; this.reset();
+        }
+        reset() {
+            this.x = canvas.width / 2; this.y = canvas.height / 2;
+            this.speedX = this.baseSpeedX * (Math.random() > 0.5 ? 1 : -1);
+            this.speedY = this.baseSpeedY * (Math.random() > 0.5 ? 1 : -1);
+            this.color = '#ffd700'; this.glow = '#ffd700';
+            
+            // NOVO: Reseta a velocidade dos paddles também
+            if(player1) player1.resetSpeed();
+            if(player2) player2.resetSpeed();
+        }
+        draw() {
+            ctx.beginPath(); ctx.fillStyle = this.color; ctx.shadowColor = this.glow; ctx.shadowBlur = 20;
+            ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2); ctx.fill(); ctx.shadowBlur = 0;
+        }
+        update(player1, player2) {
+            this.x += this.speedX; this.y += this.speedY;
+            
+            if (this.y - this.radius < 0 || this.y + this.radius > canvas.height) { this.speedY *= -1; playSound(wallHitSound); }
+            
+            // Colisão com Player 1
+            if (this.x - this.radius < player1.x + player1.width && this.y > player1.y && this.y < player1.y + player1.height) {
+                // MODIFICADO: Aumenta velocidade da bola E do paddle
+                this.speedX *= -1.1; 
+                player1.speed *= 1.05; // Aumenta a velocidade do paddle em 5%
+                this.color = player1.color; this.glow = player1.glow; playSound(player1HitSound);
+            }
+            
+            // Colisão com Player 2
+            if (this.x + this.radius > player2.x && this.y > player2.y && this.y < player2.y + player2.height) {
+                // MODIFICADO: Aumenta velocidade da bola E do paddle
+                this.speedX *= -1.1; 
+                player2.speed *= 1.05; // Aumenta a velocidade do paddle em 5%
+                this.color = player2.color; this.glow = player2.glow; playSound(player2HitSound);
+            }
+            
+            if (this.x - this.radius < 0) { player2.score++; playSound(player2ScoreSound); this.reset(); }
+            if (this.x + this.radius > canvas.width) { player1.score++; playSound(player1ScoreSound); this.reset(); }
         }
     }
-}, false);
 
-// Quando um dedo sai da tela
-canvas.addEventListener('touchend', (e) => {
-    e.preventDefault();
-    for (let i = 0; i < e.changedTouches.length; i++) {
-        const touch = e.changedTouches[i];
-        // Remove o toque do rastreamento
-        delete activeTouches[touch.identifier];
+    // --- VARIÁVEIS DO JOGO ---
+    let player1, player2, ball;
+
+    // --- FUNÇÕES PRINCIPAIS DO JOGO ---
+    function startGame() {
+        startScreen.classList.add('hidden'); endScreen.classList.add('hidden');
+        gameUI.classList.remove('hidden'); canvas.classList.remove('hidden');
+        
+        player1 = new Paddle(10, canvas.height / 2 - 50, 15, 100, '#ffffff', '#00f0ff');
+        player2 = new Paddle(canvas.width - 25, canvas.height / 2 - 50, 15, 100, '#c700ff', '#ff00ff');
+        ball = new Ball(canvas.width / 2, canvas.height / 2, 10);
+        
+        if (stars.length === 0) { initStars(); }
+        
+        // Garante que a música toque (se já foi permitida)
+        tryToPlayMusic();
+        
+        gameLoop();
     }
-}, false);
 
-// Caso o toque seja cancelado (ex: alerta do sistema)
-canvas.addEventListener('touchcancel', (e) => {
-    for (let i = 0; i < e.changedTouches.length; i++) {
-        const touch = e.changedTouches[i];
-        delete activeTouches[touch.identifier];
+    function gameLoop() {
+        // --- LÓGICA DE CONTROLE (TECLADO) ---
+        if ((keys['w'] || keys['W']) && player1.y > 0) player1.y -= player1.speed;
+        if ((keys['s'] || keys['S']) && player1.y < canvas.height - player1.height) player1.y += player1.speed;
+        
+        if (gameMode === '2P') {
+            if (keys['ArrowUp'] && player2.y > 0) player2.y -= player2.speed;
+            if (keys['ArrowDown'] && player2.y < canvas.height - player2.height) player2.y += player2.speed;
+        } else {
+            // Lógica da IA (Modo 1P)
+            const targetY = ball.y - player2.height / 2;
+            const aiSpeed = player2.speed * 0.8; // IA se move a 80% da sua velocidade atual
+            if (player2.y < targetY && player2.y < canvas.height - player2.height) player2.y += aiSpeed;
+            if (player2.y > targetY && player2.y > 0) player2.y -= aiSpeed;
+        }
+
+        // --- ATUALIZAÇÃO DO JOGO ---
+        ball.update(player1, player2);
+        
+        // --- DESENHO ---
+        ctx.fillStyle = '#08081a'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+        handleStars(); 
+        player1.draw(); 
+        player2.draw(); 
+        ball.draw();
+        
+        // --- ATUALIZAÇÃO DA UI ---
+        player1ScoreEl.textContent = player1.score; 
+        player2ScoreEl.textContent = player2.score;
+        
+        // --- VERIFICA FIM DE JOGO ---
+        if (player1.score >= WINNING_SCORE || player2.score >= WINNING_SCORE) { 
+            endGame(); 
+        } else { 
+            requestAnimationFrame(gameLoop); 
+        }
     }
-}, false);
 
-
-// NOVO: Listener para redimensionar o canvas de fundo
-window.addEventListener('resize', () => {
-    bgCanvas.width = window.innerWidth;
-    bgCanvas.height = window.innerHeight;
-    // Reinicia as partículas para a nova dimensão (opcional, mas recomendado)
-    initParticles(); 
-});
-
-
-// ----------------------
-// Funções de Desenho (sem grandes alterações, exceto draw())
-// ----------------------
-function drawTable() {
-    // Define a cor e o brilho para os elementos da mesa
-    ctx.strokeStyle = '#00ffff';
-    ctx.shadowColor = 'rgba(0, 255, 255, 0.8)';
-    ctx.shadowBlur = 5;
-    ctx.lineWidth = 4;
-    
-    // --- Linha Central Pontilhada (continua a mesma) ---
-    ctx.beginPath();
-    ctx.setLineDash([15, 20]);
-    ctx.moveTo(canvas.width / 2, 0);
-    ctx.lineTo(canvas.width / 2, canvas.height);
-    ctx.stroke();
-    
-    // --- Círculo Central GIRATÓRIO ---
-    ctx.save(); // Salva o estado atual do canvas (posição, rotação, etc.)
-    
-    // Move o "ponto de origem" do canvas para o centro do círculo
-    ctx.translate(canvas.width / 2, canvas.height / 2); 
-    // Aplica a rotação
-    ctx.rotate(centerCircleRotation); 
-    // Move a origem de volta para o canto superior esquerdo
-    ctx.translate(-canvas.width / 2, -canvas.height / 2); 
-    
-    // Desenha o círculo (ele será desenhado já rotacionado)
-    ctx.beginPath();
-    ctx.arc(canvas.width / 2, canvas.height / 2, 60, 0, Math.PI * 2);
-    ctx.stroke();
-
-    ctx.restore(); // Restaura o estado original do canvas para não afetar outros desenhos
-
-    // Limpa as configurações
-    ctx.setLineDash([]);
-    ctx.shadowBlur = 0;
-}
-function drawPaddle(paddle) {
-    // 1. Desenha o Escudo de Energia
-    ctx.fillStyle = `rgba(0, 255, 127, 0.1)`; // Aura verde sutil
-    ctx.shadowColor = colors.player || '#00ff7f'; // Usa a cor do tema ou um padrão
-    ctx.shadowBlur = 10;
-    ctx.beginPath();
-    // Um elipse um pouco maior que a raquete para ser o escudo
-    ctx.ellipse(paddle.x + paddle.width / 2, paddle.y + paddle.height / 2, paddle.width + 10, paddle.height / 2 + 15, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.shadowBlur = 0;
-
-    // 2. Desenha o Cristal "Pedrejado"
-    ctx.fillStyle = paddle.scoreColor;
-    ctx.shadowColor = colors.player || '#00ff7f';
-    ctx.shadowBlur = 10;
-    ctx.beginPath();
-    ctx.moveTo(paddle.shapePoints[0].x, paddle.y); // Ponto inicial
-    // Desenha as bordas irregulares
-    for (let i = 1; i < paddle.shapePoints.length; i++) {
-        ctx.lineTo(paddle.shapePoints[i].x, paddle.y + paddle.shapePoints[i].y);
+    function endGame() {
+        gameUI.classList.add('hidden'); canvas.classList.add('hidden'); endScreen.classList.remove('hidden');
+        stopMusic();
+        
+        if (player1.score >= WINNING_SCORE) {
+            endTitleEl.textContent = "A Luz Prevaleceu";
+            endMessageEl.textContent = "O equilíbrio foi restaurado. A luz da criação prevaleceu, e a harmonia reinará... por enquanto.";
+        } else {
+            endTitleEl.textContent = "A Sombra Venceu";
+            endMessageEl.textContent = "O silêncio venceu. A energia foi absorvida pelo vazio, e um frio eterno se espalha pelo cosmos.";
+        }
     }
-    // Fecha o polígono
-    ctx.lineTo(paddle.x + paddle.width/2, paddle.y + paddle.height);
-    ctx.lineTo(paddle.x + paddle.width/2, paddle.y);
-    ctx.closePath();
-    ctx.fill();
-    ctx.shadowBlur = 0;
-}
 
-function createShieldImpact(x, y, color) {
-    shieldImpacts.push({
-        x: x,
-        y: y,
-        radius: 10,
-        maxRadius: 50,
-        opacity: 1,
-        color: color
+    // --- EVENT LISTENERS (BOTÕES HTML) ---
+    acceptSoundButton.addEventListener('click', () => {
+        soundEnabled = true; 
+        // MODIFICADO: Toca a música IMEDIATAMENTE ao clicar "Sim"
+        tryToPlayMusic(); 
+        soundPermissionScreen.classList.add('hidden'); startScreen.classList.remove('hidden');
     });
-}
-
-function drawShieldImpacts() {
-    for (let i = shieldImpacts.length - 1; i >= 0; i--) {
-        const impact = shieldImpacts[i];
-        
-        ctx.beginPath();
-        ctx.strokeStyle = `rgba(${impact.color}, ${impact.opacity})`;
-        ctx.lineWidth = 3;
-        ctx.arc(impact.x, impact.y, impact.radius, 0, Math.PI * 2);
-        ctx.stroke();
-
-        impact.radius += 2;
-        impact.opacity -= 0.04;
-
-        if (impact.opacity <= 0) {
-            shieldImpacts.splice(i, 1);
-        }
-    }
-}
-
-function drawBall(ball) {
-    // Gradiente para o efeito de energia verde/laranja (sem a pulsação que causava lag)
-    const gradient = ctx.createRadialGradient(ball.x, ball.y, 0, ball.x, ball.y, ball.radius);
-    gradient.addColorStop(0, '#FFFFFF');
-    gradient.addColorStop(0.5, '#FFA500');
-    gradient.addColorStop(1, 'rgba(0, 255, 127, 0.6)');
-
-    ctx.fillStyle = gradient;
-    ctx.shadowColor = '#FFA500';
-    ctx.shadowBlur = 10;
-    ctx.beginPath();
-    ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2, true);
-    ctx.fill();
-    ctx.shadowBlur = 0;
-}
-function drawScore() {
-    ctx.fillStyle = '#00ffff';
-    ctx.font = 'bold 40px Consolas, monospace';
-    ctx.shadowColor = 'rgba(0, 255, 255, 0.8)';
-    ctx.shadowBlur = 5;
-    ctx.fillText(player1Score, canvas.width / 4, 60);
-    ctx.fillText(player2Score, canvas.width * 3 / 4, 60);
-    ctx.shadowBlur = 0;
-}
-
-function drawVictoryScreen() {
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)'; // Fundo semi-transparente
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = '#fff';
-    ctx.font = '50px Consolas, monospace';
-    ctx.textAlign = 'center';
-    ctx.shadowColor = 'rgba(255, 255, 255, 0.8)';
-    ctx.shadowBlur = 5;
-    let winner = player1Score >= winningScore ? 'JOGADOR 1' : 'JOGADOR 2';
-    ctx.fillText(`VITÓRIA DO ${winner}!`, canvas.width / 2, canvas.height / 2);
-    ctx.font = '20px Consolas, monospace';
-    ctx.fillText('PRESSIONE ENTER PARA JOGAR NOVAMENTE', canvas.width / 2, canvas.height / 2 + 50);
-    ctx.textAlign = 'start'; // Reseta o alinhamento
-    ctx.shadowBlur = 0;
-}
-
-function drawParticles() {
-    bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
-    particles.forEach(p => {
-        p.y += p.speed;
-        if (p.y > bgCanvas.height) {
-            p.y = 0;
-            p.x = Math.random() * bgCanvas.width;
-        }
-        bgCtx.fillStyle = `rgba(255, 255, 255, ${p.opacity})`;
-        bgCtx.fillRect(p.x, p.y, p.size, p.size);
+    declineSoundButton.addEventListener('click', () => {
+        soundEnabled = false;
+        soundPermissionScreen.classList.add('hidden'); startScreen.classList.remove('hidden');
     });
-}
-// MODIFICADO: draw() agora usa fillRect semi-transparente para o rastro
-function draw() {
-    // Efeito de rastro (motion blur)
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    onePlayerButton.addEventListener('click', () => { gameMode = '1P'; startGame(); });
+    twoPlayerButton.addEventListener('click', () => { gameMode = '2P'; startGame(); });
+    restartButton.addEventListener('click', () => {
+        endScreen.classList.add('hidden'); startScreen.classList.remove('hidden');
+        // Tenta tocar a música novamente ao voltar para o menu
+        tryToPlayMusic();
+    });
 
-    drawTable();
-    drawPaddle(player1);
-    drawPaddle(player2);
-    drawBall(ball);
-    drawShieldImpacts();
-    drawScore();
+    // --- EVENT LISTENERS (TECLADO) ---
+    window.addEventListener('keydown', (e) => { keys[e.key] = true; });
+    window.addEventListener('keyup', (e) => { keys[e.key] = false; });
 
-    if (gameEnded) {
-        drawVictoryScreen();
-    }
-}
+    // --- LISTENERS DE TOQUE (MOBILE) ---
 
-
-// ----------------------
-// Lógica do Jogo (sem alterações na física ou regras)
-// MODIFICADO: update() não precisa mais mover paddles com base em `keys` se for mobile only
-// mas vamos manter para compatibilidade
-// ----------------------
-function update() {
-    if (gameEnded) return;
-
-    // Movimento do Teclado (mantido para PC/debug)
-    if (keys.w && player1.y > 0) player1.y -= player1.speed;
-    if (keys.s && player1.y < canvas.height - player1.height) player1.y += player1.speed;
-    if (keys.up && player2.y > 0) player2.y -= player2.speed;
-    if (keys.down && player2.y < canvas.height - player2.height) player2.y += player2.speed;
-
-    // Lógica da bola, colisões, pontuação (sem alterações)
-    ball.x += ball.speedX;
-    ball.y += ball.speedY;
-    
-    // Colisão com bordas superior/inferior
-    if (ball.y - ball.radius < 0 || ball.y + ball.radius > canvas.height) {
-        ball.speedY = -ball.speedY;
+    function handleTouchMove(touch) {
+        const gamePos = mapTouchCoords(touch);
+        const touchInfo = activeTouches[touch.identifier];
         
-        // ADICIONE ESTA LINHA para o efeito de escudo nas bordas
-        createShieldImpact(ball.x, ball.y, "0, 255, 255"); 
-        
-        increaseBallSpeed();
-        bounceSound.currentTime = 0;
-        bounceSound.play();
-    }
-
-    let paddle = (ball.x < canvas.width / 2) ? player1 : player2;
-    if (collides(ball, paddle)) {
-        ball.speedX = -ball.speedX;
-        
-        let collidePoint = (ball.y - (paddle.y + paddle.height / 2));
-        collidePoint = collidePoint / (paddle.height / 2);
-        let angleRad = (Math.PI / 4) * collidePoint;
-        let direction = (ball.x < canvas.width / 2) ? 1 : -1;
-        
-        let currentSpeed = Math.hypot(ball.speedX, ball.speedY);
-        ball.speedX = direction * currentSpeed * Math.cos(angleRad);
-        ball.speedY = currentSpeed * Math.sin(angleRad);
-
-        // ATENÇÃO: Verifique se essa função já existe no seu código.
-        // Se não, adicione-a junto com as outras funções auxiliares.
-        if (typeof createShieldImpact !== 'undefined') {
-            createShieldImpact(ball.x, ball.y, "255, 255, 255");
-        }
-
-        increaseBallSpeed();
-        bounceSound.currentTime = 0;
-        bounceSound.play();
-    }
-    
-    // O resto da função continua igual...
-    // Pontuação
-    if (ball.x - ball.radius < 0) {
-        player2Score++;
-        scoreEffects(player2);
-    } else if (ball.x + ball.radius > canvas.width) {
-        player1Score++;
-        scoreEffects(player1);
-    }
-
-    if (scoreTimer > 0) {
-        scoreTimer--;
-        if (scoreTimer === 0) {
-            player1.scoreColor = '#fff';
-            player2.scoreColor = '#fff';
+        if (touchInfo) {
+            const paddle = touchInfo.paddle;
+            paddle.y = gamePos.y - paddle.height / 2;
+            if (paddle.y < 0) paddle.y = 0;
+            if (paddle.y + paddle.height > canvas.height) paddle.y = canvas.height - paddle.height;
         }
     }
-}
 
+    canvas.addEventListener('touchstart', (e) => {
+        e.preventDefault(); 
+        tryToPlayMusic(); // Garante que a música toque no primeiro toque (caso tenha parado)
+        
+        for (const touch of e.changedTouches) {
+            const gamePos = mapTouchCoords(touch);
+            let paddleToControl = null;
+            
+            if (gameMode === '2P') {
+                if (gamePos.x < canvas.width / 2) {
+                    paddleToControl = player1;
+                } else {
+                    paddleToControl = player2;
+                }
+            } else {
+                if (gamePos.x < canvas.width / 2) {
+                    paddleToControl = player1;
+                }
+            }
 
-// ----------------------
-// Funções Auxiliares (sem alterações)
-// ----------------------
-function hideAllScreens() {
-    mainMenu.style.display = 'none';
-    settingsMenu.style.display = 'none';
-    instructionsMenu.style.display = 'none';
-    canvas.style.display = 'none';
-}
+            if (paddleToControl) {
+                activeTouches[touch.identifier] = { paddle: paddleToControl };
+                handleTouchMove(touch); 
+            }
+        }
+    }, { passive: false }); 
 
-function resetBall() {
-    ball.x = canvas.width / 2;
-    ball.y = canvas.height / 2;
-    ball.speedX = (Math.random() > 0.5 ? 1 : -1) * ball.initialSpeedX;
-    ball.speedY = (Math.random() > 0.5 ? 1 : -1) * ball.initialSpeedY;
-}
+    canvas.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+        for (const touch of e.changedTouches) {
+            handleTouchMove(touch); 
+        }
+    }, { passive: false });
 
-function increaseBallSpeed() {
-    if (Math.abs(ball.speedX) < ball.maxSpeed) {
-        ball.speedX *= 1.05; // Aumento percentual para uma aceleração mais suave
-        ball.speedY *= 1.05;
-    }
-    circleRotationSpeed = Math.min(MAX_CIRCLE_ROTATION_SPEED, circleRotationSpeed + CIRCLE_ROTATION_INCREASE);
-}
+    canvas.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        for (const touch of e.changedTouches) {
+            delete activeTouches[touch.identifier];
+        }
+    }, false);
 
-function checkVictory() {
-    if (player1Score >= winningScore || player2Score >= winningScore) {
-        gameEnded = true;
-        winSound.currentTime = 0;
-        winSound.play();
-    }
-}
+    canvas.addEventListener('touchcancel', (e) => {
+        e.preventDefault();
+        for (const touch of e.changedTouches) {
+            delete activeTouches[touch.identifier];
+        }
+    }, false);
 
-function resetGame() {
-    player1Score = 0;
-    player2Score = 0;
-    gameEnded = false;
-    player1.y = (canvas.height - paddleHeight) / 2;
-    player2.y = (canvas.height - paddleHeight) / 2;
-    player1.scoreColor = '#fff';
-    player2.scoreColor = '#fff';
-    circleRotationSpeed = BASE_CIRCLE_ROTATION_SPEED; // Reseta a velocidade do círculo
-    resetBall();
-}
+    // --- ATUALIZA ESCALA NO RESIZE ---
+    window.addEventListener('resize', () => {
+        canvasRect = canvas.getBoundingClientRect();
+        scaleX = canvas.width / canvasRect.width;
+        scaleY = canvas.height / canvasRect.height;
+    });
 
-function collides(b, p) {
-    return b.x - b.radius < p.x + p.width &&
-           b.x + b.radius > p.x &&
-           b.y - b.radius < p.y + p.height &&
-           b.y + b.radius > p.y;
-}
-
-function scoreEffects(player) {
-    player.scoreColor = '#00ffff';
-    scoreSound.currentTime = 0;
-    scoreSound.play();
-    resetBall();
-    checkVictory();
-    scoreTimer = 60; // Destaque dura 1 segundo (60 frames)
-}
-
-// ----------------------
-// Loop Principal (sem alterações)
-// ----------------------
-function gameLoop() {
-    drawParticles(); // Sempre desenha as partículas no fundo
-    centerCircleRotation += circleRotationSpeed;
-    if (gameState === 'game') {
-        update();
-        draw();
-    }
-    requestAnimationFrame(gameLoop);
-}
-
-// ----------------------
-// Início do Jogo (sem alterações)
-// ----------------------
-// Inicia o jogo no estado de menu e esconde o canvas
-hideAllScreens();
-mainMenu.style.display = 'block';
-canvas.style.display = 'none';
-setupGame(); // <-- SUBSTITUA initParticles() e initializePlayer() POR ISTO
-gameLoop();
-
-// Início do jogo
-hideAllScreens();
-mainMenu.style.display = 'block';
-canvas.style.display = 'none';
-initParticles();
-gameLoop();
+}); // Fim do window.addEventListener('load')
