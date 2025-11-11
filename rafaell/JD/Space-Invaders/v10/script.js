@@ -11,9 +11,6 @@ const highScoreFormContainer = document.getElementById("highScoreFormContainer")
 const highScoreForm = document.getElementById("highScoreForm");
 const playerNameInput = document.getElementById("playerName");
 
-bgCanvas.width = window.innerWidth;
-bgCanvas.height = window.innerHeight;
-
 // --- Estado do Jogo ---
 let gameState = 'menu';
 let audioEnabled = false;
