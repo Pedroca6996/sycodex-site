@@ -1,117 +1,140 @@
-body {
+/* --- CONFIGURAÇÃO GLOBAL --- */
+* {
     margin: 0;
     padding: 0;
-    background-color: #000;
-    font-family: 'Orbitron', sans-serif;
-    overflow: hidden;
-    display: flex; /* Necessário para centralizar o gameContainer */
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    color: #f0f6fc;
-    /* Evita seleção de texto e zoom no toque */
-    user-select: none;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    -webkit-tap-highlight-color: transparent; /* Remove highlight azul no toque */
+    box-sizing: border-box; 
 }
 
-#backgroundCanvas {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0;
-}
-
-#gameContainer {
-    position: relative;
-    z-index: 1;
-    /* MODIFICADO: Responsividade com proporção 4:3 */
-    width: 95vw;
-    height: 71.25vw; /* Mantém 4:3 (largura * 0.75) */
-    max-height: 95vh;
-    max-width: calc(95vh * (800 / 600)); /* Limita largura com base na altura */
-    border: 2px solid #00ff7f;
-    box-shadow: 0 0 20px #00ff7f, inset 0 0 10px rgba(0, 255, 127, 0.5);
-    background: transparent;
-    overflow: hidden;
+html, body {
+    width: 100vw;
+    height: 100vh;
+    background-color: #000; /* Fundo preto para as barras */
+    overflow: hidden; 
+    
+    /* Centraliza a "caixa mágica" */
     display: flex;
     justify-content: center;
     align-items: center;
+
+    /* Fonte padrão (do seu JS) */
+    font-family: 'Orbitron', sans-serif;
+    color: #fff;
+    
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* --- A "CAIXA MÁGICA" (VERSÃO CORRIGIDA) --- */
+#game-container {
+    position: relative;
+    background: #000; /* Fundo do jogo */
+    
+    /* A MÁGICA DA PROPORÇÃO (800x600) */
+    aspect-ratio: 800 / 600;
+    
+    /* Tenta preencher a LARGURA da tela */
+    width: 100vw;
+    
+    /* * TRAVA DE SEGURANÇA:
+     * Se a altura (calculada pelo aspect-ratio) 
+     * for MAIOR que a altura da tela (ex: tablet deitado), 
+     * esta regra (max-height) força o container a 
+     * obedecer a altura da tela, e o aspect-ratio 
+     * recalcula a LARGURA para caber.
+     */
+    max-height: 100vh;
+}
+
+/* --- EMPILHAMENTO DOS ELEMENTOS --- */
+/* Todos os filhos diretos do container ficam empilhados */
+
+#backgroundCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1; /* Camada 1 (Estrelas) */
 }
 
 #gameCanvas {
-    display: block;
-    /* MODIFICADO: Canvas ocupa 100% do container */
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
-    background: transparent; /* Garante transparência sobre o bgCanvas */
+    z-index: 2; /* Camada 2 (Jogo) */
 }
 
-/* Formulário de High Score ajustado para mobile */
+/* Formulário de High Score (do v8) */
 #highScoreFormContainer {
     position: absolute;
-    z-index: 2; /* Fica sobre o gameCanvas */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10; /* Camada 10 (Sobre o jogo) */
+    
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    
+    background-color: rgba(10, 4, 13, 0.9);
+}
+
+/* --- CLASSE UTILITÁRIA --- */
+.hidden {
+    /* !important é necessário para sobrescrever o "display: flex" */
+    display: none !important; 
+}
+
+/* --- ESTILO DOS ELEMENTOS INTERNOS (do v8.9.1) --- */
+/* (Seu JS desenha os botões, mas o form é HTML) */
+
+#highScoreForm {
     background-color: rgba(10, 4, 13, 0.95);
     border: 2px solid #00ff7f;
     box-shadow: 0 0 15px #00ff7f;
-    padding: 15px; /* Menor padding */
+    padding: 25px;
     text-align: center;
     border-radius: 15px;
-    width: 80%; /* Largura relativa */
-    max-width: 350px; /* Limite máximo */
-    /* Centralização (já feita pelo position absolute no container flex) */
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 400px;
 }
 
-#highScoreFormContainer.hidden {
-    display: none;
-}
-
-#highScoreFormContainer h2 {
+#highScoreForm h2 {
     color: #00ff7f;
     text-shadow: 0 0 8px #00ff7f;
-    font-size: 1.3em; /* Tamanho relativo */
     margin-bottom: 10px;
 }
-#highScoreFormContainer p {
-    font-size: 0.9em;
+#highScoreForm p {
     margin-bottom: 15px;
 }
 
-#highScoreForm {
-    display: flex; /* Alinha input e botão */
-    justify-content: center;
-    align-items: center;
-}
-
-#highScoreFormContainer input {
+#highScoreForm input {
     background-color: #0a040d;
     color: #f0f6fc;
     border: 1px solid #00ff7f;
-    padding: 12px; /* Mais área de toque */
+    padding: 12px;
     font-size: 1.1em;
     text-transform: uppercase;
-    width: 100px; /* Largura ajustada */
+    width: 150px;
     text-align: center;
     font-family: 'Orbitron', sans-serif;
     margin-right: 10px;
     border-radius: 5px;
 }
 
-#highScoreFormContainer button {
+#highScoreForm button {
     background-color: #00ff7f;
     color: #0a040d;
     border: none;
     border-radius: 5px;
-    padding: 12px 18px; /* Mais área de toque */
+    padding: 12px 18px;
     font-size: 1em;
     font-weight: bold;
     cursor: pointer;
     font-family: 'Orbitron', sans-serif;
-    transition: all 0.2s ease;
-}
-
-#highScoreFormContainer button:hover, #highScoreFormContainer button:active {
-    box-shadow: 0 0 10px #fff;
 }
