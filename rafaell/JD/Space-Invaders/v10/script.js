@@ -1,5 +1,5 @@
 // =================================================================================
-// Versão 10 - Mobile (Base v8.9.1 + História v9 + Controles)
+// Versão 10.1 - Mobile (Refatorado para Menus HTML)
 // =================================================================================
 
 // --- Elementos do Canvas e HTML ---
@@ -7,18 +7,34 @@ const gameCanvas = document.getElementById("gameCanvas");
 const ctx = gameCanvas.getContext("2d");
 const bgCanvas = document.getElementById("backgroundCanvas");
 const bgCtx = bgCanvas.getContext('2d');
+
+// --- Elementos dos Menus HTML ---
+const startScreen = document.getElementById("startScreen");
+const playButton = document.getElementById("playButton");
+const rankingButton = document.getElementById("rankingButton");
+const settingsButton = document.getElementById("settingsButton");
+
+const rankingScreen = document.getElementById("rankingScreen");
+const rankingList = document.getElementById("rankingList");
+const backButtonRanking = document.getElementById("backButtonRanking");
+
+const settingsScreen = document.getElementById("settingsScreen");
+const settingsList = document.getElementById("settingsList");
+const backButtonSettings = document.getElementById("backButtonSettings");
+
+const gameOverScreen = document.getElementById("gameOverScreen");
+const finalScoreText = document.getElementById("finalScoreText");
+const tryAgainButton = document.getElementById("tryAgainButton");
+const mainMenuButton = document.getElementById("mainMenuButton");
+
 const highScoreFormContainer = document.getElementById("highScoreFormContainer");
 const highScoreForm = document.getElementById("highScoreForm");
 const playerNameInput = document.getElementById("playerName");
 
-// Tamanho do bgCanvas é controlado pelo resize listener
-// bgCanvas.width = window.innerWidth; (REMOVIDO - É DEFINIDO NO RESIZE)
-// bgCanvas.height = window.innerHeight; (REMOVIDO - É DEFINIDO NO RESIZE)
-
 // --- Estado do Jogo ---
-let gameState = 'menu';
+// let gameState = 'menu'; // Não precisamos mais disso, os divs controlam o estado
 let audioEnabled = false;
-const FONT_FAMILY = '"Orbitron", sans-serif';
+const FONT_FAMILY = '"Orbitron", sans-serif'; // Mantido para o HUD
 
 // --- Configurações Visuais ---
 const colors = { 
@@ -39,7 +55,7 @@ const sprites = {};
 // --- Fundo Estrelado ---
 let stars = [];
 function createStars(count) { 
-    stars = []; // Limpa para o resize
+    stars = []; 
     for (let i = 0; i < count; i++) { 
         stars.push({ 
             x: Math.random() * bgCanvas.width, y: Math.random() * bgCanvas.height, radius: Math.random() * 1.5 + 0.5, speed: Math.random() * 0.4 + 0.1 
@@ -109,9 +125,9 @@ let powerUpTimers = {};
 const POWER_UP_DURATION = 5000;
 const keys = {};
 const MAX_POWERUPS_ON_SCREEN = 4;
-let uiActionInProgress = false;
+//let uiActionInProgress = false; // Não é mais necessário com menus HTML
 let nextLifeScore = 1500;
-let hoveredButton = null;
+let animationFrameId; // Para parar o loop do jogo
 
 // --- Variáveis de Toque ---
 let touchLeft = false;
@@ -119,8 +135,6 @@ let touchRight = false;
 let canvasRect = gameCanvas.getBoundingClientRect(); 
 let scaleX = gameCanvas.width / canvasRect.width;
 let scaleY = gameCanvas.height / canvasRect.height;
-
-// --- Botões Virtuais ---
 const virtualControls = {
     left:  { x: 50,  y: gameCanvas.height - 80, width: 80, height: 60, symbol: '<', pressed: false },
     right: { x: gameCanvas.width - 130, y: gameCanvas.height - 80, width: 80, height: 60, symbol: '>', pressed: false },
@@ -133,7 +147,27 @@ function initializePlayer() {
         x: gameCanvas.width / 2 - 25, y: gameCanvas.height - 70, width: 50, height: 25, baseWidth: 50, speed: 5, doubleShot: false, isHit: false, hitTimer: 0 
     }; 
 }
-function resetGame() { 
+
+// NOVO: Função para mostrar/esconder telas
+function showScreen(screenId) {
+    // Esconde todas as telas
+    startScreen.classList.add('hidden');
+    rankingScreen.classList.add('hidden');
+    settingsScreen.classList.add('hidden');
+    gameOverScreen.classList.add('hidden');
+    gameCanvas.classList.add('hidden');
+    highScoreFormContainer.classList.add('hidden');
+
+    // Mostra a tela desejada
+    const screen = document.getElementById(screenId);
+    if (screen) {
+        screen.classList.remove('hidden');
+    } else {
+        console.error("Tela não encontrada:", screenId);
+    }
+}
+
+function startGame() { 
     score = 0; 
     lives = 2; 
     level = 1; 
@@ -146,9 +180,19 @@ function resetGame() {
     initializePlayer(); 
     powerUpTimers = { doubleShot: 0, wideShip: 0, piercing: 0 }; 
     bulletType = "normal"; 
-    highScoreFormContainer.classList.add("hidden"); 
+    
     createEnemies(); 
-    gameState = 'playing'; 
+    
+    // Mostra o canvas do jogo
+    showScreen('gameCanvas');
+    
+    // Para o loop antigo se houver
+    if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+    }
+    
+    // Inicia o novo loop
+    gameLoop();
 }
 function createEnemies() { 
     const eRows = 4, eCols = 10, eSize = 35; 
@@ -216,12 +260,22 @@ function handleEnemyShooting() { if (Math.random() < 0.003 + (level * 0.0005) &&
 function updateEnemyBullets() { for (let i = enemyBullets.length - 1; i >= 0; i--) { enemyBullets[i].y += enemyBullets[i].speed; if (enemyBullets[i].y > gameCanvas.height) enemyBullets.splice(i, 1); } }
 function spawnPowerUp() { if (powerUps.length >= MAX_POWERUPS_ON_SCREEN) { return; } const spawnChance = 0.008 + level * 0.001; if (Math.random() < spawnChance) { const types = [ "doubleShot", "wideShip", "piercing", "doubleShot", "wideShip", "piercing", "doubleShot", "wideShip", "piercing", "bomb" ]; const type = types[Math.floor(Math.random() * types.length)]; const speedMap = { "bomb": 9, "piercing": 6, "wideShip": 5, "doubleShot": 5 }; const speed = speedMap[type] || 5; powerUps.push({ x: Math.random() * (gameCanvas.width - 30), y: 0, width: 30, height: 30, type, speed: speed }); } }
 function updatePowerUps() { for (let i = powerUps.length - 1; i >= 0; i--) { powerUps[i].y += powerUps[i].speed; if (powerUps[i].y > gameCanvas.height) powerUps.splice(i, 1); } }
-function checkCollisions() { for (let bIndex = bullets.length - 1; bIndex >= 0; bIndex--) { const b = bullets[bIndex]; for (let eIndex = enemies.length - 1; eIndex >= 0; eIndex--) { const e = enemies[eIndex]; if (b && e && b.x < e.x + e.width && b.x + b.width > e.x && b.y < e.y + e.height && b.y + b.height > e.y) { playSound('explosion'); score += e.points; if (score >= nextLifeScore) { lives++; nextLifeScore += 1000; } enemies.splice(eIndex, 1); if (b.type !== 'piercing') { bullets.splice(bIndex, 1); break; } } } } if (enemies.length === 0 && gameState === 'playing') { level++; enemySpeed += 0.5; createEnemies(); } for (let i = enemyBullets.length - 1; i >= 0; i--) { const b = enemyBullets[i]; if (!player.isHit && b.x < player.x + player.width && b.x + b.width > player.x && b.y < player.y + player.height && b.y + b.height > player.y) { enemyBullets.splice(i, 1); lives--; playSound('playerHit'); if (lives > 0) { player.isHit = true; player.hitTimer = Date.now(); } else { endGame(); } } } for (let i = powerUps.length - 1; i >= 0; i--) { const p = powerUps[i]; if (p.x < player.x + player.width && p.x + p.width > player.x && p.y < player.y + player.height && p.y + p.height > player.y) { activatePowerUp(p.type); powerUps.splice(i, 1); } } }
+function checkCollisions() { for (let bIndex = bullets.length - 1; bIndex >= 0; bIndex--) { const b = bullets[bIndex]; for (let eIndex = enemies.length - 1; eIndex >= 0; eIndex--) { const e = enemies[eIndex]; if (b && e && b.x < e.x + e.width && b.x + b.width > e.x && b.y < e.y + e.height && b.y + b.height > e.y) { playSound('explosion'); score += e.points; if (score >= nextLifeScore) { lives++; nextLifeScore += 1000; } enemies.splice(eIndex, 1); if (b.type !== 'piercing') { bullets.splice(bIndex, 1); break; } } } } if (enemies.length === 0) { level++; enemySpeed += 0.5; createEnemies(); } for (let i = enemyBullets.length - 1; i >= 0; i--) { const b = enemyBullets[i]; if (!player.isHit && b.x < player.x + player.width && b.x + b.width > player.x && b.y < player.y + player.height && b.y + b.height > player.y) { enemyBullets.splice(i, 1); lives--; playSound('playerHit'); if (lives > 0) { player.isHit = true; player.hitTimer = Date.now(); } else { endGame(); } } } for (let i = powerUps.length - 1; i >= 0; i--) { const p = powerUps[i]; if (p.x < player.x + player.width && p.x + p.width > player.x && p.y < player.y + player.height && p.y + p.height > player.y) { activatePowerUp(p.type); powerUps.splice(i, 1); } } }
 function activatePowerUp(type) { playSound('powerup'); const now = Date.now(); if (type === "doubleShot") { player.doubleShot = true; powerUpTimers.doubleShot = now + POWER_UP_DURATION; } if (type === "wideShip") { player.width = player.baseWidth + 20; powerUpTimers.wideShip = now + POWER_UP_DURATION; } if (type === "piercing") { bulletType = "piercing"; powerUpTimers.piercing = now + POWER_UP_DURATION; } if (type === "bomb") { enemies.forEach(e => {score += e.points; if (score >= nextLifeScore) { lives++; nextLifeScore += 1000; }}); enemies = []; } }
 function updatePowerUpTimers() { const now = Date.now(); if (powerUpTimers.doubleShot && now > powerUpTimers.doubleShot) { player.doubleShot = false; powerUpTimers.doubleShot = 0;} if (powerUpTimers.wideShip && now > powerUpTimers.wideShip) { player.width = player.baseWidth; powerUpTimers.wideShip = 0;} if (powerUpTimers.piercing && now > powerUpTimers.piercing) { bulletType = "normal"; powerUpTimers.piercing = 0;} }
-function endGame() { playSound('gameOver'); if (checkIfHighScore(score)) { gameState = 'enteringName'; highScoreFormContainer.classList.remove("hidden"); playerNameInput.focus(); } else { gameState = 'gameOver'; } }
-
-// --- Funções de Desenho e Sprites ---
+function endGame() { 
+    playSound('gameOver');
+    cancelAnimationFrame(animationFrameId); // Para o loop do jogo
+    
+    if (checkIfHighScore(score)) {
+        showScreen('highScoreFormContainer');
+        playerNameInput.focus();
+    } else {
+        finalScoreText.textContent = `PONTUAÇÃO FINAL: ${score}`;
+        showScreen('gameOverScreen');
+    }
+}
+// --- Funções de Desenho e Sprites (O JOGO) ---
 function setNeonStyle(targetCtx, color, blur = 10) { targetCtx.fillStyle = color; targetCtx.shadowColor = color; targetCtx.shadowBlur = blur; }
 function resetShadow(targetCtx) { targetCtx.shadowBlur = 0; }
 function createSprite(width, height, drawFunction) { const tC = document.createElement('canvas'); const tCtx = tC.getContext('2d'); tC.width = width; tC.height = height; const margin = 15; const obj = { x: margin, y: margin, width: width - (margin * 2), height: height - (margin * 2), centerX: width / 2, centerY: height / 2 }; drawFunction(tCtx, obj); return tC; }
@@ -249,27 +303,23 @@ function drawNukeIcon(ctx, x, y, size) { ctx.fillStyle = '#A9A9A9'; ctx.beginPat
 function drawPowerUp(p) { const cX = p.x + p.width/2; const cY = p.y + p.height/2; const size = p.width; switch (p.type) { case 'doubleShot': drawDoubleShotIcon(ctx, cX, cY, size); break; case 'wideShip': drawWideShipIcon(ctx, cX, cY, size); break; case 'piercing': drawPiercingIcon(ctx, cX, cY, size); break; case 'bomb': drawNukeIcon(ctx, cX, cY, size); break; } }
 function drawHUD() { setNeonStyle(ctx, colors.text, 5); ctx.font = `20px ${FONT_FAMILY}`; ctx.textAlign = 'start'; ctx.fillText(`PONTUAÇÃO: ${score}`, 10, 30); ctx.textAlign = 'center'; ctx.fillText(`NÍVEL: ${level}`, gameCanvas.width / 2, 30); ctx.textAlign = 'end'; ctx.fillText(`VIDAS: ${lives}`, gameCanvas.width - 10, 30); resetShadow(ctx); }
 function drawPowerUpHUD() { const now = Date.now(); const active = Object.entries(powerUpTimers).filter(([type, end]) => end > 0 && end > now); if (active.length === 0) return; let yPos = 60; ctx.font = `bold 14px ${FONT_FAMILY}`; ctx.textAlign = 'start'; setNeonStyle(ctx, colors.text, 3); ctx.fillText("PODERES ATIVOS:", 10, yPos); resetShadow(ctx); yPos += 5; active.forEach(([type, end]) => { yPos += 25; const timeLeft = Math.max(0, end - now); const percent = timeLeft / POWER_UP_DURATION; ctx.fillStyle = "rgba(255, 255, 255, 0.2)"; ctx.fillRect(10, yPos, 150, 10); ctx.fillStyle = colors.player; ctx.fillRect(10, yPos, 150 * percent, 10); setNeonStyle(ctx, colors.text, 3); ctx.font = `12px ${FONT_FAMILY}`; ctx.fillText(type.toUpperCase(), 170, yPos + 9); resetShadow(ctx); }); }
-
-// --- Função para Desenhar Controles Mobile ---
+function drawRoundedRect(x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.lineTo(x + w - r, y); ctx.arcTo(x + w, y, x + w, y + r, r); ctx.lineTo(x + w, y + h - r); ctx.arcTo(x + w, y + h, x + w - r, y + h, r); ctx.lineTo(x + r, y + h); ctx.arcTo(x, y + h, x, y + h - r, r); ctx.lineTo(x, y + r); ctx.arcTo(x, y, x + r, y, r); ctx.closePath(); }
 function drawMobileControls() {
-    if (gameState !== 'playing') return; 
-
+    // Esta função ainda desenha os botões DENTRO do canvas 800x600
+    // O CSS (object-fit) vai redimensionar o canvas inteiro, incluindo os botões.
     Object.values(virtualControls).forEach(button => {
         ctx.strokeStyle = colors.glow;
         ctx.fillStyle = 'rgba(0, 255, 127, 0.1)'; 
         ctx.lineWidth = 2;
         ctx.shadowColor = colors.glow;
         ctx.shadowBlur = 10;
-
         if (button.pressed) {
             ctx.fillStyle = 'rgba(0, 255, 127, 0.4)'; 
             ctx.shadowBlur = 20;
         }
-
         drawRoundedRect(button.x, button.y, button.width, button.height, 10);
         ctx.stroke();
         ctx.fill();
-
         setNeonStyle(ctx, colors.glow, 10);
         ctx.font = `bold ${button.symbol === 'O' ? 30 : 40}px ${FONT_FAMILY}`;
         ctx.textAlign = 'center';
@@ -280,153 +330,9 @@ function drawMobileControls() {
     resetShadow(ctx);
 }
 
-// --- Funções de UI (Menus, Telas) ---
-const menuButtons = { 
-    play: { x: 300, y: 350, width: 200, height: 50, text: 'JOGAR' }, 
-    ranking: { x: 300, y: 420, width: 200, height: 50, text: 'RANKING' }, 
-    settings: { x: 300, y: 490, width: 200, height: 50, text: 'OPÇÕES' } 
-};
-const backButton = { x: 300, y: 500, width: 200, height: 50, text: 'VOLTAR' };
-const gameOverButtons = { 
-    tryAgain: { x: 300, y: 280, width: 200, height: 50, text: 'JOGAR NOVAMENTE' }, 
-    ranking: { x: 300, y: 350, width: 200, height: 50, text: 'RANKING' }, 
-    mainMenu: { x: 300, y: 420, width: 200, height: 50, text: 'MENU' } 
-};
-let settingsButtons = {};
-
-// --- Adicionando a LÓGICA DA HISTÓRIA aqui ---
-function drawMenu() { 
-    drawScreenTemplate('SPACE INVADERS', 180, menuButtons, 80, true); 
-    
-    setNeonStyle(ctx, colors.text, 5);
-    ctx.font = `14px ${FONT_FAMILY}`; 
-    ctx.textAlign = 'center';
-    
-    const storyText = "Uma raça cibernética conhecida como 'Os Mineradores' chegou à Terra. Seu objetivo: congelar o núcleo do planeta para extrair seus recursos, aniquilando toda a vida no processo. A bordo da nave de exploração 'Geode', a geofísica Lena Petrova, guiada pela IA J.A.V.I.S., é a única esperança da humanidade para impedir a devastação.";
-    const lines = [];
-    const maxWidth = 500; 
-    let currentLine = '';
-    
-    storyText.split(' ').forEach(word => {
-        const testLine = currentLine + word + ' ';
-        const metrics = ctx.measureText(testLine);
-        if (metrics.width > maxWidth && currentLine !== '') {
-            lines.push(currentLine.trim());
-            currentLine = word + ' ';
-        } else {
-            currentLine = testLine;
-        }
-    });
-    lines.push(currentLine.trim());
-    
-    lines.forEach((line, index) => {
-        ctx.fillText(line, gameCanvas.width / 2, 280 + index * 20); // Posição Y da história
-    });
-    
-    resetShadow(ctx);
-}
-// --- Fim da lógica da história ---
-
-function drawRankingScreen() { 
-    drawScreenTemplate('RANKING', 100, { back: backButton }, 50); 
-    const hs = getHighScores(); 
-    ctx.font = `24px ${FONT_FAMILY}`; 
-    ctx.textAlign = 'center'; 
-    setNeonStyle(ctx, colors.text, 5); 
-    if (hs.length === 0) { 
-        ctx.fillText('NENHUM RECORDE', gameCanvas.width / 2, 200); 
-    } else { 
-        hs.forEach((s, i) => ctx.fillText(`${i + 1}. ${s.name.padEnd(5, ' ')} - ${s.score}`, gameCanvas.width / 2, 180 + i * 40)); 
-    } resetShadow(ctx); 
-}
-function drawSettingsScreen() {
-    drawScreenTemplate('OPÇÕES', 100, { back: backButton }, 50);
-    ctx.font = `22px ${FONT_FAMILY}`;
-    settingsButtons = {}; let y = 180;
-    const totalContentWidth = 380; const startX = (gameCanvas.width - totalContentWidth) / 2;
-    for (const key in volumes) {
-        const text = `${key.charAt(0).toUpperCase() + key.slice(1)}: ${Math.round(volumes[key] * 100)}%`;
-        const minusBtn = { x: startX, y: y - 25, width: 50, height: 40, text: '-' };
-        const plusBtn = { x: startX + totalContentWidth - 50, y: y - 25, width: 50, height: 40, text: '+' };
-        settingsButtons[`minus_${key}`] = minusBtn; settingsButtons[`plus_${key}`] = plusBtn;
-        drawButton(minusBtn);
-        setNeonStyle(ctx, colors.text, 5); ctx.textAlign = 'center'; ctx.fillText(text, startX + (totalContentWidth / 2), y); 
-        resetShadow(ctx);
-        drawButton(plusBtn);
-        y += 60;
-    }
-    ctx.textAlign = 'start';
-}
-function drawGameOver() { 
-    drawScreenTemplate('FIM DE JOGO', 150, gameOverButtons, 60); 
-    setNeonStyle(ctx, colors.text, 5); 
-    ctx.font = `24px ${FONT_FAMILY}`; 
-    ctx.textAlign = 'center'; 
-    ctx.fillText(`PONTUAÇÃO FINAL: ${score}`, gameCanvas.width / 2, 220); 
-    resetShadow(ctx); 
-}
-function drawScreenTemplate(title, y, buttons, fontSize, isMainMenu = false) {
-    ctx.fillStyle = colors.background; 
-    ctx.fillRect(0, 0, gameCanvas.width, gameCanvas.height);
-    if (isMainMenu) {
-        setNeonStyle(ctx, colors.glow, 15); 
-        ctx.font = `bold 80px ${FONT_FAMILY}`; 
-        ctx.textAlign = 'center';
-        ctx.fillText('SPACE', gameCanvas.width / 2, 160);
-        ctx.fillText('INVADERS', gameCanvas.width / 2, 240);
-        resetShadow(ctx);
-    } else if (title) {
-        setNeonStyle(ctx, colors.glow, 15); 
-        ctx.font = `bold ${fontSize}px ${FONT_FAMILY}`; 
-        ctx.textAlign = 'center'; 
-        ctx.fillText(title, gameCanvas.width / 2, y); 
-        resetShadow(ctx);
-    }
-    Object.values(buttons).forEach(b => drawButton(b));
-}
-function drawButton(b) {
-    const isHovered = hoveredButton && b.x === hoveredButton.x && b.y === hoveredButton.y && b.text === hoveredButton.text;
-    const scale = isHovered ? 1.05 : 1.0; 
-    const newWidth = b.width * scale; 
-    const newHeight = b.height * scale; 
-    const newX = b.x - (newWidth - b.width) / 2; 
-    const newY = b.y - (newHeight - b.height) / 2;
-    if (isHovered) {
-        ctx.shadowColor = '#FFFFFF'; 
-        ctx.shadowBlur = 20; 
-        ctx.fillStyle = colors.player;
-        drawRoundedRect(newX, newY, newWidth, newHeight, 12); 
-        ctx.fill(); 
-        resetShadow(ctx);
-        ctx.fillStyle = colors.background; 
-        ctx.font = `bold ${b.text.length > 10 ? '17' : '19'}px ${FONT_FAMILY}`; 
-        ctx.textAlign = 'center'; 
-        ctx.fillText(b.text, newX + newWidth / 2, newY + newHeight / 2 + 8);
-    } else {
-        setNeonStyle(ctx, colors.glow, 10); 
-        ctx.strokeStyle = colors.glow; 
-        ctx.lineWidth = 2;
-        drawRoundedRect(b.x, b.y, b.width, b.height, 10); 
-        ctx.stroke();
-        ctx.font = `bold ${b.text.length > 10 ? '16' : '18'}px ${FONT_FAMILY}`; 
-        ctx.textAlign = 'center'; 
-        ctx.fillText(b.text, b.x + b.width / 2, b.y + b.height / 2 + 8);
-    }
-    resetShadow(ctx); ctx.textAlign = 'start';
-}
-function drawRoundedRect(x, y, w, h, r) { 
-    ctx.beginPath(); 
-    ctx.moveTo(x + r, y); 
-    ctx.lineTo(x + w - r, y); 
-    ctx.arcTo(x + w, y, x + w, y + r, r); 
-    ctx.lineTo(x + w, y + h - r); 
-    ctx.arcTo(x + w, y + h, x + w - r, y + h, r); 
-    ctx.lineTo(x + r, y + h); 
-    ctx.arcTo(x, y + h, x, y + h - r, r); 
-    ctx.lineTo(x, y + r); 
-    ctx.arcTo(x, y, x + r, y, r); 
-    ctx.closePath(); 
-}
+// --- Funções de UI (Menus) ---
+// REMOVIDO: drawMenu, drawRankingScreen, drawSettingsScreen, drawGameOver, drawScreenTemplate, drawButton
+// Seus botões agora são HTML.
 
 // --- Lógica de High Score ---
 function getHighScores() { return JSON.parse(localStorage.getItem("highScores")) || []; }
@@ -437,54 +343,106 @@ function saveHighScore(name, newScore) { const hs = getHighScores(); hs.push({ n
 function getTouchPos(canvasDom, touchEvent, index = 0) {
     const touch = touchEvent.touches[index] || touchEvent.changedTouches[index];
     if (!touch) return null;
-    return { x: touch.clientX - canvasRect.left, y: touch.clientY - canvasRect.top };
+    // Posição relativa ao viewport
+    return { x: touch.clientX, y: touch.clientY };
 }
+
 function mapToGameCoords(pos) {
     if (!pos) return null;
-    canvasRect = gameCanvas.getBoundingClientRect(); 
+    canvasRect = gameCanvas.getBoundingClientRect(); // Recalcula sempre
     scaleX = gameCanvas.width / canvasRect.width;
     scaleY = gameCanvas.height / canvasRect.height;
+    
+    // Posição relativa ao canvas
+    const canvasX = pos.x - canvasRect.left;
+    const canvasY = pos.y - canvasRect.top;
+
     if (canvasRect.width === 0 || canvasRect.height === 0) return null; 
-    return { x: pos.x * scaleX, y: pos.y * scaleY };
+    
+    // Posição dentro do jogo (800x600)
+    return { x: canvasX * scaleX, y: canvasY * scaleY };
 }
 const isInside = (p, b) => p.x > b.x && p.x < b.x + b.width && p.y > b.y && p.y < b.y + b.height;
 
-// --- Event Listeners ---
+// --- Event Listeners (Teclado) ---
 document.addEventListener("keydown", (e) => { keys[e.key] = true; if (!audioEnabled) audioEnabled = true; });
 document.addEventListener("keyup", (e) => { keys[e.key] = false; });
-highScoreForm.addEventListener("submit", (e) => { e.preventDefault(); saveHighScore(playerNameInput.value.toUpperCase().slice(0, 5) || "AAA", score); highScoreFormContainer.classList.add("hidden"); gameState = 'gameOver'; uiActionInProgress = true; });
 
-gameCanvas.addEventListener('click', (e) => {
-    if (uiActionInProgress) { uiActionInProgress = false; return; }
-    const mouse = { x: e.clientX - gameCanvas.getBoundingClientRect().left, y: e.clientY - gameCanvas.getBoundingClientRect().top };
-    const gamePos = mapToGameCoords(mouse);
-    if (!gamePos) return;
-
-    if (gameState === 'menu') { if (isInside(gamePos, menuButtons.play)) resetGame(); if (isInside(gamePos, menuButtons.ranking)) gameState = 'ranking'; if (isInside(gamePos, menuButtons.settings)) gameState = 'settings'; }
-    else if (gameState === 'ranking') { if (isInside(gamePos, backButton)) gameState = 'menu'; }
-    else if (gameState === 'settings') { if (isInside(gamePos, backButton)) gameState = 'menu'; for (const key in settingsButtons) { if (isInside(gamePos, settingsButtons[key])) { const [action, volumeType] = key.split('_'); if (action === 'minus') volumes[volumeType] = Math.max(0, volumes[volumeType] - 0.1); if (action === 'plus') volumes[volumeType] = Math.min(1, volumes[volumeType] + 0.1); volumes[volumeType] = parseFloat(volumes[volumeType].toFixed(1)); } } localStorage.setItem('gameVolumes', JSON.stringify(volumes)); }
-    else if (gameState === 'gameOver') { if (isInside(gamePos, gameOverButtons.tryAgain)) resetGame(); if (isInside(gamePos, gameOverButtons.ranking)) gameState = 'ranking'; if (isInside(gamePos, gameOverButtons.mainMenu)) gameState = 'menu'; }
-});
-gameCanvas.addEventListener('mousemove', (e) => {
-    const mouse = { x: e.clientX - gameCanvas.getBoundingClientRect().left, y: e.clientY - gameCanvas.getBoundingClientRect().top };
-    const gamePos = mapToGameCoords(mouse);
-    if (!gamePos) { hoveredButton = null; return; }
-
-    let foundButton = null;
-    const getActiveButtons = () => { if (gameState === 'menu') return Object.values(menuButtons); if (gameState === 'ranking') return [backButton]; if (gameState === 'settings') return [backButton, ...Object.values(settingsButtons)]; if (gameState === 'gameOver') return Object.values(gameOverButtons); return []; };
-    const activeButtons = getActiveButtons();
-    for (const button of activeButtons) { if (isInside(gamePos, button)) { foundButton = button; break; } }
-    hoveredButton = foundButton;
+// --- Event Listeners (Formulário) ---
+highScoreForm.addEventListener("submit", (e) => { 
+    e.preventDefault(); 
+    saveHighScore(playerNameInput.value.toUpperCase().slice(0, 5) || "AAA", score); 
+    // Volta para a tela de Game Over
+    finalScoreText.textContent = `PONTUAÇÃO FINAL: ${score}`;
+    showScreen('gameOverScreen');
 });
 
-// --- Listeners de Toque ---
+// --- NOVOS: Event Listeners (Botões dos Menus) ---
+playButton.addEventListener('click', () => {
+    if (!audioEnabled) audioEnabled = true; // Habilita som no 'Jogar'
+    startGame();
+});
+
+rankingButton.addEventListener('click', () => {
+    // Lógica para preencher o ranking
+    const hs = getHighScores();
+    rankingList.innerHTML = ''; // Limpa a lista
+    if (hs.length === 0) {
+        rankingList.innerHTML = '<p>Nenhum recorde ainda</p>';
+    } else {
+        hs.forEach((s, i) => {
+            rankingList.innerHTML += `<p>${i + 1}. ${s.name.padEnd(5, ' ')} - ${s.score}</p>`;
+        });
+    }
+    showScreen('rankingScreen');
+});
+backButtonRanking.addEventListener('click', () => showScreen('startScreen'));
+
+settingsButton.addEventListener('click', () => {
+    // Lógica para preencher as opções
+    settingsList.innerHTML = ''; // Limpa
+    for (const key in volumes) {
+        settingsList.innerHTML += `
+            <div>
+                <span>${key}: ${Math.round(volumes[key] * 100)}%</span>
+                <button class="setting-btn" data-action="minus" data-type="${key}">-</button>
+                <button class="setting-btn" data-action="plus" data-type="${key}">+</button>
+            </div>
+        `;
+    }
+    showScreen('settingsScreen');
+});
+backButtonSettings.addEventListener('click', () => showScreen('startScreen'));
+
+// Listener para os botões de volume
+settingsList.addEventListener('click', (e) => {
+    if (e.target.classList.contains('setting-btn')) {
+        const action = e.target.dataset.action;
+        const type = e.target.dataset.type;
+        
+        if (action === 'minus') volumes[type] = Math.max(0, volumes[type] - 0.1);
+        if (action === 'plus') volumes[type] = Math.min(1, volumes[type] + 0.1);
+        volumes[type] = parseFloat(volumes[type].toFixed(1));
+        
+        localStorage.setItem('gameVolumes', JSON.stringify(volumes));
+        settingsButton.click(); // Recarrega a tela de opções
+    }
+});
+
+tryAgainButton.addEventListener('click', startGame);
+mainMenuButton.addEventListener('click', () => showScreen('startScreen'));
+
+
+// --- Listeners de Toque (para o Jogo) ---
 function updateTouchControls(e) {
     touchLeft = false;
     touchRight = false;
     Object.values(virtualControls).forEach(btn => btn.pressed = false);
 
     for (let i = 0; i < e.touches.length; i++) {
+        // Posição do toque relativa à tela
         const pos = getTouchPos(gameCanvas, e, i);
+        // Posição mapeada para dentro do canvas 800x600
         const gamePos = mapToGameCoords(pos);
         if (!gamePos) continue;
 
@@ -494,78 +452,70 @@ function updateTouchControls(e) {
     }
 }
 
-gameCanvas.addEventListener('touchstart', (e) => {
+// O 'game-container' agora ouve os toques, já que o canvas está escondido
+const gameContainer = document.getElementById('game-container');
+
+gameContainer.addEventListener('touchstart', (e) => {
     e.preventDefault();
     if (!audioEnabled) audioEnabled = true;
-    if (gameState === 'playing') { updateTouchControls(e); }
+    
+    // Verifica se o toque foi no canvas (se o canvas estiver visível)
+    if (!gameCanvas.classList.contains('hidden')) {
+        updateTouchControls(e);
+    }
 }, { passive: false });
 
-gameCanvas.addEventListener('touchmove', (e) => {
+gameContainer.addEventListener('touchmove', (e) => {
     e.preventDefault();
-    if (gameState === 'playing') { updateTouchControls(e); }
+    if (!gameCanvas.classList.contains('hidden')) {
+        updateTouchControls(e);
+    }
 }, { passive: false });
 
-gameCanvas.addEventListener('touchend', (e) => {
+gameContainer.addEventListener('touchend', (e) => {
     e.preventDefault();
-    if (gameState === 'playing') { updateTouchControls(e); }
-
-    const pos = getTouchPos(gameCanvas, e, 0); 
-    const gamePos = mapToGameCoords(pos);
-    if (!gamePos) return;
-
-    if (gameState === 'menu') { if (isInside(gamePos, menuButtons.play)) resetGame(); if (isInside(gamePos, menuButtons.ranking)) gameState = 'ranking'; if (isInside(gamePos, menuButtons.settings)) gameState = 'settings'; }
-    else if (gameState === 'ranking') { if (isInside(gamePos, backButton)) gameState = 'menu'; }
-    else if (gameState === 'settings') { if (isInside(gamePos, backButton)) gameState = 'menu'; for (const key in settingsButtons) { if (isInside(gamePos, settingsButtons[key])) { const [action, volumeType] = key.split('_'); if (action === 'minus') volumes[volumeType] = Math.max(0, volumes[volumeType] - 0.1); if (action === 'plus') volumes[volumeType] = Math.min(1, volumes[volumeType] + 0.1); volumes[volumeType] = parseFloat(volumes[volumeType].toFixed(1)); } } localStorage.setItem('gameVolumes', JSON.stringify(volumes)); }
-    else if (gameState === 'gameOver') { if (isInside(gamePos, gameOverButtons.tryAgain)) resetGame(); if (isInside(gamePos, gameOverButtons.ranking)) gameState = 'ranking'; if (isInside(gamePos, gameOverButtons.mainMenu)) gameState = 'menu'; }
+    if (!gameCanvas.classList.contains('hidden')) {
+        updateTouchControls(e);
+    }
 }, false);
 
-gameCanvas.addEventListener('touchcancel', (e) => {
+gameContainer.addEventListener('touchcancel', (e) => {
     e.preventDefault();
-    if (gameState === 'playing') { updateTouchControls(e); }
+    if (!gameCanvas.classList.contains('hidden')) {
+        updateTouchControls(e);
+    }
 }, false);
 
-// Listener de resize para o bgCanvas E para o scale do jogo
+// Listener de resize
 window.addEventListener('resize', () => {
-    // Redimensiona o canvas de fundo para a tela inteira
     bgCanvas.width = window.innerWidth;
     bgCanvas.height = window.innerHeight;
-    createStars(300); // Recria estrelas
+    createStars(300); 
     
-    // Recalcula o scale do canvas do jogo
-    canvasRect = gameCanvas.getBoundingClientRect();
-    scaleX = gameCanvas.width / canvasRect.width;
-    scaleY = gameCanvas.height / canvasRect.height;
+    // O scale é recalculado dinamicamente em mapToGameCoords
 });
 
 // --- Game Loop Principal ---
+function gameLoop() {
+    updateGame(); 
+    drawGame(); 
+    animationFrameId = requestAnimationFrame(gameLoop);
+}
+
+// --- Função de Início (Main) ---
 async function main() {
     await document.fonts.load(`1em ${FONT_FAMILY}`);
     await preloadAudio();
-    initializePlayer();
-    createAllSprites();
+    initializePlayer(); // Inicializa o player para os sprites
+    createAllSprites(); // Cria os sprites
     
-    // Dispara o primeiro resize para acertar o bgCanvas e o scale
+    // Dispara o resize inicial
     window.dispatchEvent(new Event('resize')); 
     
-    function gameLoop() {
-        drawAndUpdateStars();
-        ctx.clearRect(0, 0, gameCanvas.width, gameCanvas.height);
-        
-        if (hoveredButton) { gameCanvas.style.cursor = 'pointer'; } 
-        else { gameCanvas.style.cursor = 'default'; }
-
-        switch (gameState) {
-            case 'menu': drawMenu(); break;
-            case 'playing': updateGame(); drawGame(); break;
-            case 'ranking': drawRankingScreen(); break;
-            case 'settings': drawSettingsScreen(); break;
-            case 'gameOver': drawGameOver(); break;
-            case 'enteringName': drawGame(); break;
-        }
-        requestAnimationFrame(gameLoop);
-    }
-    // createStars(300); // Movido para o 'resize'
-    gameLoop();
+    // Mostra a tela de início
+    showScreen('startScreen');
+    
+    // O gameLoop() SÓ é chamado quando o usuário clica em "JOGAR"
 }
 
 main();

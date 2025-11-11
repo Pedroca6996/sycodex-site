@@ -8,14 +8,8 @@
 html, body {
     width: 100vw;
     height: 100vh;
-    background-color: #000; /* Fundo preto para as barras */
+    background-color: #000;
     overflow: hidden; 
-    
-    /* Centraliza a "caixa mágica" */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-
     font-family: 'Orbitron', sans-serif;
     color: #fff;
     
@@ -24,60 +18,126 @@ html, body {
     -webkit-tap-highlight-color: transparent;
 }
 
-/* --- A "CAIXA MÁGICA" (VERSÃO REALMENTE CORRIGIDA) --- */
+/* --- GAME CONTAINER (TELA CHEIA) --- */
 #game-container {
     position: relative;
-    background: #000; 
+    width: 100%;
+    height: 100%;
     
-    /* A MÁGICA DA PROPORÇÃO (800x600) - LÓGICA INVERTIDA */
-    
-    /* 1. Define a ALTURA como 100% da tela */
-    height: 100vh; 
-    
-    /* 2. Define a LARGURA baseado na altura (800 / 600 = 1.333) */
-    width: calc(100vh * (800 / 600));
-    
-    /* 3. TRAVA DE SEGURANÇA: Se a largura calculada for MAIOR que a tela... */
-    max-width: 100vw;
-    /* 4. ...então recalcula a ALTURA baseado na largura (600 / 800 = 0.75) */
-    max-height: calc(100vw * (600 / 800));
-
-    /* Isso garante que ele sempre caiba, priorizando o maior espaço */
+    /* Centraliza os menus */
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
-/* --- EMPILHAMENTO DOS ELEMENTOS --- */
-/* Todos os filhos preenchem 100% do container */
+/* --- CAMADAS DE JOGO --- */
+#backgroundCanvas {
+    position: fixed; /* Fixo atrás de tudo */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1; 
+}
 
-#backgroundCanvas,
-#gameCanvas,
-#highScoreFormContainer {
+#gameCanvas {
+    /* O canvas fica no centro, mantendo a proporção 4:3 */
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    
+    z-index: 2; /* Acima do fundo */
+    
+    /* A MÁGICA: MANTÉM A PROPORÇÃO SEM CORTAR */
+    width: 100%;
+    height: 100%;
+    object-fit: contain; /* Isso é o "não cortar" */
+}
+
+/* --- TELAS DE MENU (MODAIS) --- */
+.modal {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-}
-
-#backgroundCanvas { z-index: 1; }
-#gameCanvas { z-index: 2; }
-#highScoreFormContainer { z-index: 10; }
-
-
-/* --- ESTILO DO FORMULÁRIO (Igual, mas com z-index) --- */
-#highScoreFormContainer {
+    z-index: 10; /* Acima de tudo */
+    
+    background-color: rgba(10, 4, 13, 0.95);
+    
+    /* Centraliza o conteúdo */
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    background-color: rgba(10, 4, 13, 0.9);
+    
+    padding: 20px;
+    text-align: center;
+}
+
+/* O formulário de High Score é um modal especial */
+#highScoreFormContainer {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 11; /* Acima dos outros menus */
+    background-color: rgba(10, 4, 13, 0.95);
+    
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }
 
 .hidden {
     display: none !important; 
 }
 
+/* --- ESTILO DOS ELEMENTOS DOS MENUS --- */
+h1, h2 {
+    color: #00ff7f;
+    text-shadow: 0 0 15px #00ff7f;
+    margin-bottom: 20px;
+    font-size: 2.5rem;
+}
+h2 {
+    font-size: 2rem;
+}
+
+/* O TEXTO DA HISTÓRIA */
+#storyText {
+    font-size: 1rem;
+    line-height: 1.6;
+    max-width: 600px;
+    margin-bottom: 30px;
+    color: #eee;
+}
+
+/* Botões dos menus */
+.modal button {
+    background-color: transparent;
+    border: 2px solid #00ff7f;
+    color: #00ff7f;
+    border-radius: 8px;
+    padding: 15px 30px;
+    font-size: 1.2rem;
+    font-family: 'Orbitron', sans-serif;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin: 8px;
+    min-width: 250px; /* Largura mínima */
+}
+
+.modal button:hover, .modal button:active {
+    background-color: #00ff7f;
+    color: #000;
+    box-shadow: 0 0 20px #00ff7f;
+}
+
+/* Estilo do Formulário de High Score */
 #highScoreForm {
-    background-color: rgba(10, 4, 13, 0.95);
     border: 2px solid #00ff7f;
     box-shadow: 0 0 15px #00ff7f;
     padding: 25px;
@@ -86,16 +146,6 @@ html, body {
     width: 90%;
     max-width: 400px;
 }
-
-#highScoreForm h2 {
-    color: #00ff7f;
-    text-shadow: 0 0 8px #00ff7f;
-    margin-bottom: 10px;
-}
-#highScoreForm p {
-    margin-bottom: 15px;
-}
-
 #highScoreForm input {
     background-color: #0a040d;
     color: #f0f6fc;
@@ -109,7 +159,6 @@ html, body {
     margin-right: 10px;
     border-radius: 5px;
 }
-
 #highScoreForm button {
     background-color: #00ff7f;
     color: #0a040d;

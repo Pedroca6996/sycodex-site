@@ -14,8 +14,40 @@
     <div id="game-container">
 
         <canvas id="backgroundCanvas"></canvas>
-        <canvas id="gameCanvas" width="800" height="600"></canvas>
+
+        <canvas id="gameCanvas" width="800" height="600" class="hidden"></canvas>
         
+        <div id="startScreen" class="modal">
+            <h1>SPACE INVADERS</h1>
+            
+            <p id="storyText">
+                Uma raça cibernética conhecida como 'Os Mineradores' chegou à Terra. Seu objetivo: congelar o núcleo do planeta para extrair seus recursos, aniquilando toda a vida no processo. A bordo da nave de exploração 'Geode', a geofísica Lena Petrova, guiada pela IA J.A.V.I.S., é a única esperança da humanidade para impedir a devastação.
+            </p>
+            
+            <button id="playButton">JOGAR</button>
+            <button id="rankingButton">RANKING</button>
+            <button id="settingsButton">OPÇÕES</button>
+        </div>
+
+        <div id="rankingScreen" class="modal hidden">
+            <h2>RANKING</h2>
+            <div id="rankingList"></div>
+            <button id="backButtonRanking">VOLTAR</button>
+        </div>
+        
+        <div id="settingsScreen" class="modal hidden">
+            <h2>OPÇÕES</h2>
+            <div id="settingsList"></div>
+            <button id="backButtonSettings">VOLTAR</button>
+        </div>
+        
+        <div id="gameOverScreen" class="modal hidden">
+            <h2>FIM DE JOGO</h2>
+            <p id="finalScoreText"></p>
+            <button id="tryAgainButton">JOGAR NOVAMENTE</button>
+            <button id="mainMenuButton">MENU</button>
+        </div>
+
         <div id="highScoreFormContainer" class="hidden">
             <form id="highScoreForm">
                 <h2>Nova Pontuação Alta!</h2>
@@ -24,7 +56,6 @@
                 <button type="submit">Salvar</button>
             </form>
         </div>
-
     </div>
 
     <script src="script.js"></script>
