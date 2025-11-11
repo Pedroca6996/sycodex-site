@@ -11,6 +11,10 @@ const highScoreFormContainer = document.getElementById("highScoreFormContainer")
 const highScoreForm = document.getElementById("highScoreForm");
 const playerNameInput = document.getElementById("playerName");
 
+// Tamanho do bgCanvas é controlado pelo resize listener
+// bgCanvas.width = window.innerWidth; (REMOVIDO - É DEFINIDO NO RESIZE)
+// bgCanvas.height = window.innerHeight; (REMOVIDO - É DEFINIDO NO RESIZE)
+
 // --- Estado do Jogo ---
 let gameState = 'menu';
 let audioEnabled = false;
@@ -69,18 +73,16 @@ let volumes = JSON.parse(localStorage.getItem('gameVolumes')) || {
     gameOver: 0.6, 
     playerHit: 0.6 
 };
-// MODIFICADO: Função preloadAudio corrigida
 function preloadAudio() {
     console.log("Iniciando pré-carregamento de áudio...");
     const promises = Object.values(sounds).map(sound => {
         return new Promise((resolve, reject) => {
-            // Verifica se o som já carregou
-            if (sound.readyState >= 3) { // HAVE_FUTURE_DATA
+            if (sound.readyState >= 3) {
                 resolve();
                 return;
             }
             sound.addEventListener('canplaythrough', resolve, { once: true });
-            sound.addEventListener('error', reject, { once: true }); // Adiciona tratamento de erro
+            sound.addEventListener('error', reject, { once: true });
         });
     });
     return Promise.all(promises).then(() => {
@@ -111,15 +113,14 @@ let uiActionInProgress = false;
 let nextLifeScore = 1500;
 let hoveredButton = null;
 
-// --- NOVAS: Variáveis de Toque ---
+// --- Variáveis de Toque ---
 let touchLeft = false;
 let touchRight = false;
-let touchFire = false; // Substitui o 'touchTap'
-let canvasRect = gameCanvas.getBoundingClientRect(); // Posição do canvas
+let canvasRect = gameCanvas.getBoundingClientRect(); 
 let scaleX = gameCanvas.width / canvasRect.width;
 let scaleY = gameCanvas.height / canvasRect.height;
 
-// --- NOVO: Botões Virtuais ---
+// --- Botões Virtuais ---
 const virtualControls = {
     left:  { x: 50,  y: gameCanvas.height - 80, width: 80, height: 60, symbol: '<', pressed: false },
     right: { x: gameCanvas.width - 130, y: gameCanvas.height - 80, width: 80, height: 60, symbol: '>', pressed: false },
@@ -143,11 +144,7 @@ function resetGame() {
     enemies = []; 
     powerUps = []; 
     initializePlayer(); 
-    powerUpTimers = { 
-        doubleShot: 0, 
-        wideShip: 0, 
-        piercing: 0 
-    }; 
+    powerUpTimers = { doubleShot: 0, wideShip: 0, piercing: 0 }; 
     bulletType = "normal"; 
     highScoreFormContainer.classList.add("hidden"); 
     createEnemies(); 
@@ -179,27 +176,20 @@ function updateGame() {
     updatePowerUpTimers(); 
     if (player.isHit && Date.now() - player.hitTimer > 2000) player.isHit = false; 
 }
-// MODIFICADO: para incluir toque
 function handlePlayerMovement() { 
-    // Teclado
     if (keys["ArrowLeft"] && player.x > 0) player.x -= player.speed; 
     if (keys["ArrowRight"] && player.x + player.width < gameCanvas.width) player.x += player.speed; 
-    // Toque
     if (touchLeft && player.x > 0) player.x -= player.speed;
     if (touchRight && player.x + player.width < gameCanvas.width) player.x += player.speed;
 }
-// MODIFICADO: para incluir toque
 function handleShooting() { 
     const now = Date.now();
     let shotFired = false;
-    
-    // Teclado
     if (keys[" "] && now - lastShotTime > shotInterval) { 
         shootBullet(); 
         lastShotTime = now; 
         shotFired = true;
     }
-    // Toque (Botão Pressionado)
     if (!shotFired && virtualControls.fire.pressed && now - lastShotTime > shotInterval) {
         shootBullet();
         lastShotTime = now;
@@ -209,18 +199,17 @@ function shootBullet() {
     playSound('shoot'); 
     const base = { y: player.y, width: 5, height: 15, type: bulletType, speed: bulletType === "piercing" ? 9 : 7, angle: 0 }; 
     if (player.doubleShot) { 
-    bullets.push({ ...base, x: player.x + player.width * 0.2 }); 
-    bullets.push({ ...base, x: player.x + player.width * 0.8 - base.width }); 
+        bullets.push({ ...base, x: player.x + player.width * 0.2 }); 
+        bullets.push({ ...base, x: player.x + player.width * 0.8 - base.width }); 
     } 
     else { 
-    bullets.push({ ...base, x: player.x + player.width / 2 - base.width / 2 }); 
+        bullets.push({ ...base, x: player.x + player.width / 2 - base.width / 2 }); 
     } 
     if (player.width > player.baseWidth) { 
-    bullets.push({ ...base, x: player.x, angle: -0.25 }); 
-    bullets.push({ ...base, x: player.x + player.width, angle: 0.25 }); 
+        bullets.push({ ...base, x: player.x, angle: -0.25 }); 
+        bullets.push({ ...base, x: player.x + player.width, angle: 0.25 }); 
     } 
 }
-// ... (O resto das funções de update (updateBullets, updateEnemies, etc) não mudam) ...
 function updateBullets() { for (let i = bullets.length - 1; i >= 0; i--) { const b = bullets[i]; b.y -= b.speed; if (b.angle) { b.x += b.angle * b.speed; } if (b.y + b.height < 0) bullets.splice(i, 1); } }
 function updateEnemies() { let hitEdge = false; enemies.forEach(e => { e.x += enemyDirection * enemySpeed; if (e.x < 0 || e.x + e.width > gameCanvas.width) hitEdge = true; }); if (hitEdge) { enemyDirection *= -1; enemies.forEach(e => { e.y += 20; if (e.y + e.height >= player.y) endGame(); }); } }
 function handleEnemyShooting() { if (Math.random() < 0.003 + (level * 0.0005) && enemies.length > 0) { const shooter = enemies[Math.floor(Math.random() * enemies.length)]; enemyBullets.push({ x: shooter.x + shooter.width / 2 - 2, y: shooter.y + shooter.height, width: 4, height: 12, speed: 4.5 + level * 0.2 }); } }
@@ -247,8 +236,6 @@ function drawGame() {
     powerUps.forEach(drawPowerUp); 
     drawHUD(); 
     drawPowerUpHUD(); 
-    
-    // NOVO: Desenha os controles mobile
     drawMobileControls();
 }
 function drawPlayer() { if (player.isHit && Math.floor((Date.now() - player.hitTimer) / 100) % 2 === 0) return; if(sprites.player) ctx.drawImage(sprites.player, player.x - 15, player.y - 15); }
@@ -263,21 +250,19 @@ function drawPowerUp(p) { const cX = p.x + p.width/2; const cY = p.y + p.height/
 function drawHUD() { setNeonStyle(ctx, colors.text, 5); ctx.font = `20px ${FONT_FAMILY}`; ctx.textAlign = 'start'; ctx.fillText(`PONTUAÇÃO: ${score}`, 10, 30); ctx.textAlign = 'center'; ctx.fillText(`NÍVEL: ${level}`, gameCanvas.width / 2, 30); ctx.textAlign = 'end'; ctx.fillText(`VIDAS: ${lives}`, gameCanvas.width - 10, 30); resetShadow(ctx); }
 function drawPowerUpHUD() { const now = Date.now(); const active = Object.entries(powerUpTimers).filter(([type, end]) => end > 0 && end > now); if (active.length === 0) return; let yPos = 60; ctx.font = `bold 14px ${FONT_FAMILY}`; ctx.textAlign = 'start'; setNeonStyle(ctx, colors.text, 3); ctx.fillText("PODERES ATIVOS:", 10, yPos); resetShadow(ctx); yPos += 5; active.forEach(([type, end]) => { yPos += 25; const timeLeft = Math.max(0, end - now); const percent = timeLeft / POWER_UP_DURATION; ctx.fillStyle = "rgba(255, 255, 255, 0.2)"; ctx.fillRect(10, yPos, 150, 10); ctx.fillStyle = colors.player; ctx.fillRect(10, yPos, 150 * percent, 10); setNeonStyle(ctx, colors.text, 3); ctx.font = `12px ${FONT_FAMILY}`; ctx.fillText(type.toUpperCase(), 170, yPos + 9); resetShadow(ctx); }); }
 
-// --- NOVO: Função para Desenhar Controles Mobile ---
+// --- Função para Desenhar Controles Mobile ---
 function drawMobileControls() {
-    if (gameState !== 'playing') return; // Só desenha no jogo
+    if (gameState !== 'playing') return; 
 
     Object.values(virtualControls).forEach(button => {
-        // Define a aparência base
         ctx.strokeStyle = colors.glow;
-        ctx.fillStyle = 'rgba(0, 255, 127, 0.1)'; // Fundo semi-transparente
+        ctx.fillStyle = 'rgba(0, 255, 127, 0.1)'; 
         ctx.lineWidth = 2;
         ctx.shadowColor = colors.glow;
         ctx.shadowBlur = 10;
 
-        // Muda a aparência se o botão estiver pressionado
         if (button.pressed) {
-            ctx.fillStyle = 'rgba(0, 255, 127, 0.4)'; // Fica mais opaco
+            ctx.fillStyle = 'rgba(0, 255, 127, 0.4)'; 
             ctx.shadowBlur = 20;
         }
 
@@ -285,7 +270,6 @@ function drawMobileControls() {
         ctx.stroke();
         ctx.fill();
 
-        // Desenha o símbolo do botão
         setNeonStyle(ctx, colors.glow, 10);
         ctx.font = `bold ${button.symbol === 'O' ? 30 : 40}px ${FONT_FAMILY}`;
         ctx.textAlign = 'center';
@@ -298,45 +282,29 @@ function drawMobileControls() {
 
 // --- Funções de UI (Menus, Telas) ---
 const menuButtons = { 
-    play: { 
-        x: 300, y: 350, width: 200, height: 50, text: 'JOGAR' 
-    }, 
-    ranking: { 
-        x: 300, y: 420, width: 200, height: 50, text: 'RANKING' 
-    }, 
-    settings: { 
-        x: 300, y: 490, width: 200, height: 50, text: 'OPÇÕES' 
-    } 
+    play: { x: 300, y: 350, width: 200, height: 50, text: 'JOGAR' }, 
+    ranking: { x: 300, y: 420, width: 200, height: 50, text: 'RANKING' }, 
+    settings: { x: 300, y: 490, width: 200, height: 50, text: 'OPÇÕES' } 
 };
-const backButton = { 
-    x: 300, y: 500, width: 200, height: 50, text: 'VOLTAR' 
-};
+const backButton = { x: 300, y: 500, width: 200, height: 50, text: 'VOLTAR' };
 const gameOverButtons = { 
-    tryAgain: { 
-        x: 300, y: 280, width: 200, height: 50, text: 'JOGAR NOVAMENTE' 
-    }, 
-    ranking: { 
-        x: 300, y: 350, width: 200, height: 50, text: 'RANKING' 
-    }, 
-    mainMenu: { 
-        x: 300, y: 420, width: 200, height: 50, text: 'MENU' 
-    } 
+    tryAgain: { x: 300, y: 280, width: 200, height: 50, text: 'JOGAR NOVAMENTE' }, 
+    ranking: { x: 300, y: 350, width: 200, height: 50, text: 'RANKING' }, 
+    mainMenu: { x: 300, y: 420, width: 200, height: 50, text: 'MENU' } 
 };
 let settingsButtons = {};
-// MODIFICADO: drawMenu para incluir a história
+
+// --- Adicionando a LÓGICA DA HISTÓRIA aqui ---
 function drawMenu() { 
-    // Título (já feito pelo template)
     drawScreenTemplate('SPACE INVADERS', 180, menuButtons, 80, true); 
     
-    // Adiciona o texto da história (NOVO)
     setNeonStyle(ctx, colors.text, 5);
-    ctx.font = `14px ${FONT_FAMILY}`; // Fonte menor para o parágrafo
+    ctx.font = `14px ${FONT_FAMILY}`; 
     ctx.textAlign = 'center';
     
-    // Quebra a história em linhas
     const storyText = "Uma raça cibernética conhecida como 'Os Mineradores' chegou à Terra. Seu objetivo: congelar o núcleo do planeta para extrair seus recursos, aniquilando toda a vida no processo. A bordo da nave de exploração 'Geode', a geofísica Lena Petrova, guiada pela IA J.A.V.I.S., é a única esperança da humanidade para impedir a devastação.";
     const lines = [];
-    const maxWidth = 500; // Largura máxima do texto
+    const maxWidth = 500; 
     let currentLine = '';
     
     storyText.split(' ').forEach(word => {
@@ -351,13 +319,14 @@ function drawMenu() {
     });
     lines.push(currentLine.trim());
     
-    // Desenha as linhas da história
     lines.forEach((line, index) => {
         ctx.fillText(line, gameCanvas.width / 2, 280 + index * 20); // Posição Y da história
     });
     
     resetShadow(ctx);
 }
+// --- Fim da lógica da história ---
+
 function drawRankingScreen() { 
     drawScreenTemplate('RANKING', 100, { back: backButton }, 50); 
     const hs = getHighScores(); 
@@ -460,20 +429,11 @@ function drawRoundedRect(x, y, w, h, r) {
 }
 
 // --- Lógica de High Score ---
-function getHighScores() { 
-    return JSON.parse(localStorage.getItem("highScores")) || []; 
-}
-function checkIfHighScore(s) { 
-    const hs = getHighScores(); 
-    return s > 0 && (hs.length < 5 || s > hs[hs.length - 1].score); 
-}
-function saveHighScore(name, newScore) { 
-    const hs = getHighScores(); hs.push({ name, score: newScore }); 
-    hs.sort((a, b) => b.score - a.score); 
-    localStorage.setItem("highScores", JSON.stringify(hs.slice(0, 5))); 
-}
+function getHighScores() { return JSON.parse(localStorage.getItem("highScores")) || []; }
+function checkIfHighScore(s) { const hs = getHighScores(); return s > 0 && (hs.length < 5 || s > hs[hs.length - 1].score); }
+function saveHighScore(name, newScore) { const hs = getHighScores(); hs.push({ name, score: newScore }); hs.sort((a, b) => b.score - a.score); localStorage.setItem("highScores", JSON.stringify(hs.slice(0, 5))); }
 
-// --- NOVOS: Helpers de Toque ---
+// --- Helpers de Toque ---
 function getTouchPos(canvasDom, touchEvent, index = 0) {
     const touch = touchEvent.touches[index] || touchEvent.changedTouches[index];
     if (!touch) return null;
@@ -481,7 +441,7 @@ function getTouchPos(canvasDom, touchEvent, index = 0) {
 }
 function mapToGameCoords(pos) {
     if (!pos) return null;
-    canvasRect = gameCanvas.getBoundingClientRect(); // Recalcula em caso de resize
+    canvasRect = gameCanvas.getBoundingClientRect(); 
     scaleX = gameCanvas.width / canvasRect.width;
     scaleY = gameCanvas.height / canvasRect.height;
     if (canvasRect.width === 0 || canvasRect.height === 0) return null; 
@@ -490,89 +450,35 @@ function mapToGameCoords(pos) {
 const isInside = (p, b) => p.x > b.x && p.x < b.x + b.width && p.y > b.y && p.y < b.y + b.height;
 
 // --- Event Listeners ---
-document.addEventListener("keydown", (e) => { 
-    keys[e.key] = true; 
-    if (!audioEnabled) audioEnabled = true; 
-});
-document.addEventListener("keyup", (e) => { 
-    keys[e.key] = false; 
-});
-highScoreForm.addEventListener("submit", (e) => { 
-    e.preventDefault(); 
-    saveHighScore(playerNameInput.value.toUpperCase().slice(0, 5) || "AAA", score); 
-    highScoreFormContainer.classList.add("hidden"); 
-    gameState = 'gameOver'; 
-    uiActionInProgress = true; 
-});
+document.addEventListener("keydown", (e) => { keys[e.key] = true; if (!audioEnabled) audioEnabled = true; });
+document.addEventListener("keyup", (e) => { keys[e.key] = false; });
+highScoreForm.addEventListener("submit", (e) => { e.preventDefault(); saveHighScore(playerNameInput.value.toUpperCase().slice(0, 5) || "AAA", score); highScoreFormContainer.classList.add("hidden"); gameState = 'gameOver'; uiActionInProgress = true; });
 
-// MODIFICADO: 'click' agora usa mapToGameCoords
 gameCanvas.addEventListener('click', (e) => {
     if (uiActionInProgress) { uiActionInProgress = false; return; }
-    
-    // Converte clique para coordenadas do jogo
-    const mouse = { 
-        x: e.clientX - gameCanvas.getBoundingClientRect().left, 
-        y: e.clientY - gameCanvas.getBoundingClientRect().top 
-    };
+    const mouse = { x: e.clientX - gameCanvas.getBoundingClientRect().left, y: e.clientY - gameCanvas.getBoundingClientRect().top };
     const gamePos = mapToGameCoords(mouse);
     if (!gamePos) return;
 
-    if (gameState === 'menu') { 
-        if (isInside(gamePos, menuButtons.play)) resetGame(); 
-        if (isInside(gamePos, menuButtons.ranking)) gameState = 'ranking'; 
-        if (isInside(gamePos, menuButtons.settings)) gameState = 'settings'; 
-    }
-    else if (gameState === 'ranking') { 
-        if (isInside(gamePos, backButton)) gameState = 'menu'; 
-    }
-    else if (gameState === 'settings') { 
-        if (isInside(gamePos, backButton)) gameState = 'menu'; 
-        for (const key in settingsButtons) { 
-            if (isInside(gamePos, settingsButtons[key])) { 
-                const [action, volumeType] = key.split('_'); 
-                if (action === 'minus') volumes[volumeType] = Math.max(0, volumes[volumeType] - 0.1); 
-                if (action === 'plus') volumes[volumeType] = Math.min(1, volumes[volumeType] + 0.1); 
-                volumes[volumeType] = parseFloat(volumes[volumeType].toFixed(1)); 
-            } 
-        } localStorage.setItem('gameVolumes', JSON.stringify(volumes)); 
-    }
-    else if (gameState === 'gameOver') { 
-        if (isInside(gamePos, gameOverButtons.tryAgain)) resetGame(); 
-        if (isInside(gamePos, gameOverButtons.ranking)) gameState = 'ranking'; 
-        if (isInside(gamePos, gameOverButtons.mainMenu)) gameState = 'menu'; 
-    }
+    if (gameState === 'menu') { if (isInside(gamePos, menuButtons.play)) resetGame(); if (isInside(gamePos, menuButtons.ranking)) gameState = 'ranking'; if (isInside(gamePos, menuButtons.settings)) gameState = 'settings'; }
+    else if (gameState === 'ranking') { if (isInside(gamePos, backButton)) gameState = 'menu'; }
+    else if (gameState === 'settings') { if (isInside(gamePos, backButton)) gameState = 'menu'; for (const key in settingsButtons) { if (isInside(gamePos, settingsButtons[key])) { const [action, volumeType] = key.split('_'); if (action === 'minus') volumes[volumeType] = Math.max(0, volumes[volumeType] - 0.1); if (action === 'plus') volumes[volumeType] = Math.min(1, volumes[volumeType] + 0.1); volumes[volumeType] = parseFloat(volumes[volumeType].toFixed(1)); } } localStorage.setItem('gameVolumes', JSON.stringify(volumes)); }
+    else if (gameState === 'gameOver') { if (isInside(gamePos, gameOverButtons.tryAgain)) resetGame(); if (isInside(gamePos, gameOverButtons.ranking)) gameState = 'ranking'; if (isInside(gamePos, gameOverButtons.mainMenu)) gameState = 'menu'; }
 });
-// MODIFICADO: 'mousemove' agora usa mapToGameCoords
 gameCanvas.addEventListener('mousemove', (e) => {
-    const mouse = { 
-        x: e.clientX - gameCanvas.getBoundingClientRect().left, 
-        y: e.clientY - gameCanvas.getBoundingClientRect().top 
-    };
+    const mouse = { x: e.clientX - gameCanvas.getBoundingClientRect().left, y: e.clientY - gameCanvas.getBoundingClientRect().top };
     const gamePos = mapToGameCoords(mouse);
-    if (!gamePos) {
-        hoveredButton = null;
-        return;
-    }
+    if (!gamePos) { hoveredButton = null; return; }
 
     let foundButton = null;
-    const getActiveButtons = () => { 
-        if (gameState === 'menu') return Object.values(menuButtons); 
-        if (gameState === 'ranking') return [backButton]; 
-        if (gameState === 'settings') return [backButton, ...Object.values(settingsButtons)]; 
-        if (gameState === 'gameOver') return Object.values(gameOverButtons); return []; 
-    };
+    const getActiveButtons = () => { if (gameState === 'menu') return Object.values(menuButtons); if (gameState === 'ranking') return [backButton]; if (gameState === 'settings') return [backButton, ...Object.values(settingsButtons)]; if (gameState === 'gameOver') return Object.values(gameOverButtons); return []; };
     const activeButtons = getActiveButtons();
-    for (const button of activeButtons) { 
-        if (isInside(gamePos, button)) { 
-            foundButton = button; break; 
-        } 
-    }
+    for (const button of activeButtons) { if (isInside(gamePos, button)) { foundButton = button; break; } }
     hoveredButton = foundButton;
 });
 
-// --- NOVOS: Listeners de Toque ---
+// --- Listeners de Toque ---
 function updateTouchControls(e) {
-    // Reseta todos os estados de toque
     touchLeft = false;
     touchRight = false;
     Object.values(virtualControls).forEach(btn => btn.pressed = false);
@@ -582,91 +488,48 @@ function updateTouchControls(e) {
         const gamePos = mapToGameCoords(pos);
         if (!gamePos) continue;
 
-        // Verifica botões virtuais
-        if (isInside(gamePos, virtualControls.left)) {
-            virtualControls.left.pressed = true;
-            touchLeft = true;
-        }
-        if (isInside(gamePos, virtualControls.right)) {
-            virtualControls.right.pressed = true;
-            touchRight = true;
-        }
-        if (isInside(gamePos, virtualControls.fire)) {
-            virtualControls.fire.pressed = true;
-        }
+        if (isInside(gamePos, virtualControls.left)) { virtualControls.left.pressed = true; touchLeft = true; }
+        if (isInside(gamePos, virtualControls.right)) { virtualControls.right.pressed = true; touchRight = true; }
+        if (isInside(gamePos, virtualControls.fire)) { virtualControls.fire.pressed = true; }
     }
 }
 
 gameCanvas.addEventListener('touchstart', (e) => {
     e.preventDefault();
     if (!audioEnabled) audioEnabled = true;
-    
-    if (gameState === 'playing') {
-        updateTouchControls(e);
-    }
+    if (gameState === 'playing') { updateTouchControls(e); }
 }, { passive: false });
 
 gameCanvas.addEventListener('touchmove', (e) => {
     e.preventDefault();
-    if (gameState === 'playing') {
-        updateTouchControls(e);
-    }
+    if (gameState === 'playing') { updateTouchControls(e); }
 }, { passive: false });
 
 gameCanvas.addEventListener('touchend', (e) => {
     e.preventDefault();
-    
-    // Se for o último dedo saindo, o 'e.touches' estará vazio
-    // Precisamos reavaliar os botões com base nos dedos restantes
-    if (gameState === 'playing') {
-        updateTouchControls(e);
-    }
+    if (gameState === 'playing') { updateTouchControls(e); }
 
-    // --- Lógica de clique no menu ---
-    // Pega o primeiro dedo que saiu da tela
     const pos = getTouchPos(gameCanvas, e, 0); 
     const gamePos = mapToGameCoords(pos);
     if (!gamePos) return;
 
-    if (gameState === 'menu') { 
-        if (isInside(gamePos, menuButtons.play)) resetGame(); 
-        if (isInside(gamePos, menuButtons.ranking)) gameState = 'ranking'; 
-        if (isInside(gamePos, menuButtons.settings)) gameState = 'settings'; 
-    }
-    else if (gameState === 'ranking') { 
-        if (isInside(gamePos, backButton)) gameState = 'menu'; 
-    }
-    else if (gameState === 'settings') { 
-        if (isInside(gamePos, backButton)) gameState = 'menu'; 
-        for (const key in settingsButtons) { 
-            if (isInside(gamePos, settingsButtons[key])) { 
-                const [action, volumeType] = key.split('_'); 
-                if (action === 'minus') volumes[volumeType] = Math.max(0, volumes[volumeType] - 0.1); 
-                if (action === 'plus') volumes[volumeType] = Math.min(1, volumes[volumeType] + 0.1); 
-                volumes[volumeType] = parseFloat(volumes[volumeType].toFixed(1)); 
-            } 
-        } localStorage.setItem('gameVolumes', JSON.stringify(volumes)); 
-    }
-    else if (gameState === 'gameOver') { 
-        if (isInside(gamePos, gameOverButtons.tryAgain)) resetGame(); 
-        if (isInside(gamePos, gameOverButtons.ranking)) gameState = 'ranking'; 
-        if (isInside(gamePos, gameOverButtons.mainMenu)) gameState = 'menu'; 
-    }
+    if (gameState === 'menu') { if (isInside(gamePos, menuButtons.play)) resetGame(); if (isInside(gamePos, menuButtons.ranking)) gameState = 'ranking'; if (isInside(gamePos, menuButtons.settings)) gameState = 'settings'; }
+    else if (gameState === 'ranking') { if (isInside(gamePos, backButton)) gameState = 'menu'; }
+    else if (gameState === 'settings') { if (isInside(gamePos, backButton)) gameState = 'menu'; for (const key in settingsButtons) { if (isInside(gamePos, settingsButtons[key])) { const [action, volumeType] = key.split('_'); if (action === 'minus') volumes[volumeType] = Math.max(0, volumes[volumeType] - 0.1); if (action === 'plus') volumes[volumeType] = Math.min(1, volumes[volumeType] + 0.1); volumes[volumeType] = parseFloat(volumes[volumeType].toFixed(1)); } } localStorage.setItem('gameVolumes', JSON.stringify(volumes)); }
+    else if (gameState === 'gameOver') { if (isInside(gamePos, gameOverButtons.tryAgain)) resetGame(); if (isInside(gamePos, gameOverButtons.ranking)) gameState = 'ranking'; if (isInside(gamePos, gameOverButtons.mainMenu)) gameState = 'menu'; }
 }, false);
 
 gameCanvas.addEventListener('touchcancel', (e) => {
     e.preventDefault();
-    // Trata como touchend
-    if (gameState === 'playing') {
-        updateTouchControls(e);
-    }
+    if (gameState === 'playing') { updateTouchControls(e); }
 }, false);
 
-// NOVO: Listener de resize para o bgCanvas
+// Listener de resize para o bgCanvas E para o scale do jogo
 window.addEventListener('resize', () => {
+    // Redimensiona o canvas de fundo para a tela inteira
     bgCanvas.width = window.innerWidth;
     bgCanvas.height = window.innerHeight;
-    createStars(300); // Recria estrelas na nova dimensão
+    createStars(300); // Recria estrelas
     
     // Recalcula o scale do canvas do jogo
     canvasRect = gameCanvas.getBoundingClientRect();
@@ -680,36 +543,28 @@ async function main() {
     await preloadAudio();
     initializePlayer();
     createAllSprites();
+    
+    // Dispara o primeiro resize para acertar o bgCanvas e o scale
+    window.dispatchEvent(new Event('resize')); 
+    
     function gameLoop() {
         drawAndUpdateStars();
         ctx.clearRect(0, 0, gameCanvas.width, gameCanvas.height);
         
-        // Otimização: Só checa hover do mouse se não for mobile (opcional)
-        // if (!('ontouchstart' in window)) { ... }
-        if (hoveredButton) { 
-            gameCanvas.style.cursor = 'pointer'; 
-        } else { 
-            gameCanvas.style.cursor = 'default'; 
-        }
+        if (hoveredButton) { gameCanvas.style.cursor = 'pointer'; } 
+        else { gameCanvas.style.cursor = 'default'; }
 
         switch (gameState) {
-            case 'menu': drawMenu(); 
-            break;
-            case 'playing': updateGame(); 
-            drawGame(); 
-            break;
-            case 'ranking': drawRankingScreen(); 
-            break;
-            case 'settings': drawSettingsScreen(); 
-            break;
-            case 'gameOver': drawGameOver(); 
-            break;
-            case 'enteringName': drawGame(); 
-            break;
+            case 'menu': drawMenu(); break;
+            case 'playing': updateGame(); drawGame(); break;
+            case 'ranking': drawRankingScreen(); break;
+            case 'settings': drawSettingsScreen(); break;
+            case 'gameOver': drawGameOver(); break;
+            case 'enteringName': drawGame(); break;
         }
         requestAnimationFrame(gameLoop);
     }
-    createStars(300);
+    // createStars(300); // Movido para o 'resize'
     gameLoop();
 }
 

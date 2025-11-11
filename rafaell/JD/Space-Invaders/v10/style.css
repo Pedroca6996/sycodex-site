@@ -16,7 +16,6 @@ html, body {
     justify-content: center;
     align-items: center;
 
-    /* Fonte padrão (do seu JS) */
     font-family: 'Orbitron', sans-serif;
     color: #fff;
     
@@ -25,92 +24,57 @@ html, body {
     -webkit-tap-highlight-color: transparent;
 }
 
-/* --- A "CAIXA MÁGICA" (AGORA RESPONSIVA) --- */
+/* --- A "CAIXA MÁGICA" (VERSÃO REALMENTE CORRIGIDA) --- */
 #game-container {
     position: relative;
-    background: #000; /* Fundo do jogo */
+    background: #000; 
     
-    width: 100vw; /* Ocupa a largura total */
-    height: 100vh; /* Ocupa a altura total */
+    /* A MÁGICA DA PROPORÇÃO (800x600) - LÓGICA INVERTIDA */
     
-    /* MODIFICADO: Não usa aspect-ratio aqui */
-    /* Em vez disso, os elementos internos se ajustarão */
-
-    /* Garante que o conteúdo interno use Flexbox para centralização */
-    display: flex;
-    flex-direction: column; /* Empilha o conteúdo */
-    justify-content: center;
-    align-items: center;
-}
-
-/* --- EMPILHAMENTO DOS ELEMENTOS INTERNOS (Ajustados ao Container) --- */
-/* Estes elementos agora flutuam sobre o game-container */
-/* e não dentro dele, permitindo o bgCanvas ser fullscreen. */
-
-#backgroundCanvas {
-    position: fixed; /* Fixo na tela inteira */
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    z-index: 1; /* Camada 1 (Estrelas) */
-}
-
-#gameCanvas {
-    position: absolute; /* Absoluto ao game-container */
-    top: 50%; /* Centraliza verticalmente */
-    left: 50%; /* Centraliza horizontalmente */
-    transform: translate(-50%, -50%); /* Ajuste fino para centro exato */
+    /* 1. Define a ALTURA como 100% da tela */
+    height: 100vh; 
     
-    /* NOVO: Proporção 4:3 APENAS para o canvas */
-    aspect-ratio: 800 / 600; 
+    /* 2. Define a LARGURA baseado na altura (800 / 600 = 1.333) */
+    width: calc(100vh * (800 / 600));
     
-    /* NOVO: Garante que o canvas não estoure a tela */
+    /* 3. TRAVA DE SEGURANÇA: Se a largura calculada for MAIOR que a tela... */
     max-width: 100vw;
-    max-height: 100vh;
-    
-    /* Define um tamanho base em vh (altura da viewport) */
-    /* Isso fará com que o canvas tente ocupar 80% da altura da tela,
-       e o aspect-ratio ajustará a largura. */
-    height: 80vh; 
-    width: auto; /* Deixa o aspect-ratio definir a largura */
+    /* 4. ...então recalcula a ALTURA baseado na largura (600 / 800 = 0.75) */
+    max-height: calc(100vw * (600 / 800));
 
-    /* Fallback para navegadores antigos que não suportam aspect-ratio */
-    @supports not (aspect-ratio: 1) {
-        width: 80vh * (800 / 600); /* Calcula largura manualmente */
-        max-width: 100vw;
-        max-height: 100vh;
-    }
-
-    z-index: 2; /* Camada 2 (Jogo) */
+    /* Isso garante que ele sempre caiba, priorizando o maior espaço */
 }
 
-/* Formulário de High Score (do v8) */
+/* --- EMPILHAMENTO DOS ELEMENTOS --- */
+/* Todos os filhos preenchem 100% do container */
+
+#backgroundCanvas,
+#gameCanvas,
 #highScoreFormContainer {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 10; /* Camada 10 (Sobre o jogo) */
-    
+}
+
+#backgroundCanvas { z-index: 1; }
+#gameCanvas { z-index: 2; }
+#highScoreFormContainer { z-index: 10; }
+
+
+/* --- ESTILO DO FORMULÁRIO (Igual, mas com z-index) --- */
+#highScoreFormContainer {
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    
     background-color: rgba(10, 4, 13, 0.9);
 }
 
-/* --- CLASSE UTILITÁRIA --- */
 .hidden {
-    /* !important é necessário para sobrescrever o "display: flex" */
     display: none !important; 
 }
-
-/* --- ESTILO DOS ELEMENTOS INTERNOS (do v8.9.1) --- */
-/* Estes estilos permanecem praticamente os mesmos, mas agora 
-   o layout dentro dos modals se adapta melhor. */
 
 #highScoreForm {
     background-color: rgba(10, 4, 13, 0.95);
@@ -120,7 +84,7 @@ html, body {
     text-align: center;
     border-radius: 15px;
     width: 90%;
-    max-width: 400px; /* Limita o tamanho máximo em telas grandes */
+    max-width: 400px;
 }
 
 #highScoreForm h2 {
