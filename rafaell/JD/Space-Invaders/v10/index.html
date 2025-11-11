@@ -2,9 +2,9 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     
-    <title>Space Invaders v10 - Mobile Corrigido</title>
+    <title>Space Invaders v10 - Controles Corrigidos</title>
     
     <link rel="stylesheet" href="style.css" />
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
@@ -15,47 +15,51 @@
 
         <canvas id="backgroundCanvas"></canvas>
 
-        <canvas id="gameCanvas" width="800" height="600" class="hidden"></canvas>
-        
-        <div id="startScreen" class="modal">
-            <h1>SPACE INVADERS</h1>
+        <div id="game-wrapper">
             
-            <p id="storyText">
-                Uma raça cibernética conhecida como 'Os Mineradores' chegou à Terra. Seu objetivo: congelar o núcleo do planeta para extrair seus recursos, aniquilando toda a vida no processo. A bordo da nave de exploração 'Geode', a geofísica Lena Petrova, guiada pela IA J.A.V.I.S., é a única esperança da humanidade para impedir a devastação.
-            </p>
+            <canvas id="gameCanvas" width="800" height="600" class="hidden"></canvas>
             
-            <button id="playButton">JOGAR</button>
-            <button id="rankingButton">RANKING</button>
-            <button id="settingsButton">OPÇÕES</button>
+            <div id="startScreen" class="modal">
+                <h1>SPACE INVADERS</h1>
+                <p id="storyText">
+                    Uma raça cibernética conhecida como 'Os Mineradores' chegou à Terra. Seu objetivo: congelar o núcleo do planeta para extrair seus recursos, aniquilando toda a vida no processo. A bordo da nave de exploração 'Geode', a geofísica Lena Petrova, guiada pela IA J.A.V.I.S., é a única esperança da humanidade para impedir a devastação.
+                </p>
+                <button id="playButton">JOGAR</button>
+                <button id="rankingButton">RANKING</button>
+                <button id="settingsButton">OPÇÕES</button>
+            </div>
+            <div id="rankingScreen" class="modal hidden">
+                <h2>RANKING</h2>
+                <div id="rankingList"></div>
+                <button id="backButtonRanking">VOLTAR</button>
+            </div>
+            <div id="settingsScreen" class="modal hidden">
+                <h2>OPÇÕES</h2>
+                <div id="settingsList"></div>
+                <button id="backButtonSettings">VOLTAR</button>
+            </div>
+            <div id="gameOverScreen" class="modal hidden">
+                <h2>FIM DE JOGO</h2>
+                <p id="finalScoreText"></p>
+                <button id="tryAgainButton">JOGAR NOVAMENTE</button>
+                <button id="mainMenuButton">MENU</button>
+            </div>
+            <div id="highScoreFormContainer" class="hidden">
+                <form id="highScoreForm">
+                    <h2>Nova Pontuação Alta!</h2>
+                    <p>Digite seu nome (5 caracteres):</p>
+                    <input type="text" id="playerName" maxlength="5" autofocus autocomplete="off">
+                    <button type="submit">Salvar</button>
+                </form>
+            </div>
         </div>
 
-        <div id="rankingScreen" class="modal hidden">
-            <h2>RANKING</h2>
-            <div id="rankingList"></div>
-            <button id="backButtonRanking">VOLTAR</button>
-        </div>
-        
-        <div id="settingsScreen" class="modal hidden">
-            <h2>OPÇÕES</h2>
-            <div id="settingsList"></div>
-            <button id="backButtonSettings">VOLTAR</button>
-        </div>
-        
-        <div id="gameOverScreen" class="modal hidden">
-            <h2>FIM DE JOGO</h2>
-            <p id="finalScoreText"></p>
-            <button id="tryAgainButton">JOGAR NOVAMENTE</button>
-            <button id="mainMenuButton">MENU</button>
+        <div id="controls-container">
+            <button id="touchLeft" class="control-btn"><span>&lt;</span></button>
+            <button id="touchFire" class="control-btn fire"><span>O</span></button>
+            <button id="touchRight" class="control-btn"><span>&gt;</span></button>
         </div>
 
-        <div id="highScoreFormContainer" class="hidden">
-            <form id="highScoreForm">
-                <h2>Nova Pontuação Alta!</h2>
-                <p>Digite seu nome (5 caracteres):</p>
-                <input type="text" id="playerName" maxlength="5" autofocus autocomplete="off">
-                <button type="submit">Salvar</button>
-            </form>
-        </div>
     </div>
 
     <script src="script.js"></script>

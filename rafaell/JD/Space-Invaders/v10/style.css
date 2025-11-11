@@ -3,6 +3,7 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box; 
+    -webkit-tap-highlight-color: transparent; /* Remove o brilho azul do toque */
 }
 
 html, body {
@@ -12,10 +13,8 @@ html, body {
     overflow: hidden; 
     font-family: 'Orbitron', sans-serif;
     color: #fff;
-    
     user-select: none;
     -webkit-user-select: none;
-    -webkit-tap-highlight-color: transparent;
 }
 
 /* --- GAME CONTAINER (TELA CHEIA) --- */
@@ -24,13 +23,12 @@ html, body {
     width: 100%;
     height: 100%;
     
-    /* Centraliza os menus */
+    /* Mágica do Layout: Empilha o jogo (em cima) e os controles (embaixo) */
     display: flex;
-    justify-content: center;
-    align-items: center;
+    flex-direction: column;
 }
 
-/* --- CAMADAS DE JOGO --- */
+/* --- CAMADA DE FUNDO (ESTRELAS) --- */
 #backgroundCanvas {
     position: fixed; /* Fixo atrás de tudo */
     top: 0;
@@ -40,50 +38,101 @@ html, body {
     z-index: 1; 
 }
 
-#gameCanvas {
-    /* O canvas fica no centro, mantendo a proporção 4:3 */
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+/* --- 1. WRAPPER DO JOGO (Onde o canvas e os menus ficam) --- */
+#game-wrapper {
+    position: relative;
+    width: 100%;
     
+    /* Ocupa todo o espaço disponível, MENOS a altura dos controles */
+    flex-grow: 1; 
+    
+    /* Garante que o canvas não vaze */
+    overflow: hidden; 
+    
+    /* Centraliza o canvas (que tem object-fit) */
+    display: flex;
+    justify-content: center;
+    align-items: center;
     z-index: 2; /* Acima do fundo */
-    
-    /* A MÁGICA: MANTÉM A PROPORÇÃO SEM CORTAR */
+}
+
+#gameCanvas {
+    /* O canvas agora se ajusta DENTRO do wrapper */
     width: 100%;
     height: 100%;
-    object-fit: contain; /* Isso é o "não cortar" */
+    
+    /* A MÁGICA: Mantém a proporção 4:3 (800x600) e adiciona barras pretas
+       (letterbox) DENTRO do wrapper. Isso força o "mapa todo". */
+    object-fit: contain; 
 }
+
+/* --- 2. CONTAINER DE CONTROLES (EMBAIXO) --- */
+#controls-container {
+    position: relative;
+    width: 100%;
+    height: 90px; /* Altura fixa para os botões */
+    flex-shrink: 0; /* Não deixa encolher */
+    background-color: #05050A; /* Cor de fundo da barra de controle */
+    border-top: 2px solid #00ff7f;
+    
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    z-index: 3; /* Acima do fundo */
+}
+
+.control-btn {
+    height: 100%;
+    width: 33%;
+    background-color: rgba(0, 255, 127, 0.1);
+    border: 2px solid #00ff7f;
+    border-radius: 10px;
+    color: #00ff7f;
+    font-size: 2.5rem; /* Tamanho do ícone < > */
+    font-weight: bold;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-bottom: 5px; /* Ajuste visual do ícone */
+}
+.control-btn.fire {
+    width: 30%; /* Botão de tiro um pouco menor */
+    font-size: 2rem; /* Tamanho do ícone O */
+    background-color: rgba(255, 65, 190, 0.1); /* Cor rosa */
+    border-color: #ff41be;
+    color: #ff41be;
+}
+/* Feedback de toque para os botões HTML */
+.control-btn:active {
+    background-color: rgba(0, 255, 127, 0.4);
+}
+.control-btn.fire:active {
+    background-color: rgba(255, 65, 190, 0.4);
+}
+
 
 /* --- TELAS DE MENU (MODAIS) --- */
 .modal {
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 10; /* Acima de tudo */
-    
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 10; /* Acima do canvas */
     background-color: rgba(10, 4, 13, 0.95);
-    
-    /* Centraliza o conteúdo */
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    
     padding: 20px;
     text-align: center;
 }
 
-/* O formulário de High Score é um modal especial */
 #highScoreFormContainer {
     position: absolute;
     top: 0; left: 0;
     width: 100%; height: 100%;
     z-index: 11; /* Acima dos outros menus */
     background-color: rgba(10, 4, 13, 0.95);
-    
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -101,11 +150,8 @@ h1, h2 {
     margin-bottom: 20px;
     font-size: 2.5rem;
 }
-h2 {
-    font-size: 2rem;
-}
+h2 { font-size: 2rem; }
 
-/* O TEXTO DA HISTÓRIA */
 #storyText {
     font-size: 1rem;
     line-height: 1.6;
@@ -114,7 +160,6 @@ h2 {
     color: #eee;
 }
 
-/* Botões dos menus */
 .modal button {
     background-color: transparent;
     border: 2px solid #00ff7f;
@@ -125,18 +170,16 @@ h2 {
     font-family: 'Orbitron', sans-serif;
     font-weight: bold;
     cursor: pointer;
-    transition: all 0.2s ease;
     margin: 8px;
-    min-width: 250px; /* Largura mínima */
+    min-width: 250px; 
 }
-
-.modal button:hover, .modal button:active {
+.modal button:active, .modal button:hover {
     background-color: #00ff7f;
     color: #000;
     box-shadow: 0 0 20px #00ff7f;
 }
 
-/* Estilo do Formulário de High Score */
+/* Form de High Score */
 #highScoreForm {
     border: 2px solid #00ff7f;
     box-shadow: 0 0 15px #00ff7f;
